@@ -2,7 +2,6 @@
 import HelloWorld from './components/HelloWorld.vue'
 import TheWelcome from './components/TheWelcome.vue'
 import SideBarTest from "@/components/SideBarTest.vue";
-
 </script>
 
 <template>
@@ -18,6 +17,8 @@ import SideBarTest from "@/components/SideBarTest.vue";
 
   <main>
     <TheWelcome />
+    <router-link to="/test">dawdad</router-link>
+    <router-view/>
   </main>
 </template>
 
