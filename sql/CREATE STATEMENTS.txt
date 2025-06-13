@@ -544,7 +544,7 @@ CREATE TABLE EVENTO_CLIENTE(
 CREATE TABLE USUARIO(
     usuario_id serial,
     fecha_creacion DATE NOT NULL,
-    nombre_usuario varchar(50) NOT NULL,
+    nombre_usuario varchar(50) NOT NULL UNIQUE,
     hash_contrasena varchar(50) NOT NULL,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
@@ -592,7 +592,7 @@ CREATE TABLE COMPRA_REPOSICION(
     aprobacion boolean default 'f',
     total integer NOT NULL,
     fk_miembro_acaucab integer NOT NULL,
-    constraint pk_compra_reposicon_id primary key (compra_reposicion_id),
+    constraint pk_compra_reposicion_id primary key (compra_reposicion_id),
     constraint fk_miembro_acaucab_compra_reposicion foreign key (fk_miembro_acaucab) references MIEMBRO_ACAUCAB(miembro_id)
 );
 
