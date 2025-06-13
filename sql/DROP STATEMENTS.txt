@@ -1,0 +1,148 @@
+drop table estado_reposicion_anaquel cascade;
+
+drop table rol_permiso cascade;
+
+drop table permiso cascade;
+
+drop table horario_empleado cascade;
+
+drop table horario cascade;
+
+drop table asistencia cascade;
+
+drop table vacacion cascade;
+
+drop table beneficio_empleado cascade;
+
+drop table beneficio cascade;
+
+drop table evento_empleado cascade;
+
+drop table juez cascade;
+
+drop table departamento_empleado cascade;
+
+drop table cargo cascade;
+
+drop table departamento cascade;
+
+drop table receta_ingrediente cascade;
+
+drop table ingrediente cascade;
+
+drop table tipo_ingrediente cascade;
+
+drop table caracteristica cascade;
+
+drop table cerveza_caracteristica cascade;
+
+drop table oferta cascade;
+
+drop table premio cascade;
+
+drop table premiacion_evento_miembro cascade;
+
+drop table premiacion_evento cascade;
+
+drop table premiacion cascade;
+
+drop table tipo_cerveza_caracteristica cascade;
+
+drop table detalle_reposicion_anaquel cascade;
+
+drop table reposicion_anaquel cascade;
+
+drop table telefono cascade;
+
+drop table personal_contacto cascade;
+
+drop table correo_electronico cascade;
+
+drop table rol_usuario cascade;
+
+drop table rol cascade;
+
+drop table estado_compra_reposicion cascade;
+
+drop table detalle_compra cascade;
+
+drop table detalle_venta_online cascade;
+
+drop table estado_venta_online cascade;
+
+drop table estado cascade;
+
+drop table detalle_venta_evento cascade;
+
+drop table evento_miembro_acaucab cascade;
+
+drop table detalle_venta_tienda cascade;
+
+drop table anaquel_cerveza cascade;
+
+drop table anaquel cascade;
+
+drop table pasillo cascade;
+
+drop table punto_venta_compra cascade;
+
+drop table tasa_conversion cascade;
+
+drop table pago cascade;
+
+drop table membresia cascade;
+
+drop table usuario cascade;
+
+drop table empleado cascade;
+
+drop table compra_reposicion cascade;
+
+drop table almacen_cerveza cascade;
+
+drop table almacen cascade;
+
+drop table acaucab cascade;
+
+drop table cerveza_presentacion cascade;
+
+drop table presentacion cascade;
+
+drop table miembro_acaucab cascade;
+
+drop table cerveza cascade;
+
+drop table estilo_cerveza cascade;
+
+drop table tipo_cerveza cascade;
+
+drop table receta cascade;
+
+drop table venta_online cascade;
+
+drop table venta_evento cascade;
+
+drop table evento_cliente cascade;
+
+drop table evento cascade;
+
+drop table tipo_evento cascade;
+
+drop table venta_tienda cascade;
+
+drop table cliente_natural cascade;
+
+drop table cliente_juridico cascade;
+
+drop table lugar cascade;
+
+drop table metodo_pago_efectivo cascade;
+
+drop table metodo_pago_debito cascade;
+
+drop table metodo_pago_credito cascade;
+
+drop table metodo_pago_cheque cascade;
+
+drop table metodo_pago_punto cascade;
+

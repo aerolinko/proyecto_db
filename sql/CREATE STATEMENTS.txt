@@ -1,0 +1,849 @@
+CREATE TABLE ESTADO(
+    estado_id serial,
+    nombre varchar(50) NOT NULL,
+    descripcion varchar(255) NOT NULL,
+    constraint pk_estado_id primary key (estado_id)
+);
+
+CREATE TABLE REPOSICION_ANAQUEL(
+    reposicion_anaquel_id serial,
+    fecha_entrega DATE,
+    fecha DATE NOT NULL,
+    constraint pk_reposicion_anaquel_id primary key (reposicion_anaquel_id)
+);
+
+CREATE TABLE LUGAR(
+    lugar_id serial,
+    nombre varchar(50) NOT NULL,
+    tipo varchar(50) NOT NULL,
+    fk_lugar integer ,
+    constraint pk_lugar_id primary key (lugar_id),
+    constraint fk_lugar foreign key(fk_lugar) references LUGAR(lugar_id),
+    constraint check_lugar_tipo check ( tipo IN('parroquia','estado','municipio'))
+);
+
+CREATE TABLE CARACTERISTICA(
+    caracteristica_id serial,
+    nombre varchar(50) NOT NULL,
+    tipo varchar(10) NOT NULL,
+    descripcion varchar(255),
+    constraint pk_caracteristica_id primary key (caracteristica_id),
+    constraint check_tipo_caracteristica check ( tipo IN('aroma','sabor','sensacion','color') )
+);
+
+CREATE TABLE ESTILO_CERVEZA(
+    estilo_cerveza_id serial,
+    nombre varchar(50) NOT NULL,
+    constraint pk_estilo_cerveza_id primary key (estilo_cerveza_id)
+);
+
+CREATE TABLE PERMISO(
+    permiso_id serial,
+    descripcion varchar(255) NOT NULL,
+    constraint pk_permiso_id primary key (permiso_id)
+);
+
+CREATE TABLE TIPO_INGREDIENTE(
+    tipo_ingrediente_id serial,
+    nombre varchar(50) NOT NULL,
+    constraint pk_tipo_ingrediente_id primary key (tipo_ingrediente_id)
+);
+
+CREATE TABLE CARGO(
+    cargo_id serial,
+    nombre varchar(50) NOT NULL,
+    constraint pk_cargo_id primary key (cargo_id)
+);
+
+CREATE TABLE HORARIO(
+    horario_id serial,
+    hora_inicio time NOT NULL,
+    hora_fin time NOT NULL,
+    dia varchar(50),
+    constraint pk_horario_id primary key (horario_id),
+    constraint check_horario_dia check ( dia IN('lunes','martes','miercoles','jueves','viernes','sabado','domingo'))
+);
+
+CREATE TABLE BENEFICIO(
+    beneficio_id serial,
+    nombre varchar(50) NOT NULL,
+    descripcion varchar(255) NOT NULL,
+    constraint pk_beneficio_id primary key (beneficio_id)
+);
+
+CREATE TABLE TIPO_EVENTO(
+    tipo_evento_id serial,
+    nombre varchar(50) NOT NULL,
+    constraint pk_tipo_evento_id primary key (tipo_evento_id)
+);
+
+CREATE TABLE PREMIACION(
+    premiacion_id serial,
+    nombre varchar(50) NOT NULL,
+    fecha DATE NOT NULL,
+    hora_inicio time NOT NULL,
+    hora_fin time NOT NULL,
+    constraint pk_premiacion_id primary key (premiacion_id)
+);
+
+CREATE TABLE ACAUCAB(
+    acaucab_id serial,
+    direccion varchar(255) NOT NULL,
+    denomiancion_comercial varchar(100) NOT NULL,
+    RIF varchar(12) NOT NULL,
+    razon_social varchar(100) NOT NULL,
+    fk_lugar integer NOT NULL,
+    constraint pk_acaucab_id primary key (acaucab_id),
+    constraint fk_lugar_acaucab foreign key (fk_lugar) references LUGAR(lugar_id)
+);
+
+CREATE TABLE ALMACEN(
+    almacen_id serial,
+    capacidad integer NOT NULL,
+    direccion varchar(255) NOT NULL,
+    fk_lugar integer,
+    fk_acaucab integer,
+    constraint pk_almacen_id primary key (almacen_id),
+    constraint fk_lugar_almacen foreign key (fk_lugar) references LUGAR(lugar_id),
+    constraint fk_acaucab_almacen foreign key (fk_acaucab) references ACAUCAB(acaucab_id)
+);
+
+CREATE TABLE ESTADO_REPOSICION_ANAQUEL(
+    estado_reposicion_anaquel_id serial,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE,
+    fk_estado integer NOT NULL,
+    fk_reposicion_anaquel integer NOT NULL,
+    constraint pk_estado_reposicion_anaquel_id primary key (estado_reposicion_anaquel_id),
+    constraint fk_estado_estado_reposicion_anaquel foreign key (fk_estado) references ESTADO(estado_id),
+    constraint fk_reposicion_estado_reposicion_anaquel foreign key (fk_reposicion_anaquel) references REPOSICION_ANAQUEL(reposicion_anaquel_id)
+);
+
+CREATE TABLE PASILLO(
+    pasillo_id serial,
+    nombre varchar(50) NOT NULL,
+    fk_acaucab integer NOT NULL,
+    constraint pk_pasillo_id primary key (pasillo_id),
+    constraint fk_acaucab_pasillo foreign key (fk_acaucab) references ACAUCAB(acaucab_id)
+);
+
+CREATE TABLE ANAQUEL(
+    anaquel_id serial,
+    estantes integer NOT NULL,
+    capacidad integer NOT NULL,
+    fk_pasillo integer NOT NULL,
+    constraint pk_anaquel_id primary key (anaquel_id),
+    constraint fk_pasillo_anaquel foreign key (fk_pasillo) references PASILLO(pasillo_id)
+);
+
+CREATE TABLE TIPO_CERVEZA(
+    tipo_cerveza_id serial,
+    nombre varchar(50) NOT NULL,
+    constraint pk_tipo_cerveza primary key (tipo_cerveza_id)
+);
+
+CREATE TABLE PRESENTACION(
+    presentacion_id serial,
+    material varchar(50) NOT NULL,
+    cap_volumen integer NOT NULL,
+    constraint pk_presentacion_id primary key (presentacion_id),
+    constraint check_presentacion_material check ( material IN('aluminio','vidrio','plastico'))
+);
+
+CREATE TABLE INGREDIENTE(
+    ingrediente_id serial,
+    nombre varchar(50) NOT NULL,
+    fk_tipo_ingrediente integer NOT NULL,
+    constraint pk_ingrediente_id primary key (ingrediente_id),
+    constraint fk_tipo_ingrediente_ingrediente foreign key (fk_tipo_ingrediente) references TIPO_INGREDIENTE(tipo_ingrediente_id)
+);
+
+CREATE TABLE ROL(
+    rol_id serial,
+    descripcion varchar(255) NOT NULL,
+    nombre varchar(50) NOT NULL,
+    constraint pk_rol_id primary key (rol_id)
+);
+
+CREATE TABLE ROL_PERMISO(
+    rol_permiso_id serial,
+    fk_rol integer NOT NULL,
+    fk_permiso integer NOT NULL,
+    constraint pk_rol_permiso_id primary key (rol_permiso_id),
+    constraint fk_rol_rol_permiso foreign key (fk_rol) references ROL(rol_id),
+    constraint fk_permiso_rol_permiso foreign key (fk_permiso) references PERMISO(permiso_id)
+);
+
+CREATE TABLE EMPLEADO(
+    empleado_id serial,
+    cedula integer NOT NULL,
+    primer_nombre varchar(50) NOT NULL,
+    primer_apellido varchar(50) NOT NULL,
+    segundo_nombre varchar(50),
+    segundo_apellido varchar(50),
+    fecha_contrato DATE NOT NULL,
+    fk_lugar integer NOT NULL,
+    constraint pk_empleado_id primary key (empleado_id),
+    constraint fk_lugar_empleado foreign key (fk_lugar) references LUGAR(lugar_id)
+);
+
+CREATE TABLE HORARIO_EMPLEADO(
+    horario_empleado_id serial,
+    fk_empleado integer NOT NULL,
+    fk_horario integer NOT NULL,
+    constraint pk_horario_empleado_id primary key (horario_empleado_id),
+    constraint fk_empleado_horario_empleado foreign key (fk_empleado) references EMPLEADO(empleado_id),
+    constraint  fk_horario_horario_empleado foreign key (fk_horario) references HORARIO(horario_id)
+);
+
+CREATE TABLE ASISTENCIA(
+    asistencia_id serial,
+    fecha_hora_entrada timestamp,
+    fecha_hora_salida timestamp,
+    fk_empleado integer NOT NULL,
+    constraint pk_asistencia_id primary key (asistencia_id),
+    constraint fk_empleado_asistencia foreign key (fk_empleado) references EMPLEADO(empleado_id)
+);
+
+CREATE TABLE VACACION(
+    vacacion_id serial,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    fk_empleado integer NOT NULL,
+    constraint pk_vacacion_id primary key (vacacion_id),
+    constraint fk_empleado_vacacion foreign key (fk_empleado) references EMPLEADO(empleado_id)
+);
+
+CREATE TABLE BENEFICIO_EMPLEADO(
+    beneficio_empleado_id serial,
+    monto integer NOT NULL,
+    fk_beneficio integer NOT NULL,
+    fk_empleado integer NOT NULL,
+    constraint pk_beneficio_empleado_id primary key (beneficio_empleado_id),
+    constraint fk_beneficio_beneficio_empleado foreign key (fk_beneficio) references BENEFICIO(beneficio_id),
+    constraint fk_empleado_beneficio_emeplado foreign key (fk_empleado) references EMPLEADO(empleado_id)
+);
+
+CREATE TABLE EVENTO(
+    evento_id serial,
+    nombre varchar(50) NOT NULL,
+    capacidad integer NOT NULL,
+    direccion varchar(255) NOT NULL,
+    entrada_paga boolean default 'f',
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    estacionamiento boolean default 'f',
+    numero_entradas integer NOT NULL,
+    precio_entradas integer,
+    fk_tipo_evento integer NOT NULL,
+    fk_lugar integer NOT NULL,
+    constraint pk_evento_id primary key (evento_id),
+    constraint fk_tipo_evento_evento foreign key (fk_tipo_evento) references TIPO_EVENTO(tipo_evento_id),
+    constraint fk_lugar_evento foreign key (fk_lugar) references LUGAR(lugar_id)
+);
+
+CREATE TABLE EVENTO_EMPLEADO(
+    evento_empleado_id serial,
+    fk_evento integer NOT NULL,
+    fk_empleado integer NOT NULL,
+    constraint pk_evento_empleado_id primary key (evento_empleado_id),
+    constraint fk_evento_evento_empleado foreign key (fk_evento) references EVENTO(evento_id),
+    constraint  fk_empleado_evento_empleado foreign key (fk_empleado) references EMPLEADO(empleado_id)
+);
+
+CREATE TABLE PREMIACION_EVENTO(
+    premiacion_evento_id serial,
+    fk_evento integer NOT NULL,
+    fk_premiacion integer NOT NULL,
+    constraint fk_evento_premiacion_empleado foreign key (fk_evento) references EVENTO(evento_id),
+    constraint fk_premiacion_premiacion_empleado foreign key (fk_premiacion) references PREMIACION(premiacion_id),
+    constraint pk_premiacion_evento_id primary key (premiacion_evento_id)
+);
+
+CREATE TABLE JUEZ(
+    juez_id serial,
+    primer_nombre varchar(50) NOT NULL,
+    primer_apellido varchar(50) NOT NULL,
+    area varchar(255) NOT NULL,
+    fk_premiacion_evento integer NOT NULL,
+    constraint pk_juez_id primary key (juez_id),
+    constraint fk_premiacion_evento_juez foreign key (fk_premiacion_evento) references PREMIACION_EVENTO(premiacion_evento_id)
+);
+
+CREATE TABLE DEPARTAMENTO(
+    departamento_id serial,
+    nombre varchar(50) NOT NULL,
+    fk_acaucab integer NOT NULL,
+    constraint pk_departamento_id primary key (departamento_id),
+    constraint fk_acaucab_departamento foreign key (fk_acaucab) references ACAUCAB(acaucab_id)
+);
+
+CREATE TABLE DEPARTAMENTO_EMPLEADO(
+    departamento_empleado_id serial,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE,
+    salario integer NOT NULL,
+    fk_departamento integer NOT NULL,
+    fk_empleado integer NOT NULL,
+    fk_cargo integer NOT NULL,
+    constraint pk_departamento_empleado_id primary key (departamento_empleado_id),
+    constraint fk_empleado_departamento_empleado foreign key (fk_empleado) references EMPLEADO(empleado_id),
+    constraint fk_departamento_departamento_emplado foreign key (fk_departamento) references DEPARTAMENTO(departamento_id),
+    constraint fk_cargo_departamento_emplado foreign key (fk_cargo) references CARGO(cargo_id)
+);
+
+CREATE TABLE RECETA(
+    receta_id serial,
+    nombre varchar(50) NOT NULL,
+    descripcion varchar(255) NOT NULL,
+    constraint pk_receta_id primary key (receta_id)
+);
+
+CREATE TABLE RECETA_INGREDIENTE(
+    receta_ingrediente_id serial,
+    fk_receta integer NOT NULL,
+    fk_ingrediente integer NOT NULL,
+    constraint pk_receta_ingrediente_id primary key (receta_ingrediente_id),
+    constraint fk_receta_receta_ingrediente foreign key (fk_receta) references RECETA(receta_id),
+    constraint fk_ingrediente_receta_ingrediente foreign key (fk_ingrediente) references INGREDIENTE(ingrediente_id)
+);
+
+CREATE TABLE MIEMBRO_ACAUCAB(
+    miembro_id serial,
+    razon_social varchar(100) NOT NULL,
+    denominacion_comercial varchar(100) NOT NULL,
+    RIF varchar(12) NOT NULL,
+    direccion varchar(255) NOT NULL,
+    direccion_fiscal varchar(255) NOT NULL,
+    pagina_web varchar(255) NOT NULL,
+    fk_lugar integer NOT NULL,
+    fk_lugar_fiscal integer NOT NULL,
+    constraint pk_miembro_id primary key (miembro_id),
+    constraint fk_lugar_miembro_acaucab foreign key (fk_lugar) references LUGAR(lugar_id),
+    constraint fk_lugar_fiscal_miembro_acaucab foreign key (fk_lugar_fiscal) references LUGAR(lugar_id)
+);
+
+CREATE TABLE CERVEZA(
+    cerveza_id serial,
+    nombre varchar(50) NOT NULL,
+    densidad_inicial NUMERIC(4,4) NOT NULL,
+    densidad_final NUMERIC(4,4) NOT NULL,
+    IBUs NUMERIC(3) NOT NULL,
+    nivel_alcohol NUMERIC(3,3) NOT NULL,
+    fk_tipo_cerveza integer NOT NULL,
+    fk_estilo_cerveza integer NOT NULL,
+    fk_receta integer NOT NULL,
+    constraint pk_cerveza_id primary key (cerveza_id),
+    constraint check_IBUs_cerveza check ( IBUs between 0 and 100),
+    constraint check_nivel_alcohol_cerveza check ( nivel_alcohol between 0 and 100),
+    constraint fk_receta_cerveza foreign key (fk_receta) references RECETA(receta_id),
+    constraint fk_estilo_cerveza_cerveza foreign key (fk_estilo_cerveza) references ESTILO_CERVEZA(estilo_cerveza_id),
+    constraint fk_tipo_cerveza_cerveza foreign key (fk_tipo_cerveza) references TIPO_CERVEZA(tipo_cerveza_id)
+);
+
+CREATE TABLE CERVEZA_PRESENTACION(
+    cerveza_presentacion_id serial,
+    fk_presentacion integer NOT NULL,
+    fk_cerveza integer NOT NULL,
+    fk_miembro_acaucab integer NOT NULL,
+    constraint fk_presentacion_cerveza_presentacion foreign key (fk_presentacion) references PRESENTACION(presentacion_id),
+    constraint fk_cerveza_cerveza_presentacion foreign key (fk_cerveza) references CERVEZA(cerveza_id),
+    constraint pk_cerveza_presentacion_id primary key (cerveza_presentacion_id),
+    constraint fk_miembro_acaucab_cerveza_presentacion foreign key (fk_miembro_acaucab) references MIEMBRO_ACAUCAB(miembro_id)
+);
+
+CREATE TABLE OFERTA(
+    oferta_id serial,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    descuento NUMERIC(3) NOT NULL,
+    fk_cerveza_presentacion integer NOT NULL,
+    constraint pk_oferta_id primary key (oferta_id),
+    constraint fk_cerveza_presentacion_oferta foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id),
+    constraint check_descuento_oferta check ( descuento between 0 and 100)
+);
+
+CREATE TABLE EVENTO_MIEMBRO_ACAUCAB(
+    evento_miembro_acaucab_id serial,
+    fk_evento integer NOT NULL,
+    fk_miembro_acaucab integer NOT NULL,
+    fk_cerveza_presentacion integer NOT NULL,
+    cantidad integer NOT NULL,
+    constraint fk_evento_evento_miembro_acaucab foreign key (fk_evento) references EVENTO(evento_id),
+    constraint fk_miembro_acaucab_evento_miembro_acaucab foreign key (fk_miembro_acaucab) references MIEMBRO_ACAUCAB(miembro_id),
+    constraint fk_cerveza_presentacion_evento_miembro_acaucab foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id),
+    constraint pk_evento_miembro_acaucab_id primary key (evento_miembro_acaucab_id)
+);
+
+CREATE TABLE PREMIACION_EVENTO_MIEMBRO(
+    premiacion_evento_miembro_id serial,
+    fk_evento_miembro_acaucab integer NOT NULL,
+    fk_premiacion_evento integer NOT NULL,
+    constraint fk_evento_miembro_acaucab_premiacion_evento_miembro foreign key (fk_evento_miembro_acaucab) references EVENTO_MIEMBRO_ACAUCAB(evento_miembro_acaucab_id),
+    constraint fk_premiacion_evento_premiacion_evento_miembro foreign key (fk_premiacion_evento) references PREMIACION_EVENTO(premiacion_evento_id),
+    constraint pk_premiacion_evento_miembro_id primary key (premiacion_evento_miembro_id)
+);
+
+CREATE TABLE PREMIO(
+    premio_id serial,
+    nombre varchar(50) NOT NULL,
+    fecha DATE NOT NULL,
+    fk_premiacion_evento_miembro integer NOT NULL,
+    constraint pk_premio_id primary key (premio_id),
+    constraint fk_premiacion_evento_miembro_premio foreign key (fk_premiacion_evento_miembro) references PREMIACION_EVENTO_MIEMBRO(premiacion_evento_miembro_id)
+);
+
+CREATE TABLE TIPO_CERVEZA_CARACTERISTICA(
+    tipo_cerveza_caracteristica_id serial,
+    fk_tipo_cerveza integer NOT NULL,
+    fk_caracteristica integer NOT NULL,
+    constraint pk_tipo_cerveza_caracteristica_id primary key (tipo_cerveza_caracteristica_id),
+    constraint fk_tipo_cerveza_tipo_cerveza_caracteristica foreign key (fk_tipo_cerveza) references TIPO_CERVEZA(tipo_cerveza_id),
+    constraint fk_caracteristica_tipo_cerveza_caracteristica foreign key (fk_caracteristica) references CARACTERISTICA(caracteristica_id)
+);
+
+CREATE TABLE CERVEZA_CARACTERISTICA(
+    cerveza_caracteristica_id serial,
+    fk_cerveza integer NOT NULL,
+    fk_caracteristica integer NOT NULL,
+    constraint pk_cerveza_caracteristica_id primary key (cerveza_caracteristica_id),
+    constraint fk_cerveza_cerveza_caracteristica foreign key (fk_cerveza) references CERVEZA(cerveza_id),
+    constraint fk_caracteristica_cerveza_caracteristica foreign key (fk_caracteristica) references CARACTERISTICA(caracteristica_id)
+);
+
+CREATE TABLE ALMACEN_CERVEZA(
+    almacen_cerveza_id serial,
+    fk_almacen integer NOT NULL,
+    fk_cerveza_presentacion integer NOT NULL,
+    cantidad integer NOT NULL,
+    fecha DATE NOT NULL,
+    precio_unitario integer NOT NULL,
+    constraint pk_almacen_cerveza_id primary key (almacen_cerveza_id),
+    constraint fk_almacen_almacen_cerveza foreign key (fk_almacen) references ALMACEN(almacen_id),
+    constraint fk_cerveza_presentacion_almacen_cerveza foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id)
+);
+
+CREATE TABLE DETALLE_REPOSICION_ANAQUEL(
+    detalle_reposicion_anaquel_id serial,
+    cantidad integer NOT NULL,
+    precio_unitario integer NOT NULL,
+    fk_almacen_cerveza integer NOT NULL,
+    fk_reposicion_anaquel integer NOT NULL,
+    constraint pk_detalle_reposicion_anaquel_id primary key (detalle_reposicion_anaquel_id),
+    constraint fk_reposicion_anaquel_detalle_reposicion_anaquel foreign key (fk_reposicion_anaquel) references REPOSICION_ANAQUEL(reposicion_anaquel_id),
+    constraint fk_almacen_cerveza_detalle_reposicion_anaquel foreign key (fk_almacen_cerveza) references ALMACEN_CERVEZA(almacen_cerveza_id)
+);
+
+CREATE TABLE ANAQUEL_CERVEZA(
+    anaquel_cerveza_id serial,
+    fk_anaquel integer NOT NULL,
+    fk_cerveza_presentacion integer NOT NULL,
+    fk_detalle_reposicion_anaquel integer,
+    cantidad integer NOT NULL,
+    fecha DATE NOT NULL,
+    precio_unitario integer NOT NULL,
+    constraint pk_anaquel_cerveza_id primary key (anaquel_cerveza_id),
+    constraint fk_anaquel_anaquel_cerveza foreign key (fk_anaquel) references ANAQUEL(anaquel_id),
+    constraint fk_cerveza_presentacion_anaquel_cerveza foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id),
+    constraint fk_detalle_reposicion_anaquel_anaquel_cerveza foreign key (fk_detalle_reposicion_anaquel) references DETALLE_REPOSICION_ANAQUEL(detalle_reposicion_anaquel_id)
+);
+
+CREATE TABLE CLIENTE_NATURAL(
+    cliente_id serial,
+    RIF varchar(12) NOT NULL,
+    direccion varchar(255) NOT NULL,
+    primer_nombre varchar(50) NOT NULL,
+    primer_apellido varchar(50) NOT NULL,
+    cedula integer NOT NULL,
+    segundo_nombre varchar(50),
+    segundo_apellido varchar(50),
+    total_puntos integer NOT NULL,
+    fk_lugar integer NOT NULL,
+    constraint pk_cliente_natural_id primary key (cliente_id),
+    constraint fk_lugar_cliente_natural foreign key (fk_lugar) references LUGAR(lugar_id)
+);
+
+CREATE TABLE CLIENTE_JURIDICO(
+    cliente_id serial,
+    RIF varchar(12) NOT NULL,
+    direccion varchar(255) NOT NULL,
+    denominacion_comercial varchar(255) NOT NULL,
+    razon_social varchar(255) NOT NULL,
+    capital integer NOT NULL,
+    pagina_web varchar(255),
+    direccion_fiscal varchar(255),
+    fk_lugar integer NOT NULL,
+    total_puntos integer NOT NULL,
+    fk_lugar_juridico integer NOT NULL,
+    constraint pk_cliente_juridico_id primary key (cliente_id),
+    constraint fk_lugar_cliente_juridico foreign key (fk_lugar) references LUGAR(lugar_id),
+    constraint fk_lugar_juridico_cliente_juridico foreign key (fk_lugar_juridico) references LUGAR(lugar_id)
+);
+
+CREATE TABLE PERSONAL_CONTACTO(
+    personal_contacto_id serial,
+    primer_nombre varchar(50) NOT NULL,
+    primer_apellido varchar(50) NOT NULL,
+    fk_cliente_juridico integer,
+    fk_miembro_acaucab integer,
+    constraint pk_personal_contaco_id primary key (personal_contacto_id),
+    constraint fk_miembro_acaucab_personal_contacto foreign key (fk_miembro_acaucab) references MIEMBRO_ACAUCAB(miembro_id),
+    constraint fk_cliente_juridico_personal_contacto foreign key (fk_cliente_juridico) references CLIENTE_JURIDICO(cliente_id),
+    constraint check_miembro_cliente_juridico_personal_contacto check ( (fk_cliente_juridico IS NOT NULL AND fk_miembro_acaucab IS NULL) OR (fk_cliente_juridico IS NULL AND fk_miembro_acaucab IS NOT NULL)  )
+);
+
+CREATE TABLE TELEFONO(
+    telefono_id serial,
+    codigo smallint NOT NULL,
+    numero integer NOT NULL,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_personal_contacto integer,
+    fk_miembro_acaucab integer,
+    constraint pk_telefono_id primary key (telefono_id),
+    constraint fk_cliente_natural_telefono foreign key (fk_cliente_natural) references  CLIENTE_NATURAL(cliente_id),
+    constraint fk_cliente_juridico_telefono foreign key (fk_cliente_juridico) references  CLIENTE_JURIDICO(cliente_id),
+    constraint fk_miembro_acaucab_telefono foreign key (fk_miembro_acaucab) references MIEMBRO_ACAUCAB(miembro_id),
+    constraint fk_personal_contacto_telefono foreign key (fk_personal_contacto) references PERSONAL_CONTACTO(personal_contacto_id),
+    constraint check_personal_cliente_miembro_telefono check ( (fk_personal_contacto IS NOT NULL AND fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_personal_contacto IS NULL AND fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_personal_contacto IS NULL AND fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR (fk_personal_contacto IS NULL AND fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NOT NULL) )
+);
+
+CREATE TABLE CORREO_ELECTRONICO(
+    correo_electronico_id serial,
+    usuario varchar(64) NOT NULL,
+    dominio varchar(255) NOT NULL,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_miembro_acaucab integer,
+    constraint pk_correo_electronico_id primary key (correo_electronico_id),
+    constraint fk_cliente_natural_correo_electronico foreign key (fk_cliente_natural) references  CLIENTE_NATURAL(cliente_id),
+    constraint fk_cliente_juridico_telefono foreign key (fk_cliente_juridico) references  CLIENTE_JURIDICO(cliente_id),
+    constraint fk_miembro_acaucab_telefono foreign key (fk_miembro_acaucab) references MIEMBRO_ACAUCAB(miembro_id),
+    constraint check_cliente_miembro_correo_electronico check ( (fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NOT NULL))
+);
+
+CREATE TABLE EVENTO_CLIENTE(
+    evento_cliente_id serial,
+    fk_evento integer NOT NULL,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    constraint pk_evento_cliente_id primary key(evento_cliente_id),
+    constraint fk_evento_evento_cliente foreign key (fk_evento) references EVENTO(evento_id),
+    constraint fk_cliente_juridico_evento_cliente foreign key (fk_cliente_juridico) references CLIENTE_JURIDICO(cliente_id),
+    constraint fk_cliente_natural_evento_cliente foreign key (fk_cliente_natural) references CLIENTE_NATURAL(cliente_id),
+    constraint check_cliente_evento_cliente check ( (fk_cliente_juridico IS NULL AND fk_cliente_natural IS NOT NULL) OR (fk_cliente_juridico IS NOT NULL AND fk_cliente_natural IS NULL) )
+);
+
+CREATE TABLE USUARIO(
+    usuario_id serial,
+    fecha_creacion DATE NOT NULL,
+    nombre_usuario varchar(50) NOT NULL,
+    hash_contrasena varchar(50) NOT NULL,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_miembro_acaucab integer,
+    fk_empleado integer,
+    constraint pk_usuario_id primary key (usuario_id),
+    constraint fk_cliente_natural_usuario foreign key (fk_cliente_natural) references CLIENTE_NATURAL(cliente_id),
+    constraint fk_cliente_juridico_usuario foreign key (fk_cliente_juridico) references  CLIENTE_JURIDICO(cliente_id),
+    constraint fk_empleado_usuario foreign key (fk_empleado) references EMPLEADO(empleado_id),
+    constraint fk_miembro_acaucab_usuario foreign key (fk_miembro_acaucab) references  MIEMBRO_ACAUCAB(miembro_id),
+    constraint check_empleado_cliente_miembro_usuario check ( (fk_empleado IS NOT NULL AND fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_empleado IS NULL AND fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_empleado IS NULL AND fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR (fk_empleado IS NULL AND fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NOT NULL) )
+);
+
+CREATE TABLE ROL_USUARIO(
+    rol_usuario_id serial,
+    fk_rol integer NOT NULL,
+    fk_usuario integer NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE,
+    constraint pk_rol_usuario_id primary key (rol_usuario_id),
+    constraint fk_rol_rol_usuario foreign key (fk_rol) references ROL(rol_id),
+    constraint fk_usuario_rol_usuario foreign key (fk_usuario) references USUARIO(usuario_id)
+);
+
+CREATE TABLE MEMBRESIA(
+    membresia_id serial,
+    fecha_adquisicion DATE NOT NULL,
+    fecha_vencimiento DATE NOT NULL,
+    monto integer NOT NULL,
+    fk_usuario integer,
+    constraint pk_membresia_id primary key (membresia_id),
+    constraint fk_usuario_membresia foreign key (fk_usuario) references USUARIO(usuario_id)
+);
+
+CREATE TABLE COMPRA_REPOSICION(
+    compra_reposicion_id serial,
+    fecha_emision DATE NOT NULL,
+    fecha_entrega DATE,
+    fecha_pago_estimada DATE NOT NULL,
+    fecha_pago_real DATE,
+    aprobacion boolean default 'f',
+    total integer NOT NULL,
+    fk_miembro_acaucab integer NOT NULL,
+    constraint pk_compra_reposicon_id primary key (compra_reposicion_id),
+    constraint fk_miembro_acaucab_compra_reposicion foreign key (fk_miembro_acaucab) references MIEMBRO_ACAUCAB(miembro_id)
+);
+
+CREATE TABLE ESTADO_COMPRA_REPOSICION(
+    estado_compra_reposicion_id serial,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE,
+    fk_estado integer NOT NULL,
+    fk_compra_reposicion integer NOT NULL,
+    constraint pk_estado_compra_reposicion_id primary key (estado_compra_reposicion_id),
+    constraint fk_estado_estado_compra_reposicion foreign key (fk_estado) references ESTADO(estado_id),
+    constraint fk_compra_reposicion_estado_compra_reposicion foreign key (fk_compra_reposicion) references COMPRA_REPOSICION(compra_reposicion_id)
+);
+
+CREATE TABLE DETALLE_COMPRA(
+    detalle_compra_id serial,
+    fk_cerveza_presentacion integer NOT NULL,
+    fk_compra_reposicion integer NOT NULL,
+    precio_unitario integer NOT NULL,
+    cantidad integer NOT NULL,
+    constraint pk_detalle_compra_id primary key (detalle_compra_id),
+    constraint fk_cerveza_presentacion_detalle_compra foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id),
+    constraint fk_compra_reposicion_detalle_compra foreign key (fk_compra_reposicion) references COMPRA_REPOSICION(compra_reposicion_id)
+);
+
+CREATE TABLE VENTA_ONLINE(
+    venta_online_id serial,
+    direccion varchar(255) NOT NULL,
+    fecha_emision DATE NOT NULL,
+    fecha_estimada DATE NOT NULL,
+    fecha_entrega DATE,
+    total integer NOT NULL,
+    fk_lugar integer NOT NULL,
+    fk_usuario integer NOT NULL,
+    constraint fk_usuario_venta_online foreign key (fk_usuario) references USUARIO(usuario_id),
+    constraint pk_venta_online primary key (venta_online_id),
+    constraint fk_lugar_venta_online foreign key (fk_lugar) references LUGAR(lugar_id)
+);
+
+CREATE TABLE DETALLE_VENTA_ONLINE(
+    detalle_venta_online_id serial,
+    fk_almacen_cerveza integer NOT NULL,
+    fk_venta_online integer NOT NULL,
+    precio_unitario integer NOT NULL,
+    cantidad integer NOT NULL,
+    constraint pk_detalle_venta_online_id primary key (detalle_venta_online_id),
+    constraint fk_almacen_cerveza_detalle_venta_online foreign key (fk_almacen_cerveza) references ALMACEN_CERVEZA(almacen_cerveza_id),
+    constraint fk_venta_online_detalle_venta_online foreign key (fk_venta_online) references VENTA_ONLINE(venta_online_id)
+);
+
+CREATE TABLE ESTADO_VENTA_ONLINE(
+    estado_venta_online_id serial,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE,
+    fk_estado integer NOT NULL,
+    fk_venta_online integer NOT NULL,
+    constraint pk_estado_venta_online_id primary key (estado_venta_online_id),
+    constraint fk_estado_estado_venta_online foreign key (fk_estado) references ESTADO(estado_id),
+    constraint fk_venta_online_estado_venta_online foreign key (fk_venta_online) references VENTA_ONLINE(venta_online_id)
+);
+
+CREATE TABLE VENTA_EVENTO(
+    venta_evento_id serial,
+    total integer NOT NULL,
+    fecha DATE NOT NULL,
+    fk_evento_cliente integer NOT NULL,
+    fk_evento integer NOT NULL,
+    constraint pk_venta_evento_id primary key (venta_evento_id),
+    constraint fk_evento_venta_evento foreign key (fk_evento) references EVENTO(evento_id),
+    constraint fk_evento_cliente_venta_evento foreign key (fk_evento_cliente) references EVENTO_CLIENTE(evento_cliente_id)
+);
+
+CREATE TABLE DETALLE_VENTA_EVENTO(
+    detalle_venta_evento_id serial,
+    fk_evento_miembro_acaucab integer,
+    fk_venta_evento integer NOT NULL,
+    fk_evento_entrada integer,
+    precio_unitario integer NOT NULL,
+    cantidad integer NOT NULL,
+    constraint pk_detalle_venta_evento_id primary key (detalle_venta_evento_id),
+    constraint fk_evento_miembro_acaucab_detalle_venta_evento foreign key (fk_evento_miembro_acaucab) references EVENTO_MIEMBRO_ACAUCAB(evento_miembro_acaucab_id),
+    constraint fk_venta_evento_acaucab_detalle_venta_evento foreign key (fk_venta_evento) references VENTA_EVENTO(venta_evento_id),
+    constraint fk_evento_entrada_detalle_venta_evento foreign key (fk_evento_entrada) references EVENTO(evento_id),
+    constraint check_entrada_miembro_detalle_venta_evento check ( (fk_evento_entrada IS NOT NULL AND fk_evento_miembro_acaucab IS NULL)
+        OR (fk_evento_entrada IS NULL AND fk_evento_miembro_acaucab IS NOT NULL))
+);
+
+CREATE TABLE VENTA_TIENDA(
+    venta_tienda_id serial,
+    total integer NOT NULL,
+    fecha DATE NOT NULL,
+    fk_cliente_natual integer NOT NULL,
+    fk_cliente_juridico integer NOT NULL,
+    constraint pk_venta_tienda_id primary key (venta_tienda_id),
+    constraint fk_cliente_natural_venta_tienda foreign key (fk_cliente_natual) references CLIENTE_NATURAL(cliente_id),
+    constraint fk_cliente_juridico_venta_tienda foreign key (fk_cliente_juridico) references CLIENTE_JURIDICO(cliente_id)
+);
+
+CREATE TABLE DETALLE_VENTA_TIENDA(
+    detalle_venta_tienda_id serial,
+    fk_venta_tienda integer NOT NULL,
+    fk_anaquel_cerveza integer NOT NULL,
+    precio_unitario integer NOT NULL,
+    cantidad integer NOT NULL,
+    constraint pk_detalle_venta_tienda_id primary key (detalle_venta_tienda_id),
+    constraint fk_anaquel_cerveza_detalle_venta_tienda foreign key (fk_anaquel_cerveza) references ANAQUEL_CERVEZA(anaquel_cerveza_id),
+    constraint fk_venta_tienda_detalle_venta_tienda foreign key (fk_venta_tienda) references VENTA_TIENDA(venta_tienda_id)
+);
+
+CREATE TABLE METODO_PAGO_EFECTIVO(
+    metodo_pago_id serial,
+    denominacion integer NOT NULL,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_miembro_acaucab integer,
+    constraint pk_metodo_pago_efectivo_id primary key (metodo_pago_id),
+    constraint check_cliente_miembro_metodo_pago_efectivo check ( (fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NOT NULL))
+);
+
+CREATE TABLE METODO_PAGO_DEBITO(
+    metodo_pago_id serial,
+    numero integer NOT NULL,
+    banco varchar(50) NOT NULL,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_miembro_acaucab integer,
+    constraint pk_metodo_pago_debito_id primary key (metodo_pago_id),
+    constraint check_cliente_miembro_metodo_pago_debito check ( (fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NOT NULL))
+);
+
+CREATE TABLE METODO_PAGO_CREDITO(
+    metodo_pago_id serial,
+    numero integer NOT NULL,
+    banco varchar(50) NOT NULL,
+    fecha_exp DATE NOT NULL,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_miembro_acaucab integer,
+    constraint pk_metodo_pago_credito_id primary key (metodo_pago_id),
+    constraint check_cliente_miembro_metodo_pago_credito check ( (fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NOT NULL))
+);
+
+CREATE TABLE METODO_PAGO_CHEQUE(
+    metodo_pago_id serial,
+    numero integer NOT NULL,
+    numero_c integer NOT NULL,
+    banco varchar(50) NOT NULL,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_miembro_acaucab integer,
+    constraint pk_metodo_pago_cheque_id primary key (metodo_pago_id),
+    constraint check_cliente_miembro_metodo_pago_cheque check ( (fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NOT NULL))
+);
+
+CREATE TABLE METODO_PAGO_PUNTO(
+    metodo_pago_id serial,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_miembro_acaucab integer,
+    constraint pk_metodo_pago_punto_id primary key (metodo_pago_id),
+    constraint check_cliente_miembro_metodo_pago_punto check ( (fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+        AND fk_cliente_natural IS NOT NULL))
+);
+
+CREATE TABLE PUNTO_VENTA_COMPRA(
+    punto_venta_compra_id serial,
+    fk_venta_tienda integer,
+    fk_venta_online integer,
+    fk_cliente_natural integer,
+    fk_cliente_juridico integer,
+    fk_metodo_pago_punto integer NOT NULL,
+    cantidad integer NOT NULL,
+    fecha DATE NOT NULL,
+    tipo varchar(11) NOT NULL,
+    constraint pk_punto_venta_compra_id primary key (punto_venta_compra_id),
+    constraint fk_venta_tienda_punto_venta_compra foreign key (fk_venta_tienda) references VENTA_TIENDA(venta_tienda_id),
+    constraint fk_venta_online_punto_venta_compra foreign key (fk_venta_online) references VENTA_ONLINE(venta_online_id),
+    constraint fk_metodo_pago_punto_punto_venta_compra foreign key (fk_metodo_pago_punto) references METODO_PAGO_PUNTO(metodo_pago_id),
+    constraint fk_cliente_natural_punto_venta_compra foreign key (fk_cliente_natural) references CLIENTE_NATURAL(cliente_id),
+    constraint fk_cliente_juridico_punto_venta_compra foreign key (fk_cliente_juridico) references CLIENTE_JURIDICO(cliente_id),
+    constraint check_venta_punto_venta_compra check ( (fk_venta_online IS NULL AND fk_venta_tienda IS NOT NULL)
+        OR (fk_venta_online IS NOT NULL AND fk_venta_tienda IS NULL) ),
+    constraint check_cliente_punto_venta_compra check ( (fk_cliente_juridico IS NULL AND fk_cliente_natural IS NOT NULL)
+        OR (fk_cliente_juridico IS NOT NULL AND fk_cliente_natural IS NULL) ),
+    constraint check_tipo_punto_venta_compra check ( tipo IN('adquisicion','gasto') )
+);
+
+CREATE TABLE TASA_CONVERSION(
+    tasa_conversion_id serial,
+    fecha_inicio DATE NOT NULL,
+    tasa_puntos_a_bs integer NOT NULL,
+    tasa_dola_a_bs integer NOT NULL,
+    fecha_fin DATE,
+    fk_metodo_pago_punto integer,
+    fk_metodo_pago_efectivo integer,
+    constraint pk_tasa_conversion_id primary key (tasa_conversion_id),
+    constraint fk_metodo_pago_punto_tasa_conversion foreign key (fk_metodo_pago_punto) references METODO_PAGO_PUNTO(metodo_pago_id),
+    constraint fk_metodo_pago_efectivo_tasa_conversion foreign key (fk_metodo_pago_efectivo) references METODO_PAGO_EFECTIVO(metodo_pago_id),
+    constraint check_metodo_pago_tasa_conversion check ( (fk_metodo_pago_efectivo IS NOT NULL AND fk_metodo_pago_punto IS NULL) OR
+        (fk_metodo_pago_efectivo IS NULL AND fk_metodo_pago_punto IS NOT NULL))
+);
+
+CREATE TABLE PAGO(
+    pago_id serial,
+    monto integer NOT NULL,
+    fecha DATE NOT NULL,
+    fk_venta_online integer,
+    fk_venta_tienda integer,
+    fk_compra_reposicion integer,
+    fk_venta_evento integer,
+    fk_membresia integer,
+    fk_metodo_pago_efectivo integer,
+    fk_metodo_pago_cheque integer,
+    fk_metodo_pago_debito integer,
+    fk_metodo_pago_credito integer,
+    fk_metodo_pago_punto integer,
+    constraint pk_pago_id primary key (pago_id),
+    constraint fk_metodo_pago_punto_pago foreign key (fk_metodo_pago_punto) references METODO_PAGO_PUNTO(metodo_pago_id),
+    constraint fk_metodo_pago_cheque_pago foreign key (fk_metodo_pago_cheque) references METODO_PAGO_CHEQUE(metodo_pago_id),
+    constraint fk_metodo_pago_debito_pago foreign key (fk_metodo_pago_debito) references METODO_PAGO_DEBITO(metodo_pago_id),
+    constraint fk_metodo_pago_credito_pago foreign key (fk_metodo_pago_credito) references METODO_PAGO_CREDITO(metodo_pago_id),
+    constraint fk_metodo_pago_efectivo_pago foreign key (fk_metodo_pago_efectivo) references METODO_PAGO_EFECTIVO(metodo_pago_id),
+    constraint fk_venta_online_pago foreign key (fk_venta_online) references VENTA_ONLINE(venta_online_id),
+    constraint fk_venta_tienda_pago foreign key (fk_venta_tienda) references VENTA_TIENDA(venta_tienda_id),
+    constraint fk_venta_evento_pago foreign key (fk_venta_evento) references VENTA_EVENTO(venta_evento_id),
+    constraint fk_compra_reposicion_pago foreign key (fk_compra_reposicion) references COMPRA_REPOSICION(compra_reposicion_id),
+    constraint fk_membresia_pago foreign key (fk_membresia) references MEMBRESIA(membresia_id),
+    constraint check_metodo_pago_pago
+        check ((fk_metodo_pago_efectivo IS NOT NULL AND fk_metodo_pago_credito IS NULL AND fk_metodo_pago_debito IS NULL AND fk_metodo_pago_cheque IS NULL AND fk_metodo_pago_punto IS NULL)
+            OR (fk_metodo_pago_efectivo IS NULL AND fk_metodo_pago_credito IS NOT NULL AND fk_metodo_pago_debito IS NULL AND fk_metodo_pago_cheque IS NULL AND fk_metodo_pago_punto IS NULL)
+            OR (fk_metodo_pago_efectivo IS NULL AND fk_metodo_pago_credito IS NULL AND fk_metodo_pago_debito IS NOT NULL AND fk_metodo_pago_cheque IS NULL AND fk_metodo_pago_punto IS NULL)
+            OR (fk_metodo_pago_efectivo IS NULL AND fk_metodo_pago_credito IS NULL AND fk_metodo_pago_debito IS NULL AND fk_metodo_pago_cheque IS NOT NULL AND fk_metodo_pago_punto IS NULL)
+            OR (fk_metodo_pago_efectivo IS NULL AND fk_metodo_pago_credito IS NULL AND fk_metodo_pago_debito IS NULL AND fk_metodo_pago_cheque IS NULL AND fk_metodo_pago_punto IS NOT NULL)),
+    constraint check_venta_compra_pago
+        check ((fk_membresia IS NOT NULL AND fk_venta_online IS NULL AND fk_venta_tienda IS NULL AND fk_venta_evento IS NULL AND fk_compra_reposicion IS NULL)
+            OR (fk_membresia IS NULL AND fk_venta_online IS NOT NULL AND fk_venta_tienda IS NULL AND fk_venta_evento IS NULL AND fk_compra_reposicion IS NULL)
+            OR (fk_membresia IS NULL AND fk_venta_online IS NULL AND fk_venta_tienda IS NOT NULL AND fk_venta_evento IS NULL AND fk_compra_reposicion IS NULL)
+            OR (fk_membresia IS NULL AND fk_venta_online IS NULL AND fk_venta_tienda IS NULL AND fk_venta_evento IS NOT NULL AND fk_compra_reposicion IS NULL)
+            OR (fk_membresia IS NULL AND fk_venta_online IS NULL AND fk_venta_tienda IS NULL AND fk_venta_evento IS NULL AND fk_compra_reposicion IS NOT NULL))
+);
