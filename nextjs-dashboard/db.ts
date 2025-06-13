@@ -21,7 +21,7 @@ export async function getUser(nombre:string,pass:string) {
 }
 
 export async function getUserPermissions(id:number) {
-    return await sql`SELECT p.descripcion,p.permiso_id FROM USUARIO u, ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PERMISO p  where 
+    return await sql`SELECT p.descripcion,p.permiso_id FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PERMISO p  where 
     ru.fk_usuario=${id} AND r.rol_id=ru.fk_rol AND rp.fk_rol=r.rol_id AND rp.fk_permiso=p.permiso_id`;
 }
 

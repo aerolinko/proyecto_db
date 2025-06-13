@@ -13,7 +13,6 @@ import clsx from 'clsx'
 
 export default function UserNavs({ permissions }) {
   const pathname = usePathname();
-
   return (
       <>
         {permissions.map((link:{permiso_id: number; descripcion: string}) => {
