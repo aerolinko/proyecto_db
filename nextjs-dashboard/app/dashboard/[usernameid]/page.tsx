@@ -1,7 +1,7 @@
 import {getUserPermissions} from "@/db";
 import {cookies} from "next/headers";
 import {redirect} from "next/navigation";
-import NavLinks from "@/app/ui/users/userNavs";
+import UserNavs from "@/app/ui/users/userNavs";
 
 
 export default async function Page({
@@ -19,8 +19,8 @@ export default async function Page({
     const currentUser = JSON.parse(userCookie.value);
     return (
         <div className="flex flex-col items-center justify-center min-h-screen">
-            <h1 className="text-2xl font-bold mb-4">This is you {currentUser.primer_nombre}</h1>
-            <NavLinks permissions={userPermissions}/>
+            <h1 className="text-2xl font-bold mb-4">Opciones disponibles para {currentUser.primer_nombre}</h1>
+            <UserNavs permissions={userPermissions}/>
         </div>
     );
 }
