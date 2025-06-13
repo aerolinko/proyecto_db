@@ -19,24 +19,24 @@
 </template>
 
 <script>
-import router from "../router";
+import router from "../router/index.ts";
 
 export default {
   name: "SidebarMenu",
   data() {
     return {
       menuItems: [
-        { name: "addSale", label: "Add Sale", route: "https://www.youtube.com/" },
-        { name: "addBuy", label: "Add Buy", route: "/add-buy" },
-        { name: "manageInventory", label: "Manage Inventory", route: "/manage-inventory" },
-        { name: "viewReports", label: "View Reports", route: "/reports" }
+        { name: "addSale", label: "Add Sale", route: "/test"+1},
+        { name: "addBuy", label: "Add Buy", route: "/test"+2},
+        { name: "manageInventory", label: "Manage Inventory", route: "/test"+3},
+        { name: "viewReports", label: "View Reports", route: "/test/"+4}
         // Add more operations here as needed
       ]
     };
   },
   methods: {
     handleClick(item) {
-      router.push('/test');
+      router.push(item.route);
     }
   }
 };
