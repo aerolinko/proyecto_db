@@ -1,7 +1,9 @@
-// app/api/login/route.ts
+'use server'
 
 import { NextResponse } from "next/server";
 import { getUser } from "@/db";
+import {cookies} from "next/headers";
+import {redirect} from "next/navigation";
 
 
 export async function POST(request: Request) {
@@ -17,10 +19,10 @@ export async function POST(request: Request) {
 
         const response = NextResponse.json({ res }, { status:200 });
         response.cookies.set("user", JSON.stringify(res), {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24,
-            path: '/',
+         httpOnly: true,
+         secure: process.env.NODE_ENV === 'production',
+         maxAge: 60 * 60 * 24,
+         path: '/',
         });
         return response;
     }
@@ -31,3 +33,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+export async function signOut() {
+    (await cookies()).delete('user');
+    console.log("Cookie borrada");
+    redirect('/login');
+}
+

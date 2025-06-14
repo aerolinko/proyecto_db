@@ -17,12 +17,13 @@ const Links= [
   {path:'/GestionUsuarios',nombre:'Manejo de usuarios', icon: UserGroupIcon, id:229 },
   {path:'/Reportes',nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:0}]
 
+// @ts-ignore
 export default function UserNavs({ permissions }) {
   const pathname = usePathname();
   let i=0
   let filteredLinks=Links;
   for (let i=0; i<4; i++) {
-    if(!permissions.some((permission) => permission.permiso_id == Links[i].id)) {
+    if(!permissions.some((permission:{permiso_id:number}) => permission.permiso_id == Links[i].id)) {
       filteredLinks = filteredLinks.filter((link) => link.id !== Links[i].id);
     }
   }

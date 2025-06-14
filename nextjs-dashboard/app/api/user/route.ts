@@ -1,4 +1,5 @@
-// app/api/user/route.ts
+'use server'
+
 import { NextResponse } from "next/server";
 import { getUserPermissions } from "@/db"; // This function queries the database server-side
 

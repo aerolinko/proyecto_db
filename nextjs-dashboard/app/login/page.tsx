@@ -19,7 +19,7 @@ export default function LoginPage() {
 
         if (response.ok) {
             const data = await response.json();
-            window.location.href = `/dashboard/${data.res.usuario_id}`;
+            window.location.href = `/${data.res.usuario_id}/dashboard`;
         } else {
             setError("Credenciales Inválidas. Intente nuevamente.");
         }

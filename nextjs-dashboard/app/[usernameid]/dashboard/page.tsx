@@ -16,6 +16,8 @@ export default async function Page({
     if (!userCookie) {
         redirect('/');
     }
+
+
     const currentUser = JSON.parse(userCookie.value);
     return (
         <div className="flex flex-col items-center justify-center min-h-screen">
