@@ -21,7 +21,7 @@ export default async function Page({
     return (
         <div className="flex flex-col items-center justify-center min-h-full">
             <h1 className="text-2xl font-bold mb-4">Opciones disponibles para {currentUser.primer_nombre}</h1>
-            <UserNavs permissions={userPermissions}/>
+            <UserNavs permissions={userPermissions} />
         </div>
     );
 }

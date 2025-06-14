@@ -11,14 +11,15 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx'
 
-const Links= [
-  {path:'/VentaTienda',nombre:'Manejo de caja', icon: ShoppingBagIcon, id:301},
-  {path:'/Roles',nombre:'Manejo de roles', icon: Cog6ToothIcon, id:162},
-  {path:'/GestionUsuarios',nombre:'Manejo de usuarios', icon: UserGroupIcon, id:229 },
-  {path:'/Reportes',nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:0}]
+
 
 // @ts-ignore
 export default function UserNavs({ permissions }) {
+  const Links= [
+    {path:`VentaTienda`,nombre:'Manejo de caja', icon: ShoppingBagIcon, id:301},
+    {path:`Roles`,nombre:'Manejo de roles', icon: Cog6ToothIcon, id:162},
+    {path:`GestionUsuarios`,nombre:'Manejo de usuarios', icon: UserGroupIcon, id:229 },
+    {path:`Reportes`,nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:0}]
   const pathname = usePathname();
   let i=0
   let filteredLinks=Links;
