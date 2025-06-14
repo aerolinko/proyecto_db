@@ -1,12 +1,7 @@
 import {cookies} from "next/headers";
 import {redirect} from "next/navigation";
-export default async function Page({
-                                 params,
-                             }: {
-    params: Promise<{ usernameid: number }>
-}) {
+export default async function Page() {
 
-    const {usernameid} = await params;
     const cookieStore = await cookies();
     const userCookie = cookieStore.get('user');
     if (!userCookie) {

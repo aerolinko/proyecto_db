@@ -450,11 +450,11 @@ CREATE TABLE ANAQUEL_CERVEZA(
 
 CREATE TABLE CLIENTE_NATURAL(
     cliente_id serial,
-    RIF varchar(12) NOT NULL,
+    RIF varchar(12) NOT NULL unique,
     direccion varchar(255) NOT NULL,
     primer_nombre varchar(50) NOT NULL,
     primer_apellido varchar(50) NOT NULL,
-    cedula integer NOT NULL,
+    cedula integer NOT NULL unique,
     segundo_nombre varchar(50),
     segundo_apellido varchar(50),
     total_puntos integer NOT NULL,
@@ -465,7 +465,7 @@ CREATE TABLE CLIENTE_NATURAL(
 
 CREATE TABLE CLIENTE_JURIDICO(
     cliente_id serial,
-    RIF varchar(12) NOT NULL,
+    RIF varchar(12) NOT NULL unique,
     direccion varchar(255) NOT NULL,
     denominacion_comercial varchar(255) NOT NULL,
     razon_social varchar(255) NOT NULL,
@@ -495,7 +495,7 @@ CREATE TABLE PERSONAL_CONTACTO(
 CREATE TABLE TELEFONO(
     telefono_id serial,
     codigo smallint NOT NULL,
-    numero integer NOT NULL,
+    numero bigint NOT NULL,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
     fk_personal_contacto integer,
@@ -526,7 +526,8 @@ CREATE TABLE CORREO_ELECTRONICO(
     constraint check_cliente_miembro_correo_electronico check ( (fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
         AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
         AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
-        AND fk_cliente_natural IS NOT NULL))
+        AND fk_cliente_natural IS NOT NULL)),
+    constraint check_dominio_correo_electronico check ( dominio LIKE'@%')
 );
 
 CREATE TABLE EVENTO_CLIENTE(

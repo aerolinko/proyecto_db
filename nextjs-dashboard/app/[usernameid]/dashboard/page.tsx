@@ -17,10 +17,9 @@ export default async function Page({
         redirect('/');
     }
 
-
     const currentUser = JSON.parse(userCookie.value);
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center justify-center min-h-full">
             <h1 className="text-2xl font-bold mb-4">Opciones disponibles para {currentUser.primer_nombre}</h1>
             <UserNavs permissions={userPermissions}/>
         </div>
