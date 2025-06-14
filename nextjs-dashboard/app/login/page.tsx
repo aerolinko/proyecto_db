@@ -26,7 +26,9 @@ export default function LoginPage() {
     }
 
     return (
+
         <div className="flex flex-col items-center justify-center min-h-screen">
+            <div className="bg-white p-10 sm:p-12 rounded-2xl shadow-xl border-2  max-w-2xl transform transition-all duration-300 ">
             <h1 className="text-2xl font-bold mb-4">Login</h1>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                 <input
@@ -50,6 +52,7 @@ export default function LoginPage() {
                     Login
                 </button>
             </form>
+        </div>
         </div>
     );
 }
