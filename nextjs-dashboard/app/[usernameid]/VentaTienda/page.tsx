@@ -21,7 +21,7 @@ export default function Page (){
     // `useState` hook to manage temporary success or error messages displayed to the user.
     // `message` stores the current message (type and text), `setMessage` updates it.
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-
+    const [searchTerm, setSearchTerm] = useState<string>('');
     // `useEffect` hook to perform side effects, specifically fetching products when the component mounts.
     // The empty dependency array `[]` ensures this function runs only once after the initial render.
     useEffect(() => {
@@ -49,7 +49,8 @@ export default function Page (){
                     // IMPORTANT: Adding placeholder price and stock as your API only returns 'nombre' and 'cerveza_presentacion_id'.
                     // In a real application, these should come from your backend.
                     price: parseFloat((Math.random() * (10 - 1) + 1).toFixed(2)), // Generates a random price between 1 and 10.
-                    stock: Math.floor(Math.random() * 50) + 10 // Generates a random stock quantity between 10 and 60.
+                    stock: Math.floor(Math.random() * 50) + 10, // Generates a random stock quantity between 10 and 60.
+                    presentation: item.cap_volumen
                 }));
                 setProducts(transformedProducts); // Updates the `products` state with the transformed data, triggering a re-render.
             } catch (err: any) {
@@ -113,6 +114,19 @@ export default function Page (){
         }
     }, [products, showMessage]); // Dependencies: `products` (to find product details) and `showMessage` (to display messages).
 
+    // `useMemo` hook to calculate and memoize the filtered list of products.
+    // This re-calculates only when `products` or `searchTerm` changes.
+    const filteredProducts = useMemo(() => {
+        if (!searchTerm) {
+            return products; // If no search term, return all products.
+        }
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        return products.filter(product =>
+            product.name.toLowerCase().includes(lowerCaseSearchTerm)
+        );
+    }, [products, searchTerm]);
+
+
     // `useMemo` hook to memoize the calculation of the total cart price.
     // This calculation will only re-run if the `cart` state changes, optimizing performance.
     const total = useMemo(() => {
@@ -144,7 +158,8 @@ export default function Page (){
             };
         })
 
-        setCart({}); // Clears the cart after checkout.
+        setCart({})
+        setSearchTerm(''); // Clears the cart after checkout.
         // In a real app, you'd send this data to a backend, update stock, etc. // Comment indicating next steps for a production app.
     };
 
@@ -166,19 +181,35 @@ export default function Page (){
                     </div>
                 )}
 
+                <div className="mb-6 w-full">
+                    <input
+                        type="text"
+                        placeholder="Buscar productos..."
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+
+
                 {/* Section title for available products. */}
                 <h2 className="text-2xl font-bold text-purple-700 mb-4">Productos Disponibles</h2>
                 {/* Grid container for displaying product cards. */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Maps through the `products` array to render a `ProductCard` for each. */}
-                    {products.map(product => (
-                        <ProductCard
-                            key={product.id} // `key` prop for efficient list rendering in React.
-                            product={product} // Passes the entire product object as a prop.
-                            onAddToCart={handleAddToCart} // Passes the cart-handling function as a prop.
-                            initialQuantity={cart[product.id]?.quantity || 0} // Passes the current quantity of this product in the cart.
-                        />
-                    ))}
+                    {filteredProducts.length === 0 ? ( // Use filteredProducts here
+                        // Message if no products are available after loading or after filtering.
+                        <p className="col-span-full text-center text-gray-600">No hay productos disponibles que coincidan con la búsqueda.</p>
+                    ) : (
+                        // Map through the `filteredProducts` array and render a `ProductCard` for each.
+                        filteredProducts.map(product => (
+                            <ProductCard
+                                key={product.id} // `key` prop for efficient list rendering in React.
+                                product={product} // Passes the entire product object as a prop.
+                                onAddToCart={handleAddToCart} // Passes the cart-handling function as a prop.
+                                initialQuantity={cart[product.id]?.quantity || 0} // Passes the current quantity of this product in the cart.
+                            />
+                        ))
+                    )}
                 </div>
 
                 {/* Section for the shopping cart. */}

@@ -7,6 +7,7 @@ interface Product {
     name: string;
     price: number;
     stock: number;
+    presentation: string;
 }
 
 interface ProductCardProps {
@@ -55,6 +56,7 @@ export default function ProductCard({ product, onAddToCart, initialQuantity }){
         <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4 border border-gray-200">
             <div className="flex-grow text-center sm:text-left">
                 <h3 className="text-xl font-semibold text-gray-800">{product.name}</h3>
+                <h3 className="text-amber-700 text-m font-semibold text-gray-800">{product.presentation} mml</h3>
                 <p className="text-gray-600">Precio: </p>
                 <p className={`text-sm ${product.stock < 10 ? 'text-red-600' : 'text-gray-500'}`}>
                     Stock: {product.stock} unidades
