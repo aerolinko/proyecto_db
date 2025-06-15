@@ -327,10 +327,10 @@ CREATE TABLE MIEMBRO_ACAUCAB(
 CREATE TABLE CERVEZA(
     cerveza_id serial,
     nombre varchar(50) NOT NULL,
-    densidad_inicial NUMERIC(5,4) NOT NULL,
-    densidad_final NUMERIC(5,4) NOT NULL,
+    densidad_inicial NUMERIC(4,3) NOT NULL,
+    densidad_final NUMERIC(4,3) NOT NULL,
     IBUs NUMERIC(3) NOT NULL,
-    nivel_alcohol NUMERIC(5,3) NOT NULL,
+    nivel_alcohol NUMERIC(5,2) NOT NULL,
     fk_tipo_cerveza integer NOT NULL,
     fk_estilo_cerveza integer NOT NULL,
     fk_receta integer NOT NULL,
