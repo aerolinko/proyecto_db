@@ -14,6 +14,7 @@ export async function GET(request: Request) {
         }
     }
     else{
+        // @ts-ignore
         result = await getAllRolesPermisos(parseInt(params.get('permisos-rol')));
         if (!result) {
             return NextResponse.json({ error: "No hay permisos para ese rol" }, { status: 404 });

@@ -11,12 +11,13 @@ export default function Roles({
     params: Promise<{ usernameid: number }>
 }) {
     const { usernameid } = React.use(params)
-    const [name, setName] = useState('');
+    const [filter, setFilter] = useState('');
     const [permissions, setPermission] = useState<Permiso[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
     const [selectedRole, setSelectedRole] = useState<any>();
     const [error, setError] = useState("");
     const [selectedChecks, setSelectedChecks] = useState<string[]>([]);
+    const [filteredPermissions, setFilteredPermissions] = useState<Permiso[]>([])
 
 interface Permiso{
     descripcion: string;
@@ -37,6 +38,7 @@ interface Permiso{
                 }
                 const data = await response.json();
                 setPermission(data.result);
+                setFilteredPermissions(data.result);
             }
                 catch (error) {
                     // @ts-ignore
@@ -72,9 +74,19 @@ interface Permiso{
         console.log(selectedChecks);
     }, [selectedChecks]);
 
+
+    useEffect(() => {
+        if(filter){
+        setFilteredPermissions(permissions.filter(role => role.descripcion.includes(filter.toUpperCase())));
+        }
+        else setFilteredPermissions(permissions);
+
+    }, [filter]);
+
     useEffect(() => {
             if(selectedRole){
-            async function fetchRolePermissions(selectedRole) {
+            // @ts-ignore
+                async function fetchRolePermissions(selectedRole) {
                 try     {
                     const response = await fetch(`/api/roles?permisos-rol=${selectedRole}`, {
                         method: "GET", // Specifies the HTTP method as GET.
@@ -86,6 +98,7 @@ interface Permiso{
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const data = await response.json();
+                    // @ts-ignore
                     setSelectedChecks(data.result.map((item)=>{
                         return item.descripcion;
                     }));
@@ -100,34 +113,14 @@ interface Permiso{
         console.log("Currently selected checks for role:", selectedRole);
     }, [selectedRole]);
 
-    async function fetchRolePermissions(id:number) {
-        try {
-            const response = await fetch(`/api/roles?permisos-rol=${id}`, {
-                method: "GET", // Specifies the HTTP method as GET.
-                headers: {"Content-Type": "application/json"} // Sets the request header.
-            });
-            // Checks if the HTTP response was successful (status code 200-299).
-            if (!response.ok) {
-                // Throws an error if the HTTP response indicates a problem.
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            setRoles(data.result);
-        }
-        catch (error) {
-            // @ts-ignore
-            setError(error.message);
-        }
-    };
-
     const handleSelectChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedRole(event.target.value);
     }, []);
 
     return (
 
-        <div className="flex flex-col items-center justify-center min-h-full bg-gradient-to-br from-purple-50 to-indigo-100">
-            <div className="bg-white p-10 sm:p-12 rounded-2xl shadow-xl border-2  max-w-full transform transition-all duration-300">
+        <div className="flex flex-col items-center justify-center min-h-full  bg-gradient-to-br from-purple-50 to-indigo-100">
+            <div className="bg-white p-10 sm:p-12 rounded-2xl shadow-xl border-2  max-w-full w- transform transition-all duration-300">
             <h1 className="text-2xl font-bold mb-4">Rol</h1>
             <form className="flex flex-col gap-3">
                 <select name="selectRole" value={selectedRole} onChange={handleSelectChange}>
@@ -145,17 +138,18 @@ interface Permiso{
                 <input
                     type="text"
                     placeholder="Buscar Permiso..."
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
                     required
                     className="border p-2 rounded"
+
                 />
 
-                {Object.keys(permissions).length === 0 ? (
+                {Object.keys(filteredPermissions).length === 0 ? (
                     <p className="text-gray-600 text-center text-lg">No hay permisos para añadir.</p>
                 ):(
-                    <div className="text-gray-600 text-center text-lg grid-flow-row grid rounded-md shadow-lg border-gray-200 border">
-                        {permissions.map((item) => (
+                    <div className="text-gray-600 text-center text-lg grid-flow-row grid w-full rounded-md shadow-lg border-gray-200 border">
+                        {filteredPermissions.map((item) => (
                             <div key={item.permiso_id}>
                             <RolChecks product={item} selectedChecks={selectedChecks} setSelectedChecks={setSelectedChecks} />
                             </div>
