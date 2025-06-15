@@ -75,7 +75,6 @@ export default function Page (){
         // Returns a cleanup function that clears the timeout if the component unmounts or the effect re-runs.
         return () => clearTimeout(timer);
     }, []); // Empty dependency array as this function doesn't depend on any props or state within its closure.
-
     // `useCallback` hook to memoize the `handleAddToCart` function.
     // This function handles adding a product to the cart or updating its quantity.
     const handleAddToCart = useCallback((productId: number, quantity: number) => {
