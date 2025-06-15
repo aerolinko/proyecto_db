@@ -12,7 +12,15 @@ export async function getAllLugares() {
 }
 
 export async function getAllPermisos() {
-    return await sql`SELECT * FROM PERMISO`;
+    return await sql`SELECT * FROM PERMISO where descripcion LIKE 'crear%'`;
+}
+
+export async function getAllRoles() {
+    return await sql`SELECT * FROM ROL`;
+}
+
+export async function getAllRolesPermisos(rol: number) {
+    return await sql`SELECT * FROM PERMISO,ROL_PERMISO WHERE fk_rol=${rol} AND fk_permiso = permiso_id`;
 }
 
 export async function getAllLugaresUserCesar() {
