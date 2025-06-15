@@ -49,7 +49,7 @@ export default function Page (){
                     // IMPORTANT: Adding placeholder price and stock as your API only returns 'nombre' and 'cerveza_presentacion_id'.
                     // In a real application, these should come from your backend.
                     price: parseFloat((Math.random() * (10 - 1) + 1).toFixed(2)), // Generates a random price between 1 and 10.
-                    stock: Math.floor(Math.random() * 50) + 10, // Generates a random stock quantity between 10 and 60.
+                    stock: item.cantidad, // Generates a random stock quantity between 10 and 60.
                     presentation: item.cap_volumen
                 }));
                 setProducts(transformedProducts); // Updates the `products` state with the transformed data, triggering a re-render.

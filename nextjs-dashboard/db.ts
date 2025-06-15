@@ -28,7 +28,13 @@ export async function getUserPermissions(id:number) {
 }
 
 export async function getAllProducts() {
-    return await sql`SELECT pc.cerveza_presentacion_id,c.nombre, p.cap_volumen FROM CERVEZA_PRESENTACION pc,CERVEZA c,PRESENTACION p where pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion`;
+    return await sql`SELECT pc.cerveza_presentacion_id,c.nombre, p.cap_volumen,
+                            CASE
+                                WHEN ac.anaquel_cerveza_id IN(dvt.fk_anaquel_cerveza) then ac.cantidad-dvt.cantidad
+                                ELSE ac.cantidad
+                                END AS cantidad
+                     FROM CERVEZA_PRESENTACION pc,CERVEZA c,PRESENTACION p, anaquel_cerveza ac, detalle_venta_tienda dvt
+                     where pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion AND pc.cerveza_presentacion_id=ac.fk_cerveza_presentacion`;
 }
 
 export default sql;
