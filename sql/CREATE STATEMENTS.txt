@@ -179,6 +179,7 @@ CREATE TABLE EMPLEADO(
     cedula integer NOT NULL,
     primer_nombre varchar(50) NOT NULL,
     primer_apellido varchar(50) NOT NULL,
+    direccion varchar(255) NOT NULL,
     segundo_nombre varchar(50),
     segundo_apellido varchar(50),
     fecha_contrato DATE NOT NULL,
@@ -288,8 +289,8 @@ CREATE TABLE DEPARTAMENTO_EMPLEADO(
     fk_cargo integer NOT NULL,
     constraint pk_departamento_empleado_id primary key (departamento_empleado_id),
     constraint fk_empleado_departamento_empleado foreign key (fk_empleado) references EMPLEADO(empleado_id),
-    constraint fk_departamento_departamento_emplado foreign key (fk_departamento) references DEPARTAMENTO(departamento_id),
-    constraint fk_cargo_departamento_emplado foreign key (fk_cargo) references CARGO(cargo_id)
+    constraint fk_departamento_departamento_empleado foreign key (fk_departamento) references DEPARTAMENTO(departamento_id),
+    constraint fk_cargo_departamento_empleado foreign key (fk_cargo) references CARGO(cargo_id)
 );
 
 CREATE TABLE RECETA(

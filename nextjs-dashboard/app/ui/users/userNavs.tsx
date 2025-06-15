@@ -50,19 +50,11 @@ export default function UserNavs({ permissions }) {
                       // --- START: Card CSS Classes ---
                       'flex flex-col items-center justify-center', // Stacks icon and text vertically, centers them
                       'p-4 rounded-xl', // More padding, larger rounded corners
-                      'bg-white border border-gray-200', // White background, subtle border
+                      'bg-gray-200 border border-gray-200', // White background, subtle border
                       'shadow-md hover:shadow-lg transition-all duration-200 ease-in-out', // Shadow for depth, smooth hover effect
                       'text-gray-800 text-center font-medium', // Default text color, center text
                       'w-full h-36', // Fixed size for cards (w-full fills grid cell, h-36 is fixed height)
                       'hover:scale-105 transform', // Subtle grow on hover
-                      // --- END: Card CSS Classes ---
-                      {
-                        // Conditional Active State Styles:
-                        // IMPORTANT: The comparison should be 'pathname === link.path' not 'link.nombre'
-                        // Also incorporates the 'isMounted' check for hydration safety.
-                        'bg-gradient-to-br from-blue-600 to-blue-800 text-white border-blue-700 shadow-xl':pathname === link.path,
-                        'hover:scale-105 hover:shadow-xl hover:from-blue-700 hover:to-blue-900': pathname === link.path,
-                      },
                   )}
               >
                 <LinkIcon className="w-6" />

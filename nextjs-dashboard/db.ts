@@ -16,8 +16,10 @@ export async function getAllLugaresUserCesar() {
 }
 
 export async function getUser(nombre:string,pass:string) {
-    return await sql`SELECT * FROM CLIENTE_NATURAL c,USUARIO u,TELEFONO t,CORREO_ELECTRONICO co where u.nombre_usuario=${nombre} AND
-    u.hash_contrasena=${pass} AND c.cliente_id=u.fk_cliente_natural AND t.fk_cliente_natural=u.fk_cliente_natural AND u.fk_cliente_natural=co.fk_cliente_natural;`;
+    return await sql`SELECT e.cedula,e.primer_nombre,e.segundo_nombre,e.segundo_apellido,e.primer_apellido,
+                            e.direccion, TO_CHAR(e.fecha_contrato, 'DD-MM-YYYY') as fecha_contrato, u.usuario_id, u.nombre_usuario, c.nombre
+                     FROM DEPARTAMENTO_EMPLEADO de, CARGO c, EMPLEADO e,USUARIO u where u.nombre_usuario=${nombre} AND
+                         u.hash_contrasena=${pass} AND e.empleado_id=u.fk_empleado AND e.empleado_id = de.fk_empleado AND  de.fk_cargo = c.cargo_id`;
 }
 
 export async function getUserPermissions(id:number) {
