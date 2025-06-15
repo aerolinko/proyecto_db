@@ -289,8 +289,8 @@ CREATE TABLE DEPARTAMENTO_EMPLEADO(
     fk_cargo integer NOT NULL,
     constraint pk_departamento_empleado_id primary key (departamento_empleado_id),
     constraint fk_empleado_departamento_empleado foreign key (fk_empleado) references EMPLEADO(empleado_id),
-    constraint fk_departamento_departamento_empleado foreign key (fk_departamento) references DEPARTAMENTO(departamento_id),
-    constraint fk_cargo_departamento_empleado foreign key (fk_cargo) references CARGO(cargo_id)
+    constraint fk_departamento_departamento_emplado foreign key (fk_departamento) references DEPARTAMENTO(departamento_id),
+    constraint fk_cargo_departamento_emplado foreign key (fk_cargo) references CARGO(cargo_id)
 );
 
 CREATE TABLE RECETA(
@@ -327,10 +327,10 @@ CREATE TABLE MIEMBRO_ACAUCAB(
 CREATE TABLE CERVEZA(
     cerveza_id serial,
     nombre varchar(50) NOT NULL,
-    densidad_inicial NUMERIC(4,4) NOT NULL,
-    densidad_final NUMERIC(4,4) NOT NULL,
+    densidad_inicial NUMERIC(5,4) NOT NULL,
+    densidad_final NUMERIC(5,4) NOT NULL,
     IBUs NUMERIC(3) NOT NULL,
-    nivel_alcohol NUMERIC(3,3) NOT NULL,
+    nivel_alcohol NUMERIC(5,3) NOT NULL,
     fk_tipo_cerveza integer NOT NULL,
     fk_estilo_cerveza integer NOT NULL,
     fk_receta integer NOT NULL,
