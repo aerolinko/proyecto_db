@@ -3,22 +3,41 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ProductCard from "@/app/ui/venta/ProductCard";
 import CartItem from "@/app/ui/venta/CartItem";
 
-const mockProducts = [
-    { id: '1', name: 'Manzanas (kg)', price: 2.50, stock: 100 },
-    { id: '2', name: 'Leche (1L)', price: 1.80, stock: 50 },
-    { id: '3', name: 'Pan Integral', price: 3.20, stock: 30 },
-    { id: '4', name: 'Huevos (docena)', price: 4.00, stock: 25 },
-    { id: '5', name: 'Cereal (caja)', price: 5.75, stock: 40 },
-    { id: '6', name: 'Agua Embotellada (6pk)', price: 3.00, stock: 80 },
-    { id: '7', name: 'Arroz (kg)', price: 1.20, stock: 120 },
-    { id: '8', name: 'Aceite de Oliva (L)', price: 8.90, stock: 20 },
-];
-
-
 export default function Page (){
-    const [products] = useState(mockProducts);
+    let allProducts:any[]=[];
+    const [products, setProducts] = useState(allProducts);
     const [cart, setCart] = useState<Record<string, any>>({}); // Using a record for easy access by productId
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    useEffect(() => {
+        async function fetchProducts() {
+            try {
+                const response = await fetch("/api/products", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const transformedProducts = data.result.map((item: any) => ({
+                    id: item.cerveza_presentacion_id, // Ensure id is a string for consistency
+                    name: item.nombre,
+                    // IMPORTANT: Adding placeholder price and stock as your API only returns 'nombre' and 'cerveza_presentacion_id'.
+                    // In a real application, these should come from your backend.
+                    price: parseFloat((Math.random() * (10 - 1) + 1).toFixed(2)), // Random price between 1.00 and 10.00
+                    stock: Math.floor(Math.random() * 50) + 10 // Random stock between 10 and 60
+                }));
+                setProducts(transformedProducts); // Update the products state
+            } catch (err: any) {
+                console.error("Error fetching products:", err);
+ // Set error message
+            }
+        }
+
+        fetchProducts();
+    }, []);
 
     const showMessage = useCallback((type: 'success' | 'error', text: string) => {
         setMessage({ type, text });
@@ -29,7 +48,7 @@ export default function Page (){
     }, []);
 
     // Function to add or update an item in the cart
-    const handleAddToCart = useCallback((productId: string, quantity: number) => {
+    const handleAddToCart = useCallback((productId: number, quantity: number) => {
         const product = products.find(p => p.id === productId);
         if (!product) {
             showMessage('error', 'Producto no encontrado.');
@@ -65,11 +84,19 @@ export default function Page (){
 
     // Simulate checkout process
     const handleCheckout = () => {
+
         if (Object.keys(cart).length === 0) {
             showMessage('error', 'El carrito está vacío. Agrega algunos productos.');
             return;
         }
         showMessage('success', `¡Compra realizada con éxito! Total: $${total.toFixed(2)}. Carrito vaciado.`);
+        products.forEach((product) => {
+            const existingItem = Object.keys(cart);
+            if(existingItem.includes(product.id.toString())){
+                product.stock = product.stock - cart[product.id].quantity;
+            };
+        })
+
         setCart({}); // Clear the cart after checkout
         // In a real app, you'd send this data to a backend, update stock, etc.
     };

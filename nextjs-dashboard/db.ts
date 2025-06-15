@@ -27,4 +27,8 @@ export async function getUserPermissions(id:number) {
     ru.fk_usuario=${id} AND r.rol_id=ru.fk_rol AND rp.fk_rol=r.rol_id AND rp.fk_permiso=p.permiso_id`;
 }
 
+export async function getAllProducts() {
+    return await sql`SELECT pc.cerveza_presentacion_id,c.nombre, p.cap_volumen FROM CERVEZA_PRESENTACION pc,CERVEZA c,PRESENTACION p where pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion`;
+}
+
 export default sql;
