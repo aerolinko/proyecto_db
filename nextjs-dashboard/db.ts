@@ -12,7 +12,7 @@ export async function getAllLugares() {
 }
 
 export async function getAllPermisos() {
-    return await sql`SELECT * FROM PERMISO where descripcion LIKE 'crear%'`;
+    return await sql`SELECT * FROM PERMISO where descripcion LIKE 'consultar%'`;
 }
 
 export async function getAllRoles() {

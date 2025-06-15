@@ -130,17 +130,20 @@ interface Permiso{
                 </select>
                 <Link href={`/${usernameid}/crearRol`}
                       className={clsx(
-                          'flex h-[48px] items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 ',
+                          'flex h-[48px] items-center justify-center gap-2 rounded-md bg-gray-200 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 ',
                       )}>
                     <p className="hidden md:block">Crear Rol</p>
                 </Link>
                 <h1 className="text-2xl font-bold mb-4">Permisos</h1>
+                {error && <p className="text-red-500">{error}</p>}
+                <button type="submit" className="bg-gray-200 hover:bg-sky-100 hover:text-blue-600  p-2 rounded">
+                    Asignar
+                </button>
                 <input
                     type="text"
                     placeholder="Buscar Permiso..."
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
-                    required
                     className="border p-2 rounded"
 
                 />
@@ -158,10 +161,6 @@ interface Permiso{
                 )
 
                 }
-                {error && <p className="text-red-500">{error}</p>}
-                <button type="submit" className="bg-blue-500 text-white p-2 rounded">
-                    Asignar
-                </button>
             </form>
         </div>
         </div>

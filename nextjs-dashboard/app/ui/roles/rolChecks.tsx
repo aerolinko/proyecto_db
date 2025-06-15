@@ -27,7 +27,7 @@ export default function RolChecks({ product,selectedChecks, setSelectedChecks })
         <div className="bg-white p-6 flex border-0 flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4 ">
             <div className="flex-grow text-center sm:text-left">
                 {/* Displaying product description (assuming product object has this property) */}
-                <h3 className="text-xl font-semibold text-gray-800">{(product.descripcion).split('crear').join('')}</h3>
+                <h3 className="text-xl font-semibold text-gray-800">{(product.descripcion).split('consultar').join('')}</h3>
             </div>
             <div className="flex items-center space-x-2">
                 {/* Loop through the `checks` array to render a checkbox for each role. */}

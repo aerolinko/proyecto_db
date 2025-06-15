@@ -1,7 +1,7 @@
 'use server'
 
 import { NextResponse } from "next/server";
-import {getAllPermisos, getAllProducts} from "@/db"; // This function queries the database server-side
+import {getAllPermisos} from "@/db"; // This function queries the database server-side
 
 export async function GET(request: Request) {
     const result = await getAllPermisos();
