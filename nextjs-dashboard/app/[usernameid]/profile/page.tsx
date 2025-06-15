@@ -14,14 +14,14 @@ export default async function Page() {
             {/* <UserNavs /> */}
 
             <div className="bg-gray-200 p-10 sm:p-12 rounded-2xl shadow-xl border-2 w-full max-w-2xl transform transition-all duration-300 hover:scale-105">
-                <h1 className="text-4xl font-extrabold text-purple-800 mb-8 pb-4 border-b-2 border-purple-200 text-center">
+                <h1 className="text-4xl font-extrabold text-purple-800 mb-8 pb-4 border-b-2 border-purple-900 text-center">
                     Mi Perfil
                 </h1>
 
                 {/* Main profile details in two columns on medium screens and up */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 text-lg">
                     {/* User's Full Name */}
-                    <div className="flex flex-col space-y-2 pb-4 border-b border-purple-100">
+                    <div className="flex flex-col space-y-2 pb-4 border-b border-purple-600">
                         <div className="flex items-center space-x-4">
                             {/* SVG icon for person */}
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -34,7 +34,7 @@ export default async function Page() {
                     </div>
 
                     {/* User's Last Name */}
-                    <div className="flex flex-col space-y-2 pb-4 border-b border-purple-100">
+                    <div className="flex flex-col space-y-2 pb-4 border-b border-purple-600">
                         <div className="flex items-center space-x-4">
                             {/* Reusing person icon for consistency with name fields */}
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -47,7 +47,7 @@ export default async function Page() {
                     </div>
 
                     {/* User's ID */}
-                    <div className="flex flex-col space-y-2 pb-4 border-b border-purple-100">
+                    <div className="flex flex-col space-y-2 pb-4 border-b border-purple-600">
                         <div className="flex items-center space-x-4">
                             {/* SVG icon for email */}
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -60,7 +60,7 @@ export default async function Page() {
                     </div>
 
                     {/* User's Role */}
-                    <div className="flex flex-col space-y-2 pb-4 border-b border-purple-100">
+                    <div className="flex flex-col space-y-2 pb-4 border-b border-purple-600">
                         <div className="flex items-center space-x-4">
                             {/* SVG icon for ID */}
 
@@ -75,13 +75,13 @@ export default async function Page() {
                         </div>
                     </div>
                     {/* "Contacto y Ubicación" heading spans both columns */}
-                    <h2 className="text-2x1 font-bold text-purple-700 mt-4 mb-2 pb-2 border-b-2 border-purple-300 md:col-span-2">
+                    <h2 className="text-2x1 font-bold text-purple-700 mt-4 mb-2 pb-2 border-b-2 border-purple-900 md:col-span-2">
                         Contacto y Ubicación
                     </h2>
 
                     {/* Contract Date */}
                     {currentUser.nombre_usuario && (
-                        <div className="flex flex-col space-y-2 pb-4 border-b border-purple-100">
+                        <div className="flex flex-col space-y-2 pb-4 border-b border-purple-600">
                             <div className="flex items-center space-x-4">
                                 {/* SVG icon for phone */}
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -96,7 +96,7 @@ export default async function Page() {
 
                     {/* Address */}
                     {currentUser.direccion && (
-                        <div className="flex flex-col space-y-2 pb-4 border-b border-purple-100 md:col-span-2"> {/* This makes it span both columns */}
+                        <div className="flex flex-col space-y-2 pb-4 border-b border-purple-600 md:col-span-2"> {/* This makes it span both columns */}
                             <div className="flex items-center space-x-4">
                                 {/* SVG icon for location */}
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

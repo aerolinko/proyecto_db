@@ -11,6 +11,10 @@ export async function getAllLugares() {
     return await sql`SELECT * FROM LUGAR`;
 }
 
+export async function getAllPermisos() {
+    return await sql`SELECT * FROM PERMISO`;
+}
+
 export async function getAllLugaresUserCesar() {
     return await sql`SELECT * FROM LUGAR l,CLIENTE_NATURAL c where l.lugar_id=c.fk_lugar`;
 }
@@ -30,11 +34,12 @@ export async function getUserPermissions(id:number) {
 export async function getAllProducts() {
     return await sql`SELECT pc.cerveza_presentacion_id,c.nombre, p.cap_volumen,
                             CASE
-                                WHEN ac.anaquel_cerveza_id IN(dvt.fk_anaquel_cerveza) then ac.cantidad-dvt.cantidad
-                                ELSE ac.cantidad
+                                WHEN ac.anaquel_cerveza_id IN(dvt.fk_anaquel_cerveza) then SUM(ac.cantidad-dvt.cantidad)
+                                ELSE SUM(ac.cantidad)
                                 END AS cantidad
                      FROM CERVEZA_PRESENTACION pc,CERVEZA c,PRESENTACION p, anaquel_cerveza ac, detalle_venta_tienda dvt
-                     where pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion AND pc.cerveza_presentacion_id=ac.fk_cerveza_presentacion`;
+                     where pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion AND pc.cerveza_presentacion_id=ac.fk_cerveza_presentacion
+                     group by pc.cerveza_presentacion_id, c.nombre, p.cap_volumen, ac.anaquel_cerveza_id, dvt.fk_anaquel_cerveza`;
 }
 
 export default sql;
