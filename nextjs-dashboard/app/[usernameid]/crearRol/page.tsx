@@ -1,5 +1,6 @@
 "use client";
 
+import Table from "@/app/ui/customers/table";
 import { useState } from "react";
 
 export default function CrearRol() {
@@ -56,7 +57,6 @@ export default function CrearRol() {
                     maxLength={255}
                     className="border p-2 rounded-md shadow-md resize-y"
                 ></textarea>
-
                 {error && <p className="text-red-500">{error}</p>}
                 {mensaje &&
                     <div className="bg-purple-50 p-4 rounded-lg shadow-inner border border-purple-200">
@@ -72,7 +72,7 @@ export default function CrearRol() {
                             </div>
                         </div>
                     </div>}
-                <button type="submit" className="bg-blue-500 text-white p-2 rounded hover:bg-blue-300">
+                <button type="submit" className="bg-gray-200 hover:bg-sky-100 hover:text-blue-600 font-medium text-lg p-3 rounded">
                     Crear
                 </button>
             </form>
