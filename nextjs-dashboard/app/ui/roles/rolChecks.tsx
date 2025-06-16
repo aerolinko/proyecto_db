@@ -38,11 +38,11 @@ export default function RolChecks({ product,selectedChecks, setSelectedChecks })
                         <input
                             className={"rounded"} // Tailwind class for rounded corners.
                             type="checkbox"
-                            value={checkName+(product.descripcion).split('crear').join('')} // The value of the checkbox, used to identify which role it represents.
+                            value={checkName+(product.descripcion).split('consultar').join('')} // The value of the checkbox, used to identify which role it represents.
                             onChange={handleCheckboxChange} // Attaches the handler for changes.
                             // `checked` attribute controls whether the checkbox is currently checked.
                             // It's true if `checkName` is found in the `selectedChecks` array.
-                            checked={selectedChecks.includes(checkName+(product.descripcion).split('crear').join(''))}
+                            checked={selectedChecks.includes(checkName+(product.descripcion).split('consultar').join(''))}
                         />
                     </div>
                 ))}
