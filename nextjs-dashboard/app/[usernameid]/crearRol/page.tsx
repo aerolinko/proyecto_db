@@ -1,6 +1,5 @@
 "use client";
 
-import Table from "@/app/ui/customers/table";
 import { useState } from "react";
 
 export default function CrearRol() {
