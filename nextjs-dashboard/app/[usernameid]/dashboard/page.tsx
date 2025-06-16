@@ -16,9 +16,7 @@ export default async function Page({
     if (!userCookie) {
         redirect('/');
     }
-
     const currentUser = JSON.parse(userCookie.value);
-    console.log(currentUser);
     return (
         <div className="flex flex-col items-center justify-center min-h-full">
             <h1 className="text-2xl font-bold mb-4">Opciones disponibles para {currentUser.primer_nombre}</h1>

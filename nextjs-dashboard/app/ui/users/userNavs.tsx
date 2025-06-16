@@ -8,7 +8,6 @@ import {
   Cog6ToothIcon, InformationCircleIcon,  // Example: Another icon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link'
-import { usePathname } from 'next/navigation';
 import clsx from 'clsx'
 
 
@@ -20,9 +19,7 @@ export default function UserNavs({ permissions }) {
     {path:`Roles`,nombre:'Manejo de roles', icon: Cog6ToothIcon, id:162},
     {path:`GestionUsuarios`,nombre:'Manejo de usuarios', icon: UserGroupIcon, id:229 },
     {path:`Reportes`,nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:334}]
-  const pathname = usePathname();
   let i=0
-  console.log(permissions);
   let filteredLinks=Links;
   for (let i=0; i<4; i++) {
     if(!permissions.some((permission:{permiso_id:number}) => permission.permiso_id == Links[i].id)) {

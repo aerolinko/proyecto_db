@@ -13,7 +13,6 @@ export default async function SideNav() {
     if (!userCookie) {
         redirect('/');
     }
-
     const currentUser = JSON.parse(userCookie.value);
   return (
     <div className="flex h-full flex-col px-3 py-4 md:px-2">

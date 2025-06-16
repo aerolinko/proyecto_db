@@ -120,7 +120,7 @@ interface Permiso{
     return (
 
         <div className="flex flex-col items-center justify-center min-h-full  bg-gradient-to-br from-purple-50 to-indigo-100">
-            <div className="bg-white p-10 sm:p-12 rounded-2xl shadow-xl border-2  max-w-full w- transform transition-all duration-300">
+            <div className="bg-white p-10 sm:p-12 rounded-2xl shadow-xl border-2 max-w-full w- transform transition-all duration-300">
             <h1 className="text-2xl font-bold mb-4">Rol</h1>
             <form className="flex flex-col gap-3">
                 <select name="selectRole" value={selectedRole} onChange={handleSelectChange}>

@@ -1,7 +1,7 @@
 'use server'
 
 import { NextResponse } from "next/server";
-import {getAllPermisos, getAllProducts, getAllRoles, getAllRolesPermisos} from "@/db"; // This function queries the database server-side
+import { getAllRoles, getAllRolesPermisos, getUser, saveRole} from "@/db";
 
 export async function GET(request: Request) {
     const url = new URL(request.url);
@@ -22,4 +22,21 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ result, status: 200 });
+}
+
+export async function POST(request: Request) {
+    // Parse the incoming JSON payload
+    try{
+        const { nombre, descripcion } = await request.json();
+        // Dummy authentication; replace with your actual logic
+        const res = await saveRole(nombre,descripcion);
+        if(res) {
+            return NextResponse.json({ res }, { status: 200 });
+        }
+        return NextResponse.json({ error: 'Invalid Role Parameters' }, { status: 401 });
+    }
+    catch(err){
+        console.error('Error during creation:', err);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
 }

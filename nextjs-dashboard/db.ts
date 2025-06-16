@@ -15,6 +15,10 @@ export async function getAllPermisos() {
     return await sql`SELECT * FROM PERMISO where descripcion LIKE 'consultar%'`;
 }
 
+export async function saveRole(name: string, description: string) {
+    return await sql`INSERT INTO ROL (nombre,descripcion) VALUES (${name},${description})`;
+}
+
 export async function getAllRoles() {
     return await sql`SELECT * FROM ROL`;
 }
