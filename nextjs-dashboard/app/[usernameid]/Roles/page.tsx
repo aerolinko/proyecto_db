@@ -120,12 +120,12 @@ interface Permiso{
 
     return (
 
-        <div className="flex flex-col items-center justify-center min-h-full bg-gradient-to-br from-purple-50 to-indigo-100">
+        <div className="flex flex-col items-center justify-center max-h-screen min-h-full bg-gradient-to-br from-purple-50 to-indigo-100">
             <div className="w-6/12">
 
-            <div className="bg-white p-10 sm:p-12 rounded-2xl shadow-xl border-2 max-w-full min-w-96  transform transition-all duration-300">
+            <div className="bg-white p-10 sm:p-12 rounded-2xl max-h-screen shadow-xl border-2  min-w-96  transform transition-all duration-300">
             <h1 className="text-2xl font-bold mb-3">Roles</h1>
-            <form className="flex flex-col gap-3">
+            <form className="flex flex-col gap-3  ">
                 <select name="selectRole" value={selectedRole} onChange={handleSelectChange} className="rounded">
                     {Object.values(roles).map((role) => (
                         <option key={role.rol_id} value={role.rol_id}>{role.nombre}</option>
@@ -157,7 +157,7 @@ interface Permiso{
                 {Object.keys(filteredPermissions).length === 0 ? (
                     <p className="text-gray-600 text-center text-lg">No hay permisos para añadir.</p>
                 ):(
-                    <div className="text-gray-600 text-center text-lg grid-flow-row grid w-full rounded-md shadow-lg border-gray-200 border">
+                    <div className="text-gray-600 text-center overflow-y-scroll h-[420] text-lg grid-flow-row grid w-full scroll-m-0r rounded-md shadow-lg border-gray-200 border">
                         {filteredPermissions.map((item) => (
                             <div key={item.permiso_id}>
                             <RolChecks product={item} selectedChecks={selectedChecks} setSelectedChecks={setSelectedChecks} />
