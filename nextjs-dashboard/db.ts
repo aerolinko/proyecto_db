@@ -31,6 +31,10 @@ export async function saveRole(name: string, description: string) {
     return await sql`CALL guardarRol(${name}, ${description})`;
 }
 
+export async function saveRolePermissions(rol: number, descriptions: string[]) {
+    return await sql`CALL insertarRolPermisos(${rol},${descriptions});`;
+}
+
 export async function updateRole(rol_id:number,name: string, description: string) {
     return await sql`CALL editarRol(${rol_id},${name},${description})`;
 }
@@ -58,6 +62,8 @@ export async function getUser(nombre:string,pass:string) {
 export async function getUserPermissions(id:number) {
     return await sql`SELECT * FROM obtenerPermisosUsuario(${id})`;
 }
+
+
 
 export async function getAllProducts() {
     return await sql`SELECT pc.cerveza_presentacion_id,c.nombre, p.cap_volumen,

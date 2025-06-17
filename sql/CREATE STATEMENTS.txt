@@ -928,3 +928,20 @@ AS $$
 SELECT p.descripcion,p.permiso_id FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PERMISO p  where
     ru.fk_usuario=id AND r.rol_id=ru.fk_rol AND rp.fk_rol=r.rol_id AND rp.fk_permiso=p.permiso_id
 $$;
+
+CREATE PROCEDURE insertarRolPermisos(
+    p_rol_id INTEGER,
+    p_permiso_descripciones TEXT[]
+)
+LANGUAGE SQL
+AS $$
+INSERT INTO ROL_PERMISO (fk_rol, fk_permiso)
+SELECT
+    p_rol_id,
+    P.permiso_id
+FROM
+    PERMISO AS P
+        JOIN
+    unnest(p_permiso_descripciones) AS DescripcionesArray(descripcion_unica)
+    ON P.descripcion = DescripcionesArray.descripcion_unica;
+$$;

@@ -5,6 +5,7 @@ import RolChecks from "@/app/ui/roles/rolChecks";
 import Link from "next/link";
 import clsx from "clsx";
 import {ArrowLeftCircleIcon, MagnifyingGlassIcon} from "@heroicons/react/24/outline";
+import {saveRolePermissions} from "@/db";
 
 export default function Roles({
                                   params,
@@ -19,6 +20,7 @@ export default function Roles({
     const [error, setError] = useState("");
     const [selectedChecks, setSelectedChecks] = useState<string[]>([]);
     const [filteredPermissions, setFilteredPermissions] = useState<Permiso[]>([])
+    const [dropdownOpen, setDropdownOpen] = useState(false);
 
 interface Permiso{
     descripcion: string;
@@ -72,7 +74,7 @@ interface Permiso{
         },[]);
 
     useEffect(() => {
-        console.log(selectedChecks);
+        console.log('tester:',selectedChecks);
     }, [selectedChecks]);
 
 
@@ -114,6 +116,21 @@ interface Permiso{
         console.log("Currently selected checks for role:", selectedRole);
     }, [selectedRole]);
 
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        const response = await fetch("/api/permisos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ selectedRole, selectedChecks }),
+        });
+
+        if (response.ok) {
+            setError("yippe");
+        } else {
+            setError("Credenciales Inválidas. Intente nuevamente.");
+        }
+    }
+
     const handleSelectChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedRole(event.target.value);
     }, []);
@@ -125,14 +142,37 @@ interface Permiso{
             <div className="bg-white p-10 sm:p-12 rounded-2xl max-h-screen shadow-xl border-2  min-w-96  transform transition-all duration-300">
             <h1 className="text-2xl font-bold mb-3">Rol</h1>
             <form className="flex flex-col gap-3  ">
-                <select name="selectRole" value={selectedRole} onChange={handleSelectChange} className="rounded">
-                    {Object.values(roles).map((role) => (
-                        <option key={role.rol_id} value={role.rol_id}>{role.nombre}</option>
-                    ))}
-                </select>
+                {/* /////////// */}
+                <div className="relative">
+                    <button
+                        type="button"
+                        onClick={() => setDropdownOpen((prev) => !prev)}
+                        className="w-full border px-4 py-2 bg-white text-left rounded shadow"
+                    >
+                        {roles.find((r) => r.rol_id === selectedRole)?.nombre || "Selecciona un rol"}
+                    </button>
+
+                    {dropdownOpen && (
+                        <div className="absolute z-10 mt-1 w-full max-h-40 overflow-y-auto border bg-white rounded shadow">
+                            {roles.map((role) => (
+                                <div
+                                    key={role.rol_id}
+                                    onClick={() => {
+                                        setSelectedRole(role.rol_id);
+                                        setDropdownOpen(false);
+                                    }}
+                                    className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                                >
+                                    {role.nombre}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                {/* /////////// */}
                 <h1 className="text-2xl font-bold ">Permisos</h1>
                 {error && <p className="text-red-500">{error}</p>}
-                <button disabled={selectedChecks.length == 0}  type="submit" className={`bg-gray-200  hover:text-blue-600 font-medium  p-3 rounded 
+                <button disabled={selectedChecks.length == 0}  onClick={handleSubmit} className={`bg-gray-200  hover:text-blue-600 font-medium  p-3 rounded 
                 ${((selectedChecks.length !== 0) && 'hover:bg-sky-100') || 
                 ((selectedChecks.length == 0) && 'text-gray-50 hover:text-gray-50 hover:bg-gray-200 cursor-not-allowed')}`}>
                     Asignar
@@ -154,7 +194,7 @@ interface Permiso{
                     <div className="text-gray-600 text-center overflow-y-scroll h-[420] text-lg grid-flow-row grid w-full scroll-m-0r rounded-md shadow-lg border-gray-200 border">
                         {filteredPermissions.map((item) => (
                             <div key={item.permiso_id}>
-                            <RolChecks product={item} selectedChecks={selectedChecks} setSelectedChecks={setSelectedChecks} />
+                            <RolChecks permiso={item} selectedChecks={selectedChecks} setSelectedChecks={setSelectedChecks} />
                             </div>
                         ))}
                     </div>

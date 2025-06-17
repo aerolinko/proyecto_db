@@ -64,6 +64,7 @@ export async function DELETE(request: Request) {
         const url = new URL(request.url);
         const params = url.searchParams;
         const id = params.get('rol_id');
+        // @ts-ignore
         const res = await deleteRole(id);
         if(res) {
             return NextResponse.json({ res }, { status: 200 });

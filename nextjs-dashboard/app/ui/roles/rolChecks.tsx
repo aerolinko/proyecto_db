@@ -2,7 +2,7 @@
 import React, { useEffect, useCallback } from 'react';
 
 // @ts-ignore
-export default function RolChecks({ product,selectedChecks, setSelectedChecks }){
+export default function RolChecks({ permiso,selectedChecks, setSelectedChecks }){
 
     const checks = ['crear','consultar','modificar','eliminar'];
     // Callback function to handle changes in a checkbox.
@@ -27,25 +27,40 @@ export default function RolChecks({ product,selectedChecks, setSelectedChecks })
         <div className="bg-white p-6 flex border-0 flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4 ">
             <div className="flex-grow text-center sm:text-left">
                 {/* Displaying product description (assuming product object has this property) */}
-                <h3 className="font-semibold text-gray-800">{(product.descripcion).split('consultar').join('')}</h3>
+                <h3 className="font-semibold text-gray-800">{(permiso.descripcion).split('consultar').join('')}</h3>
             </div>
             <div className="flex items-center space-x-2">
                 {/* Loop through the `checks` array to render a checkbox for each role. */}
-                {checks.map((checkName, index) => (
+                {permiso.descripcion!=='consultar REPORTES' && checks.map((checkName, index) =>  (
                     <div key={index} className="flex-grow items-center space-x-2">
                         {/* Displays the name of the check (role). */}
                         <p className="text-sm text-gray-800">{checkName}</p>
                         <input
                             className={"rounded"} // Tailwind class for rounded corners.
                             type="checkbox"
-                            value={checkName+(product.descripcion).split('consultar').join('')} // The value of the checkbox, used to identify which role it represents.
+                            value={checkName+(permiso.descripcion).split('consultar').join('')} // The value of the checkbox, used to identify which role it represents.
                             onChange={handleCheckboxChange} // Attaches the handler for changes.
                             // `checked` attribute controls whether the checkbox is currently checked.
                             // It's true if `checkName` is found in the `selectedChecks` array.
-                            checked={selectedChecks.includes(checkName+(product.descripcion).split('consultar').join(''))}
+                            checked={selectedChecks.includes(checkName+(permiso.descripcion).split('consultar').join(''))}
                         />
                     </div>
                 ))}
+                    {permiso.descripcion=='consultar REPORTES' && (
+                    <div key={1} className="flex-grow items-center space-x-2">
+                        {/* Displays the name of the check (role). */}
+                        <p className="text-sm text-gray-800">consultar</p>
+                        <input
+                            className={"rounded"} // Tailwind class for rounded corners.
+                            type="checkbox"
+                            value={(permiso.descripcion)} // The value of the checkbox, used to identify which role it represents.
+                            onChange={handleCheckboxChange} // Attaches the handler for changes.
+                            // `checked` attribute controls whether the checkbox is currently checked.
+                            // It's true if `checkName` is found in the `selectedChecks` array.
+                            checked={selectedChecks.includes((permiso.descripcion))}
+                        />
+                    </div>
+                    )}
             </div>
         </div>
     );

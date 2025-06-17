@@ -66,7 +66,6 @@ export default function Roles({
         }
 
     }, []);
-console.log(permissions);
     // Función para manejar la ordenación por columna
     const handleSort = useCallback((column: keyof Role) => {
         if (sortColumn === column) {
