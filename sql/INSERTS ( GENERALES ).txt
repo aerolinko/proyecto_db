@@ -11,7 +11,7 @@ INSERT INTO TELEFONO (codigo, numero, fk_personal_contacto, fk_miembro_acaucab, 
 (58, 4144446744, 2, NULL, NULL, NULL);
 
 INSERT INTO CORREO_ELECTRONICO (usuario, dominio, fk_cliente_natural, fk_cliente_juridico, fk_miembro_acaucab) VALUES
-('gomez.ana', '@gmail.com', 1, NULL, NULL),
+('garcia.ana', '@gmail.com', 1, NULL, NULL),
 ('martinez.luis', '@outlook.com', 2, NULL, NULL),
 ('rodriguez.sofia', '@yahoo.com', 3, NULL, NULL),
 ('hernandez.diego', '@hotmail.com', 4, NULL, NULL),
