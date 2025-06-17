@@ -430,23 +430,23 @@ CREATE TABLE DETALLE_REPOSICION_ANAQUEL(
     precio_unitario integer NOT NULL,
     fk_almacen_cerveza integer NOT NULL,
     fk_reposicion_anaquel integer NOT NULL,
+    fk_anaquel_cerveza integer NOT NULL,
     constraint pk_detalle_reposicion_anaquel_id primary key (detalle_reposicion_anaquel_id),
     constraint fk_reposicion_anaquel_detalle_reposicion_anaquel foreign key (fk_reposicion_anaquel) references REPOSICION_ANAQUEL(reposicion_anaquel_id),
-    constraint fk_almacen_cerveza_detalle_reposicion_anaquel foreign key (fk_almacen_cerveza) references ALMACEN_CERVEZA(almacen_cerveza_id)
+    constraint fk_almacen_cerveza_detalle_reposicion_anaquel foreign key (fk_almacen_cerveza) references ALMACEN_CERVEZA(almacen_cerveza_id),
+    constraint fk_anaquel_cerveza_detalle_reposicion_anaquel foreign key (fk_anaquel_cerveza) references ANAQUEL_CERVEZA(anaquel_cerveza_id)
 );
 
 CREATE TABLE ANAQUEL_CERVEZA(
     anaquel_cerveza_id serial,
     fk_anaquel integer NOT NULL,
     fk_cerveza_presentacion integer NOT NULL,
-    fk_detalle_reposicion_anaquel integer,
     cantidad integer NOT NULL,
     fecha DATE NOT NULL,
     precio_unitario integer NOT NULL,
     constraint pk_anaquel_cerveza_id primary key (anaquel_cerveza_id),
     constraint fk_anaquel_anaquel_cerveza foreign key (fk_anaquel) references ANAQUEL(anaquel_id),
-    constraint fk_cerveza_presentacion_anaquel_cerveza foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id),
-    constraint fk_detalle_reposicion_anaquel_anaquel_cerveza foreign key (fk_detalle_reposicion_anaquel) references DETALLE_REPOSICION_ANAQUEL(detalle_reposicion_anaquel_id)
+    constraint fk_cerveza_presentacion_anaquel_cerveza foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id)
 );
 
 CREATE TABLE CLIENTE_NATURAL(
@@ -686,11 +686,13 @@ CREATE TABLE VENTA_TIENDA(
     venta_tienda_id serial,
     total integer NOT NULL,
     fecha DATE NOT NULL,
-    fk_cliente_natual integer NOT NULL,
-    fk_cliente_juridico integer NOT NULL,
+    fk_cliente_natual integer,
+    fk_cliente_juridico integer,
     constraint pk_venta_tienda_id primary key (venta_tienda_id),
     constraint fk_cliente_natural_venta_tienda foreign key (fk_cliente_natual) references CLIENTE_NATURAL(cliente_id),
-    constraint fk_cliente_juridico_venta_tienda foreign key (fk_cliente_juridico) references CLIENTE_JURIDICO(cliente_id)
+    constraint fk_cliente_juridico_venta_tienda foreign key (fk_cliente_juridico) references CLIENTE_JURIDICO(cliente_id),
+    constraint check_cliente_venta_tienda check ( (fk_cliente_natual IS NOT NULL AND fk_cliente_juridico IS NULL)
+        OR (fk_cliente_natual IS NULL AND fk_cliente_juridico IS NOT NULL))
 );
 
 CREATE TABLE DETALLE_VENTA_TIENDA(
