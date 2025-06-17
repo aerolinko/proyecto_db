@@ -947,3 +947,34 @@ FROM
     unnest(p_permiso_descripciones) AS DescripcionesArray(descripcion_unica)
     ON P.descripcion = DescripcionesArray.descripcion_unica;
 $$;
+
+CREATE OR REPLACE FUNCTION reducirstock()
+    RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE anaquel_cerveza
+    SET cantidad = cantidad - NEW.cantidad
+    WHERE anaquel_cerveza_id = NEW.fk_anaquel_cerveza;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER triggerReducirStock
+    after insert on detalle_venta_tienda
+    for each row
+    execute procedure reducirstock()
+
+CREATE OR REPLACE FUNCTION aumentarstock()
+    RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE anaquel_cerveza
+    SET cantidad = cantidad + NEW.cantidad
+    WHERE anaquel_cerveza_id = NEW.fk_anaquel_cerveza;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER triggerAumentarStock
+    after insert on detalle_reposicion_anaquel
+    for each row
+    execute procedure aumentarstock()
