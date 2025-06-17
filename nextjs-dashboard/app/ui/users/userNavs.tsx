@@ -15,14 +15,14 @@ import clsx from 'clsx'
 // @ts-ignore
 export default function UserNavs({ permissions }) {
   const Links= [
-    {path:`VentaTienda`,nombre:'Manejo de caja', icon: ShoppingBagIcon, id:301},
-    {path:`Roles`,nombre:'Manejo de roles', icon: Cog6ToothIcon, id:162},
-    {path:`GestionUsuarios`,nombre:'Manejo de usuarios', icon: UserGroupIcon, id:229 },
-    {path:`Reportes`,nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:334}]
+    {path:`VentaTienda`,nombre:'Manejo de caja', icon: ShoppingBagIcon, id:'consultar VENTA_TIENDA'},
+    {path:`Roles`,nombre:'Manejo de roles', icon: Cog6ToothIcon, id:'consultar ROL'},
+    {path:`GestionUsuarios`,nombre:'Manejo de usuarios', icon: UserGroupIcon, id:'consultar USUARIO' },
+    {path:`Reportes`,nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:'consultar REPORTE'}]
   let i=0
   let filteredLinks=Links;
   for (let i=0; i<4; i++) {
-    if(!permissions.some((permission:{permiso_id:number}) => permission.permiso_id == Links[i].id)) {
+    if(!permissions.some((permission:{descripcion:string}) => permission.descripcion == Links[i].id)) {
       filteredLinks = filteredLinks.filter((link) => link.id !== Links[i].id);
     }
   }
