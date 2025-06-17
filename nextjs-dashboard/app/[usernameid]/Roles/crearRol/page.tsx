@@ -1,8 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import clsx from "clsx";
+import {ArrowLeftCircleIcon} from "@heroicons/react/24/outline";
+import Link from "next/link";
 
-export default function CrearRol() {
+
+export default function CrearRol({
+                                     params,
+                                 }: {
+                                     params: Promise<{ usernameid: number }>
+                                 }
+) {
+    const { usernameid } = React.use(params)
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [error, setError] = useState("");
@@ -75,6 +85,13 @@ export default function CrearRol() {
                     Crear
                 </button>
             </form>
+                <Link href={`/${usernameid}/Roles`}
+                      className={clsx(
+                          'flex relative w-fit mt-4 gap-2 rounded-md bg-gray-200 p-3 font-medium hover:bg-sky-100 hover:text-blue-600 ',
+                      )}>
+                    <p className="pl-6 hidden md:block">Regresar</p>
+                    <ArrowLeftCircleIcon className="text-inherit absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-900 peer-focus:text-gray-900"> </ArrowLeftCircleIcon>
+                </Link>
         </div>
         </div>
     );

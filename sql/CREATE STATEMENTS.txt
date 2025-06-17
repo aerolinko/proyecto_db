@@ -849,3 +849,82 @@ CREATE TABLE PAGO(
             OR (fk_membresia IS NULL AND fk_venta_online IS NULL AND fk_venta_tienda IS NULL AND fk_venta_evento IS NOT NULL AND fk_compra_reposicion IS NULL)
             OR (fk_membresia IS NULL AND fk_venta_online IS NULL AND fk_venta_tienda IS NULL AND fk_venta_evento IS NULL AND fk_compra_reposicion IS NOT NULL))
 );
+
+CREATE PROCEDURE eliminarRol(id integer)
+LANGUAGE SQL
+AS $$
+DELETE FROM ROL WHERE rol_id=id;
+$$;
+
+CREATE PROCEDURE editarRol(id integer, nom varchar, des varchar)
+LANGUAGE SQL
+AS $$
+UPDATE ROL SET descripcion=des, nombre=nom where rol_id=id
+$$;
+
+CREATE PROCEDURE guardarRol(nom varchar, des varchar)
+LANGUAGE SQL
+AS $$
+INSERT INTO ROL (nombre,descripcion) VALUES (nom,des)
+$$;
+
+CREATE FUNCTION obtenerRoles()
+RETURNS SETOF ROL
+LANGUAGE SQL
+AS $$
+SELECT * FROM ROL;
+$$;
+
+CREATE FUNCTION obtenerPermisos()
+RETURNS SETOF PERMISO
+LANGUAGE SQL
+AS $$
+SELECT * FROM PERMISO where descripcion LIKE 'consultar%'
+$$;
+
+CREATE FUNCTION obtenerRolPermisos(rol integer)
+RETURNS TABLE(
+permiso_id integer,
+descripcion varchar(255),
+rol_permiso_id integer,
+fk_rol integer,
+fk_permiso integer
+)
+LANGUAGE SQL
+AS $$
+SELECT permiso_id, descripcion, rol_permiso_id, fk_rol, fk_permiso
+FROM PERMISO,ROL_PERMISO
+WHERE fk_rol=rol AND fk_permiso = permiso_id
+$$;
+
+CREATE FUNCTION obtenerUsuario(nom varchar,pass varchar)
+RETURNS TABLE(
+cedula integer,
+primer_nombre varchar(50),
+segundo_nombre varchar(50),
+segundo_apellido varchar(50),
+primer_apellido varchar(50),
+direccion varchar(255),
+fecha_contrato text,
+usuario_id integer,
+nombre_usuario varchar(50),
+nombre varchar(50)
+)
+LANGUAGE SQL
+AS $$
+SELECT e.cedula,e.primer_nombre,e.segundo_nombre,e.segundo_apellido,e.primer_apellido,
+       e.direccion, TO_CHAR(e.fecha_contrato, 'DD-MM-YYYY') as fecha_contrato, u.usuario_id, u.nombre_usuario, c.nombre
+FROM DEPARTAMENTO_EMPLEADO de, CARGO c, EMPLEADO e,USUARIO u where u.nombre_usuario=nom AND
+    u.hash_contrasena=pass AND e.empleado_id=u.fk_empleado AND e.empleado_id = de.fk_empleado AND  de.fk_cargo = c.cargo_id
+$$;
+
+CREATE FUNCTION obtenerPermisosUsuario(id integer)
+RETURNS TABLE(
+descripcion varchar(50),
+permiso_id integer
+)
+LANGUAGE SQL
+AS $$
+SELECT p.descripcion,p.permiso_id FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PERMISO p  where
+    ru.fk_usuario=id AND r.rol_id=ru.fk_rol AND rp.fk_rol=r.rol_id AND rp.fk_permiso=p.permiso_id
+$$;
