@@ -1,22 +1,22 @@
 import postgres from 'postgres';
 
-/*
+
 const sql = postgres({
     host: 'localhost',
     port: 5432,
     database: 'base_prueba',
     username: 'postgres',
     password: 'root',
-}); */
+});
 
 
-const sql = postgres({
+/*const sql = postgres({
     host: 'labs-dbservices01.ucab.edu.ve',
     port: 5432,
     database: 'joropeza',
     username: 'joropeza',
     password: '30330791',
-}); 
+}); */
 
 
 export async function getAllLugares() {

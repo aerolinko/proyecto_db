@@ -18,7 +18,7 @@ export default function UserNavs({ permissions }) {
     {path:`VentaTienda`,nombre:'Manejo de caja', icon: ShoppingBagIcon, id:'consultar VENTA_TIENDA'},
     {path:`Roles`,nombre:'Manejo de roles', icon: Cog6ToothIcon, id:'consultar ROL'},
     {path:`GestionUsuarios`,nombre:'Manejo de usuarios', icon: UserGroupIcon, id:'consultar USUARIO' },
-    {path:`Reportes`,nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:'consultar REPORTE'}]
+    {path:`Reportes`,nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:'consultar REPORTES'}]
   let i=0
   let filteredLinks=Links;
   for (let i=0; i<4; i++) {
