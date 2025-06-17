@@ -948,7 +948,7 @@ FROM
     ON P.descripcion = DescripcionesArray.descripcion_unica;
 $$;
 
-CREATE OR REPLACE FUNCTION reducirstock()
+CREATE FUNCTION reducirstock()
     RETURNS TRIGGER AS $$
 BEGIN
     UPDATE anaquel_cerveza
@@ -963,7 +963,7 @@ CREATE TRIGGER triggerReducirStock
     for each row
     execute procedure reducirstock()
 
-CREATE OR REPLACE FUNCTION aumentarstock()
+CREATE FUNCTION aumentarstock()
     RETURNS TRIGGER AS $$
 BEGIN
     UPDATE anaquel_cerveza
