@@ -5,6 +5,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 // Se usará una etiqueta <a> estándar para los enlaces.
 import clsx from "clsx";
 import { MagnifyingGlassIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import Cookies from "js-cookie";
+import {redirect} from "next/navigation";
+import Link from "next/link";
 
 // Define un tipo para tus datos de rol para una mejor seguridad de tipos
 interface Role {
@@ -17,20 +20,20 @@ interface Role {
 type SortDirection = 'asc' | 'desc';
 
 export default function Roles({
-                                  params,
-                              }: {
+                                  params
+                              }:{
     // Los params de ruta son directamente accesibles, no como una Promise
     params: { usernameid: number }
 }) {
+    // @ts-ignore
     const { usernameid } = React.use(params);
-
     const [filter, setFilter] = useState(''); // Estado para la entrada de búsqueda
     const [roles, setRoles] = useState<Role[]>([]); // Estado para almacenar los datos de los roles
     const [currentPage, setCurrentPage] = useState(1); // Página actual para la paginación
     const [itemsPerPage] = useState(5); // Número de elementos por página
     const [error, setError] = useState<string | null>(null); // Estado para manejar errores de la API
     const [mensaje, setMensaje] = useState<string | null>(null);
-
+    const [permissions, setPermissions] = useState([]);
     // Estados para la ordenación
     const [sortColumn, setSortColumn] = useState<keyof Role>('rol_id'); // Columna de ordenación por defecto
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc'); // Dirección de ordenación por defecto
@@ -57,8 +60,13 @@ export default function Roles({
             }
         }
         fetchRoles();
-    }, []);
+        const permissionsCookie = Cookies.get("permissions");
+        if (permissionsCookie != null) {
+            setPermissions(JSON.parse(permissionsCookie));
+        }
 
+    }, []);
+console.log(permissions);
     // Función para manejar la ordenación por columna
     const handleSort = useCallback((column: keyof Role) => {
         if (sortColumn === column) {
@@ -264,6 +272,7 @@ export default function Roles({
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center space-x-3">
+                                            {permissions.some((element:{descripcion:string})=>element.descripcion=='modificar ROL') ? (
                                             <button
                                                 onClick={() => handleEdit(role)}
                                                 className="inline-flex items-center p-2 rounded-full text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
@@ -271,6 +280,8 @@ export default function Roles({
                                             >
                                                 <PencilIcon className="h-5 w-5" />
                                             </button>
+                                            ) : null}
+                                            {permissions.some((element:{descripcion:string})=>element.descripcion=='eliminar ROL') ? (
                                             <button
                                                 onClick={() => handleDelete(role.rol_id)}
                                                 className="inline-flex items-center p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
@@ -278,6 +289,7 @@ export default function Roles({
                                             >
                                                 <TrashIcon className="h-5 w-5" />
                                             </button>
+                                            ) : null}
                                         </div>
                                     </td>
                                 </tr>
@@ -329,18 +341,23 @@ export default function Roles({
                     </div>
                 </nav>
                 <div className='flex flex-row justify-center space-x-20 mt-6'>
-                    <a href={`/${usernameid}/Roles/asignarPermisos`}
+                    {permissions.some((element:{descripcion:string})=>element.descripcion.includes('ROL_PERMISO')) ? (
+                    <Link href={`/${usernameid}/Roles/asignarPermisos`}
                        className={clsx(
                            'flex place-self-center w-fit gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
                        )}>
                         <p className="hidden md:block">Asignar Permisos</p>
-                    </a>
-                    <a href={`/${usernameid}/Roles/crearRol`}
+                    </Link>
+                    ) : null}
+                    {permissions.some((element:{descripcion:string})=>element.descripcion=='crear ROL') ? (
+                    <Link href={`/${usernameid}/Roles/crearRol`}
                        className={clsx(
                            'flex place-self-center w-fit  gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
                        )}>
+
                         <p className="hidden md:block">Crear Rol</p>
-                    </a>
+                    </Link>
+                    ) : null}
                 </div>
             </div>
         </div>

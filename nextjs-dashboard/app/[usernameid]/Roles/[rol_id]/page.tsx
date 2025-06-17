@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import {ArrowLeftCircleIcon} from "@heroicons/react/24/outline";
 import Link from "next/link";
-import {usePathname} from "next/navigation";
+import {redirect, usePathname} from "next/navigation";
 
 
 export default function CrearRol({
@@ -26,6 +26,9 @@ export default function CrearRol({
             const searchParams = new URLSearchParams(window.location.search);
             const initialNombreFromUrl = searchParams.get('nombre');
             const initialDescripcionFromUrl = searchParams.get('descripcion');
+            if (!initialDescripcionFromUrl || !initialNombreFromUrl) {
+                redirect(`/${usernameid}/Roles`);
+            }
             setNuevoNombre(initialNombreFromUrl);
             setNuevaDescripcion(initialDescripcionFromUrl);
         }
@@ -64,7 +67,7 @@ export default function CrearRol({
             <div className="bg-white p-10 sm:p-12 rounded-2xl shadow-xl border-2  max-w-2xl w-dvw transform transition-all duration-300 ">
             <h1 className="text-2xl font-bold mb-4">Editar Rol</h1>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                {nuevo_nombre && nueva_descripcion &&
+                {!mensaje &&
                     <div className="flex flex-col gap-3">
                 <input
                     type="text"
