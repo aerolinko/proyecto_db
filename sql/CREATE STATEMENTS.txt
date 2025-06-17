@@ -978,3 +978,19 @@ CREATE TRIGGER triggerAumentarStock
     after insert on detalle_reposicion_anaquel
     for each row
     execute procedure aumentarstock()
+
+CREATE FUNCTION obtenerCervezas()
+RETURNS TABLE(
+cerveza_presentacion integer,
+nombre varchar(50),
+precio_unitario integer,
+cap_volumen integer,
+cantidad integer)
+    language sql
+AS
+$$
+SELECT pc.cerveza_presentacion_id,c.nombre, ac.precio_unitario, p.cap_volumen, sum(ac.cantidad) as cantidad
+FROM CERVEZA_PRESENTACION pc,CERVEZA c,PRESENTACION p, anaquel_cerveza ac
+WHERE pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion AND pc.cerveza_presentacion_id=ac.fk_cerveza_presentacion
+GROUP BY pc.cerveza_presentacion_id, c.nombre, p.cap_volumen, ac.precio_unitario;
+$$;

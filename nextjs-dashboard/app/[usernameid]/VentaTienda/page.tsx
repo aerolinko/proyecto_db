@@ -48,7 +48,7 @@ export default function Page (){
                     name: item.nombre, // Uses `nombre` as the product name.
                     // IMPORTANT: Adding placeholder price and stock as your API only returns 'nombre' and 'cerveza_presentacion_id'.
                     // In a real application, these should come from your backend.
-                    price: parseFloat((Math.random() * (10 - 1) + 1).toFixed(2)), // Generates a random price between 1 and 10.
+                    price: parseFloat(item.precio_unitario.toFixed(2)), // Generates a random price between 1 and 10.
                     stock: item.cantidad, // Generates a random stock quantity between 10 and 60.
                     presentation: item.cap_volumen
                 }));
@@ -62,7 +62,7 @@ export default function Page (){
 
         fetchProducts(); // Calls the `fetchProducts` function when the component mounts.
     }, []); // Empty dependency array means this effect runs only once after the initial render.
-
+    console.log(products);
     // `useCallback` hook to memoize the `showMessage` function.
     // This prevents the function from being recreated on every render, which can improve performance
     // if it's passed as a prop to child components.
