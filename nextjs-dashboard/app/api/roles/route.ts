@@ -1,7 +1,7 @@
 'use server'
 
 import { NextResponse } from "next/server";
-import { getAllRoles, getAllRolesPermisos, getUser, saveRole} from "@/db";
+import { getAllRoles, getAllRolesPermisos, saveRole, updateRole, deleteRole} from "@/db";
 
 export async function GET(request: Request) {
     const url = new URL(request.url);
@@ -37,6 +37,41 @@ export async function POST(request: Request) {
     }
     catch(err){
         console.error('Error during creation:', err);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+export async function PUT(request: Request) {
+    // Parse the incoming JSON payload
+    try{
+        const { rol_id,nuevo_nombre, nueva_descripcion } = await request.json();
+        // Dummy authentication; replace with your actual logic
+        const res = await updateRole(rol_id,nuevo_nombre,nueva_descripcion);
+        if(res) {
+            return NextResponse.json({ res }, { status: 200 });
+        }
+            return NextResponse.json({ error: 'Invalid Role Parameters' }, { status: 401 });
+    }
+    catch(err){
+        console.error('Error during edition:', err);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: Request) {
+    // Parse the incoming JSON payload
+    try{
+        const url = new URL(request.url);
+        const params = url.searchParams;
+        const id = params.get('rol_id');
+        const res = await deleteRole(id);
+        if(res) {
+            return NextResponse.json({ res }, { status: 200 });
+        }
+        return NextResponse.json({ error: 'Invalid Role Parameters' }, { status: 401 });
+    }
+    catch(err){
+        console.error('Error during deletion:', err);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
