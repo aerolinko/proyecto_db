@@ -981,7 +981,7 @@ CREATE TRIGGER triggerAumentarStock
 
 CREATE FUNCTION obtenerCervezas()
 RETURNS TABLE(
-cerveza_presentacion integer,
+cerveza_presentacion_id integer,
 nombre varchar(50),
 precio_unitario integer,
 cap_volumen integer,
