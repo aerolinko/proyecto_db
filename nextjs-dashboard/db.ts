@@ -11,28 +11,28 @@ export async function getAllLugares() {
     return await sql`SELECT * FROM LUGAR`;
 }
 
-export async function getAllPermisos() {
-    return await sql`SELECT * FROM PERMISO where descripcion LIKE 'consultar%'`;
+export async function getAllPermisos(){
+    return await sql`SELECT * FROM obtenerPermisos()`;
 }
 
 export async function saveRole(name: string, description: string) {
-    return await sql`INSERT INTO ROL (nombre,descripcion) VALUES (${name},${description})`;
+    return await sql`CALL guardarRol(${name}, ${description})`;
 }
 
 export async function updateRole(rol_id:number,name: string, description: string) {
-    return await sql`UPDATE ROL SET descripcion=${description}, nombre=${name} where rol_id=${rol_id}`;
+    return await sql`CALL editarRol(${rol_id},${name},${description})`;
 }
 
 export async function deleteRole(rol_id:number) {
-    return await sql`DELETE FROM ROL WHERE rol_id=${rol_id}`;
+    return await sql`CALL eliminarRol(${rol_id})`;
 }
 
 export async function getAllRoles() {
-    return await sql`SELECT * FROM ROL`;
+    return await sql`SELECT * FROM obtenerRoles()`;
 }
 
 export async function getAllRolesPermisos(rol: number) {
-    return await sql`SELECT * FROM PERMISO,ROL_PERMISO WHERE fk_rol=${rol} AND fk_permiso = permiso_id`;
+    return await sql`SELECT * FROM obtenerRolPermisos(${rol})`;
 }
 
 export async function getAllLugaresUserCesar() {

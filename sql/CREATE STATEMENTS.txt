@@ -849,3 +849,50 @@ CREATE TABLE PAGO(
             OR (fk_membresia IS NULL AND fk_venta_online IS NULL AND fk_venta_tienda IS NULL AND fk_venta_evento IS NOT NULL AND fk_compra_reposicion IS NULL)
             OR (fk_membresia IS NULL AND fk_venta_online IS NULL AND fk_venta_tienda IS NULL AND fk_venta_evento IS NULL AND fk_compra_reposicion IS NOT NULL))
 );
+
+CREATE PROCEDURE eliminarRol(id integer)
+LANGUAGE SQL
+AS $$
+DELETE FROM ROL WHERE rol_id=id;
+$$;
+
+CREATE PROCEDURE editarRol(id integer, nom varchar, des varchar)
+LANGUAGE SQL
+AS $$
+UPDATE ROL SET descripcion=des, nombre=nom where rol_id=id
+$$;
+
+CREATE PROCEDURE guardarRol(nom varchar, des varchar)
+LANGUAGE SQL
+AS $$
+INSERT INTO ROL (nombre,descripcion) VALUES (nom,des)
+$$;
+
+CREATE FUNCTION obtenerRoles()
+RETURNS SETOF ROL
+LANGUAGE SQL
+AS $$
+SELECT * FROM ROL;
+$$;
+
+CREATE FUNCTION obtenerPermisos()
+RETURNS SETOF PERMISO
+LANGUAGE SQL
+AS $$
+SELECT * FROM PERMISO where descripcion LIKE 'consultar%'
+$$;
+
+CREATE FUNCTION obtenerRolPermisos(rol integer)
+RETURNS TABLE(
+permiso_id integer,
+descripcion varchar(255),
+rol_permiso_id integer,
+fk_rol integer,
+fk_permiso integer
+)
+LANGUAGE SQL
+AS $$
+SELECT permiso_id, descripcion, rol_permiso_id, fk_rol, fk_permiso
+FROM PERMISO,ROL_PERMISO
+WHERE fk_rol=rol AND fk_permiso = permiso_id
+$$;
