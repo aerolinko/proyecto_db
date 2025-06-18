@@ -247,7 +247,7 @@ export default function Page (){
                             // Button is disabled if the cart is empty.
                             disabled={Object.keys(cart).length === 0}
                         >
-                            Pagar {/* Button text. */}
+                            Continuar al Pago{/* Button text. */}
                         </button>
                 </div>
             </div>
