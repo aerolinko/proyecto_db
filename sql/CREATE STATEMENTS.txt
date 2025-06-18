@@ -721,7 +721,7 @@ CREATE TABLE METODO_PAGO_EFECTIVO(
 
 CREATE TABLE METODO_PAGO_DEBITO(
     metodo_pago_id serial,
-    numero integer NOT NULL,
+    numero bigint NOT NULL,
     banco varchar(50) NOT NULL,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
@@ -735,7 +735,7 @@ CREATE TABLE METODO_PAGO_DEBITO(
 
 CREATE TABLE METODO_PAGO_CREDITO(
     metodo_pago_id serial,
-    numero integer NOT NULL,
+    numero bigint NOT NULL,
     banco varchar(50) NOT NULL,
     fecha_exp DATE NOT NULL,
     fk_cliente_natural integer,
@@ -751,7 +751,7 @@ CREATE TABLE METODO_PAGO_CREDITO(
 CREATE TABLE METODO_PAGO_CHEQUE(
     metodo_pago_id serial,
     numero integer NOT NULL,
-    numero_c integer NOT NULL,
+    numero_c bigint NOT NULL,
     banco varchar(50) NOT NULL,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
