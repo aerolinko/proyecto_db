@@ -15,7 +15,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
     // State for client selection
     const [selectedClientId, setSelectedClientId] = useState('');
-    const [foundClientId, setFoundClientId] = useState('');
+    const [foundClientId, setFoundClientId] = useState(false);
 
     // State for payment methods
     const [paymentMethods, setPaymentMethods] = useState([]);
@@ -90,13 +90,14 @@ export default function MetodoPago({ cart, setPagando }) {
         }
         const res=await response.json();
         if (res.result && res.result.length > 0) {
-            setFoundClientId(res.result);
+            setFoundClientId(true);
             setError('');
+
         }
         else
         {
             setError('No existe el cliente.');
-            setFoundClientId(null);
+            setFoundClientId(false);
         }
     };
     console.log(foundClientId);
@@ -291,7 +292,10 @@ export default function MetodoPago({ cart, setPagando }) {
                     {/* Submit Button */}
                     <button
                         onClick={handleSubmit}
-                        className="w-full bg-blue-600 text-white py-3 px-6 rounded-md text-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 shadow-md"
+                        className={`w-full  py-3 px-6 rounded-md text-lg font-semibold  focus:outline-none focus:ring-2  focus:ring-opacity-50 transition duration-200 shadow-md
+                        ${!foundClientId ? 'bg-gray-300 text-blue-50 cursor-not-allowed' :
+                            'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'}`}
+                        disabled={!foundClientId}
                     >
                         Completar Pago
                     </button>

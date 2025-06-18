@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         const permissions = await getUserPermissions(res.usuario_id);
         for (let i = 0; i < 12 ; i++) {
             if (!permissions.some((permission) => permission.descripcion == filters[i].descripcion)){
-                filteredLinks=filteredLinks.filter((link) => {link.descripcion !== filters[i].descripcion});
+                filteredLinks=filteredLinks.filter((link) => link.descripcion !== filters[i].descripcion);
             }
         }
         response.cookies.set("permissions", JSON.stringify(filteredLinks), {
