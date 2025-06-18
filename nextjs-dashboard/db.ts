@@ -51,8 +51,8 @@ export async function getAllRolesPermisos(rol: number) {
     return await sql`SELECT * FROM obtenerRolPermisos(${rol})`;
 }
 
-export async function getAllLugaresUserCesar() {
-    return await sql`SELECT * FROM LUGAR l,CLIENTE_NATURAL c where l.lugar_id=c.fk_lugar`;
+export async function getNaturalClient(ced:number) {
+    return await sql`SELECT * FROM buscarClienteNatural(${ced})`;
 }
 
 export async function getUser(nombre:string,pass:string) {

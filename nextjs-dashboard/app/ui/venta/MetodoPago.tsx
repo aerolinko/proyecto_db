@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import clsx from "clsx";
-import {ArrowLeftCircleIcon} from "@heroicons/react/24/outline";
+import {ArrowLeftCircleIcon, PlusIcon} from "@heroicons/react/24/outline";
 
 
 // @ts-ignore
@@ -15,13 +15,13 @@ export default function MetodoPago({ cart, setPagando }) {
 
     // State for client selection
     const [selectedClientId, setSelectedClientId] = useState('');
-
+    const [foundClientId, setFoundClientId] = useState('');
 
     // State for payment methods
     const [paymentMethods, setPaymentMethods] = useState([]);
     const [newPaymentMethodType, setNewPaymentMethodType] = useState('Cash');
     const [newPaymentMethodAmount, setNewPaymentMethodAmount] = useState('');
-
+    const [error, setError] = useState('');
     // State for custom modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
@@ -30,10 +30,15 @@ export default function MetodoPago({ cart, setPagando }) {
     const cartTotal = cart.reduce((sum:any, item:any) => sum + (item.price * item.quantity), 0);
     const totalPaid = paymentMethods.reduce((sum, method:any) => sum + method.amount, 0);
     const remainingBalance = cartTotal - totalPaid;
-
     // Add a new payment method
     const handleAddPayment = () => {
         const amount = parseFloat(newPaymentMethodAmount);
+        if (!foundClientId) {
+            setModalMessage("Por favor especifique el cliente.");
+            setIsModalOpen(true);
+            return;
+        }
+
         if (isNaN(amount) || amount <= 0) {
             setModalMessage("Por favor introduzca un valor postivo válido.");
             setIsModalOpen(true);
@@ -69,16 +74,32 @@ export default function MetodoPago({ cart, setPagando }) {
         }
     };
 
-    const buscarCliente = (cliente:string) => {
+    const buscarCliente = async (cliente:string) => {
+    let response
 
         if(isNaN(parseInt(cliente))){
-            console.log('es juridico');
+            response = await fetch("/api/clientes?RIF=" + cliente, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
         } else {
-            console.log('es natural');
+             response = await fetch("/api/clientes?cedula=" + parseInt(cliente), {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
         }
-
+        const res=await response.json();
+        if (res.result && res.result.length > 0) {
+            setFoundClientId(res.result);
+            setError('');
+        }
+        else
+        {
+            setError('No existe el cliente.');
+            setFoundClientId(null);
+        }
     };
-
+    console.log(foundClientId);
 
     // Custom Modal Component
     const Modal = ({ message, isOpen, onClose }:{message:string, isOpen:boolean, onClose:any}) => {
@@ -106,12 +127,20 @@ export default function MetodoPago({ cart, setPagando }) {
                 {/* Left Column: Client and Cart */}
                 <div className="space-y-[53.5px]">
                     <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">Ventana de Pago</h1>
+                    {error && (
+                        <div className={`p-4 rounded-lg text-center text-lg font-semibold bg-red-100 text-red-800`}>
+                            {error} {/* Displays the actual message text. */}
+                        </div>
+                    )}
 
                     {/* Client Selection */}
                     <div className="bg-gray-50 p-6 rounded-lg border-gray-300 border-2 shadow-sm">
                         <h2 className="text-2xl font-semibold text-gray-700 mb-4">Detalles del Cliente</h2>
                         <div className="space-y-4">
                             <div>
+                                <label htmlFor="paymentType" className="block text-sm font-medium text-gray-700 mb-1">
+                                    ID
+                                </label>
                                 <input
                                     type="text"
                                     id="clientIdInput"
@@ -170,27 +199,34 @@ export default function MetodoPago({ cart, setPagando }) {
                 <div className="space-y-6">
                     {/* Payment Method Input */}
                     <div className="bg-gray-50 border-gray-300 border-2 p-6 rounded-lg shadow-sm">
-                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Añadir Método de Pago</h2>
+                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Métodos de Pago</h2>
                         <div className="space-y-4">
                             <div>
                                 <label htmlFor="paymentType" className="block text-sm font-medium text-gray-700 mb-1">
                                     Tipo
                                 </label>
+
                                 <select
                                     id="paymentType"
                                     value={newPaymentMethodType}
                                     onChange={(e) => setNewPaymentMethodType(e.target.value)}
                                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
                                 >
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Cheque">Cheque</option>
-                                    <option value="Crédito">Crédito</option>
-                                    <option value="Débito">Débito</option>
-                                    <option value="Punto">Puntos</option>
+
                                 </select>
+                                <div className='w-full mt-1'>
+                                    <button
+                                        className={clsx(
+                                            'flex relative float-right rounded-md mb-2 transition duration-200 p-1.5 font-bold hover:bg-sky-100 hover:text-blue-600 ',
+                                        )}
+                                        onClick={() => {setPagando(false)}}>
+                                        <p className="pl-6 hidden md:block text-xs ">Registrar nuevo método</p>
+                                        <PlusIcon className="text-inherit absolute left-2 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-900 peer-focus:text-gray-900"> </PlusIcon>
+                                    </button>
+                                </div>
                             </div>
                             <div>
-                                <label htmlFor="paymentAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="paymentAmount" className="block text-sm mt-8 font-medium text-gray-700 mb-1">
                                     Monto
                                 </label>
                                 <input
@@ -206,7 +242,10 @@ export default function MetodoPago({ cart, setPagando }) {
                             </div>
                             <button
                                 onClick={handleAddPayment}
-                                className="w-full bg-green-600 font-semibold text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-200 shadow-sm"
+                                disabled={!foundClientId}
+                                className={`w-full  font-semibold  py-2 px-4  rounded-md  focus:outline-none focus:ring-2  focus:ring-opacity-50 transition duration-200 shadow-sm 
+                                ${!foundClientId ? 'bg-gray-300 text-blue-50 cursor-not-allowed' :
+                                    'text-white bg-green-600 hover:bg-green-700 focus:ring-green-500'}`}
                             >
                                 Añadir Método de Pago
                             </button>
@@ -215,7 +254,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
                     {/* Current Payment Methods */}
                     <div className="bg-gray-50 p-6 border-gray-300 border-2 rounded-lg shadow-sm">
-                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Métodos de pago</h2>
+                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Pago</h2>
                         <div className="border border-gray-200 rounded-md overflow-hidden shadow-sm">
                             <div className="bg-gray-100 p-3 grid grid-cols-3 gap-2 text-sm font-medium text-gray-600 border-b border-gray-200">
                                 <span>Tipo</span>

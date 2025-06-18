@@ -992,3 +992,12 @@ FROM CERVEZA_PRESENTACION pc,CERVEZA c,PRESENTACION p, anaquel_cerveza ac
 WHERE pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion AND pc.cerveza_presentacion_id=ac.fk_cerveza_presentacion
 GROUP BY pc.cerveza_presentacion_id, c.nombre, p.cap_volumen, ac.precio_unitario;
 $$;
+
+
+Create function buscarClienteNatural(ced int)
+    returns setof cliente_natural
+    language sql
+as
+$$
+    Select * from cliente_natural where cedula=ced;
+$$;

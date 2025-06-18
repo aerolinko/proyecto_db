@@ -93,6 +93,7 @@ export default function Page (){
         if (quantity === 0) {
             // Updates the cart by removing the item with `productId`.
             setCart(prevCart => {
+                // @ts-ignore
                 const newCart = [ ...prevCart ];// Creates a shallow copy of the previous cart state.
                 newCart.splice(newCart.findIndex(p => p.id === productId),newCart.findIndex(p => p.id === productId)+1); // Deletes the item from the new cart object.
                 showMessage('success', `${product.name} eliminado del carrito.`); // Displays a success message.
@@ -102,8 +103,9 @@ export default function Page (){
         } else if (quantity > 0 && quantity <= product.stock) {
             // Updates the cart by adding or updating the item with `productId`.
             setCart(prevCart => {
+                // @ts-ignore
                 const newCart = [ ...prevCart ];
-                const existingItem = prevCart.find(p => p.id === productId);
+                const existingItem = prevCart.find((p:any) => p.id === productId);
                 if(!existingItem) {
                     product.quantity=quantity;// Checks if the item already exists in the cart.
                      newCart.push(product);
@@ -140,7 +142,7 @@ export default function Page (){
         // Iterates over the values (individual cart items) in the `cart` object.
         // `reduce` sums up the total price by multiplying each item's price by its quantity.
         console.log('carrito: ',cart);
-        return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        return cart.reduce((sum:number, item:any) => sum + item.price * item.quantity, 0);
     }, [cart]); // Dependency: `cart` state.
 
     // Defines the `handleCheckout` function, which simulates the checkout process.
@@ -212,7 +214,7 @@ export default function Page (){
                                 key={product.id} // `key` prop for efficient list rendering in React.
                                 product={product} // Passes the entire product object as a prop.
                                 onAddToCart={handleAddToCart} // Passes the cart-handling function as a prop.
-                                initialQuantity={cart.find((item)=>item.id==product.id) ?.quantity || 0} // Passes the current quantity of this product in the cart.
+                                initialQuantity={cart.find((item:any)=>item.id==product.id) ?.quantity || 0} // Passes the current quantity of this product in the cart.
                             />
                         ))
                     )}
@@ -228,7 +230,7 @@ export default function Page (){
                     // Container for cart items if the cart is not empty.
                     <div className="bg-purple-50 p-6 rounded-lg shadow-inner border border-purple-200">
                         {/* Maps through the values (items) in the `cart` object to render `CartItem` components. */}
-                        {cart.map(item => (
+                        {cart.map((item:any) => (
                             <CartItem key={item.id} item={item} /> // Renders each `CartItem` with its unique key and item data.
                         ))}
                         {/* Displays the total price of the cart. */}
