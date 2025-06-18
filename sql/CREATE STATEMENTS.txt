@@ -721,7 +721,7 @@ CREATE TABLE METODO_PAGO_EFECTIVO(
 
 CREATE TABLE METODO_PAGO_DEBITO(
     metodo_pago_id serial,
-    numero integer NOT NULL,
+    numero bigint NOT NULL,
     banco varchar(50) NOT NULL,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
@@ -735,7 +735,7 @@ CREATE TABLE METODO_PAGO_DEBITO(
 
 CREATE TABLE METODO_PAGO_CREDITO(
     metodo_pago_id serial,
-    numero integer NOT NULL,
+    numero bigint NOT NULL,
     banco varchar(50) NOT NULL,
     fecha_exp DATE NOT NULL,
     fk_cliente_natural integer,
@@ -751,7 +751,7 @@ CREATE TABLE METODO_PAGO_CREDITO(
 CREATE TABLE METODO_PAGO_CHEQUE(
     metodo_pago_id serial,
     numero integer NOT NULL,
-    numero_c integer NOT NULL,
+    numero_c bigint NOT NULL,
     banco varchar(50) NOT NULL,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
@@ -767,11 +767,9 @@ CREATE TABLE METODO_PAGO_PUNTO(
     metodo_pago_id serial,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
-    fk_miembro_acaucab integer,
     constraint pk_metodo_pago_punto_id primary key (metodo_pago_id),
-    constraint check_cliente_miembro_metodo_pago_punto check ( (fk_miembro_acaucab IS NOT NULL AND fk_cliente_juridico IS NULL
-        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NOT NULL
-        AND fk_cliente_natural IS NULL) OR (fk_miembro_acaucab IS NULL AND fk_cliente_juridico IS NULL
+    constraint check_cliente_metodo_pago_punto check ( (fk_cliente_juridico IS NOT NULL
+        AND fk_cliente_natural IS NULL) OR ( fk_cliente_juridico IS NULL
         AND fk_cliente_natural IS NOT NULL))
 );
 
@@ -993,4 +991,13 @@ SELECT pc.cerveza_presentacion_id,c.nombre, ac.precio_unitario, p.cap_volumen, s
 FROM CERVEZA_PRESENTACION pc,CERVEZA c,PRESENTACION p, anaquel_cerveza ac
 WHERE pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion AND pc.cerveza_presentacion_id=ac.fk_cerveza_presentacion
 GROUP BY pc.cerveza_presentacion_id, c.nombre, p.cap_volumen, ac.precio_unitario;
+$$;
+
+
+Create function buscarClienteNatural(ced int)
+    returns setof cliente_natural
+    language sql
+as
+$$
+    Select * from cliente_natural where cedula=ced;
 $$;
