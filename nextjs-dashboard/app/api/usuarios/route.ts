@@ -1,209 +1,492 @@
-"use server"
+import type { NextRequest } from "next/server"
 
-import { NextResponse } from "next/server"
+async function findUsuarioTable(sql: any) {
+  const tablesFound = await sql`
+    SELECT schemaname, tablename 
+    FROM pg_tables 
+    WHERE tablename ILIKE 'usuario'
+    ORDER BY schemaname
+  `
 
-// Simulamos funciones de base de datos - reemplaza con tus funciones reales
-async function getAllUsuarios() {
-  // Esta función debería obtener todos los usuarios de tu base de datos
-  // Ejemplo de datos que debería retornar:
-  return [
-    {
-      usuario_id: 1,
-      nombre: "Juan Pérez",
-      email: "juan@example.com",
-      rol_id: 1,
-      rol_nombre: "Administrador",
-      activo: true,
-      fecha_creacion: "2024-01-15T10:30:00Z",
-    },
-    {
-      usuario_id: 2,
-      nombre: "María García",
-      email: "maria@example.com",
-      rol_id: 2,
-      rol_nombre: "Usuario",
-      activo: true,
-      fecha_creacion: "2024-02-20T14:15:00Z",
-    },
-    {
-      usuario_id: 3,
-      nombre: "Carlos López",
-      email: "carlos@example.com",
-      rol_id: null,
-      rol_nombre: null,
-      activo: false,
-      fecha_creacion: "2024-03-10T09:45:00Z",
-    },
-  ]
-}
-
-async function createUsuario(nombre: string, email: string, rol_id?: number) {
-  // Crear usuario en la base de datos
-  console.log("Creating user:", { nombre, email, rol_id })
-  return {
-    usuario_id: Date.now(), // En producción, esto sería generado por la DB
-    nombre,
-    email,
-    rol_id,
-    activo: true,
-    fecha_creacion: new Date().toISOString(),
+  if (tablesFound.length === 0) {
+    throw new Error("Tabla 'usuario' no encontrada")
   }
+
+  const tableSchema = tablesFound[0].schemaname
+  const tableName = tablesFound[0].tablename
+  const schemaTable = tableSchema === "public" ? tableName : `${tableSchema}.${tableName}`
+
+  return { tableSchema, tableName, schemaTable }
 }
 
-async function updateUsuario(usuario_id: number, data: any) {
-  // Actualizar usuario en la base de datos
-  console.log("Updating user:", usuario_id, data)
-  return {
-    usuario_id,
-    ...data,
-    fecha_actualizacion: new Date().toISOString(),
+async function findEmpleadoTable(sql: any) {
+  const tablesFound = await sql`
+    SELECT schemaname, tablename 
+    FROM pg_tables 
+    WHERE tablename ILIKE 'empleado'
+    ORDER BY schemaname
+  `
+
+  if (tablesFound.length === 0) {
+    throw new Error("Tabla 'empleado' no encontrada")
   }
+
+  const tableSchema = tablesFound[0].schemaname
+  const tableName = tablesFound[0].tablename
+  const schemaTable = tableSchema === "public" ? tableName : `${tableSchema}.${tableName}`
+
+  return { tableSchema, tableName, schemaTable }
 }
 
-async function deleteUsuario(usuario_id: number) {
-  // Eliminar usuario de la base de datos
-  console.log("Deleting user:", usuario_id)
-  return { success: true }
-}
+export async function GET(request: NextRequest) {
+  let sql: any = null
 
-async function bulkUpdateUsuarios(userIds: number[], action: string) {
-  // Actualización masiva de usuarios
-  console.log("Bulk update:", userIds, action)
-  return { success: true, affected: userIds.length }
-}
-
-export async function GET(request: Request) {
   try {
-    const url = new URL(request.url)
-    const params = url.searchParams
-    const userId = params.get("id")
+    console.log("=== INICIO GET /api/usuarios ===")
+
+    const postgres = (await import("postgres")).default
+    sql = postgres({
+      host: "localhost",
+      port: 5432,
+      database: "postgres",
+      username: "postgres",
+      password: "1602",
+      max: 5,
+      idle_timeout: 10,
+      connect_timeout: 5,
+    })
+
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get("id")
+    const email = searchParams.get("email")
+
+    // Encontrar las tablas
+    const { schemaTable: usuarioTable } = await findUsuarioTable(sql)
+    const { schemaTable: empleadoTable } = await findEmpleadoTable(sql)
+
+    console.log("Usando tablas:", { usuarioTable, empleadoTable })
 
     if (userId) {
-      // Obtener usuario específico
-      const usuarios = await getAllUsuarios()
-      const usuario = usuarios.find((u) => u.usuario_id === Number.parseInt(userId))
+      console.log("Buscando usuario por ID:", userId)
+      const usuarios = await sql`
+        SELECT 
+          u.usuario_id::text as id, 
+          u.nombre_usuario as email, 
+          u.fecha_creacion,
+          u.fk_empleado::text as empleado_id,
+          e.primer_nombre,
+          e.primer_apellido,
+          e.cedula,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_nombre
+        FROM ${sql(usuarioTable)} u
+        LEFT JOIN ${sql(empleadoTable)} e ON u.fk_empleado = e.empleado_id
+        WHERE u.usuario_id = ${Number.parseInt(userId)}
+      `
 
-      if (!usuario) {
-        return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+      if (usuarios.length === 0) {
+        return Response.json({ error: "Usuario no encontrado" }, { status: 404 })
       }
 
-      return NextResponse.json({ result: usuario, status: 200 })
-    } else {
-      // Obtener todos los usuarios
-      const result = await getAllUsuarios()
-
-      if (!result || result.length === 0) {
-        return NextResponse.json({ result: [], status: 200 })
-      }
-
-      return NextResponse.json({ result, status: 200 })
-    }
-  } catch (error) {
-    console.error("Error in GET /api/usuarios:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const { nombre, email, rol_id } = await request.json()
-
-    // Validaciones básicas
-    if (!nombre || !email) {
-      return NextResponse.json({ error: "Nombre y email son requeridos" }, { status: 400 })
-    }
-
-    // Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Formato de email inválido" }, { status: 400 })
-    }
-
-    const result = await createUsuario(nombre, email, rol_id)
-
-    if (result) {
-      return NextResponse.json({ result, status: 201 })
-    }
-
-    return NextResponse.json({ error: "Error al crear usuario" }, { status: 500 })
-  } catch (error) {
-    console.error("Error in POST /api/usuarios:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
-  }
-}
-
-export async function PUT(request: Request) {
-  try {
-    const data = await request.json()
-    const { usuario_id, ...updateData } = data
-
-    if (!usuario_id) {
-      return NextResponse.json({ error: "ID de usuario requerido" }, { status: 400 })
-    }
-
-    // Validar email si se está actualizando
-    if (updateData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(updateData.email)) {
-        return NextResponse.json({ error: "Formato de email inválido" }, { status: 400 })
-      }
-    }
-
-    const result = await updateUsuario(usuario_id, updateData)
-
-    if (result) {
-      return NextResponse.json({ result, status: 200 })
-    }
-
-    return NextResponse.json({ error: "Error al actualizar usuario" }, { status: 500 })
-  } catch (error) {
-    console.error("Error in PUT /api/usuarios:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
-  }
-}
-
-export async function DELETE(request: Request) {
-  try {
-    const url = new URL(request.url)
-    const userId = url.searchParams.get("id")
-
-    if (!userId) {
-      return NextResponse.json({ error: "ID de usuario requerido" }, { status: 400 })
-    }
-
-    const result = await deleteUsuario(Number.parseInt(userId))
-
-    if (result.success) {
-      return NextResponse.json({ message: "Usuario eliminado correctamente", status: 200 })
-    }
-
-    return NextResponse.json({ error: "Error al eliminar usuario" }, { status: 500 })
-  } catch (error) {
-    console.error("Error in DELETE /api/usuarios:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
-  }
-}
-
-export async function PATCH(request: Request) {
-  try {
-    const { action, userIds } = await request.json()
-
-    if (!action || !userIds || !Array.isArray(userIds)) {
-      return NextResponse.json({ error: "Acción y IDs de usuarios requeridos" }, { status: 400 })
-    }
-
-    const result = await bulkUpdateUsuarios(userIds, action)
-
-    if (result.success) {
-      return NextResponse.json({
-        message: `Acción '${action}' aplicada a ${result.affected} usuarios`,
-        status: 200,
+      return Response.json({
+        message: "Usuario encontrado",
+        user: usuarios[0],
       })
     }
 
-    return NextResponse.json({ error: "Error en actualización masiva" }, { status: 500 })
+    if (email) {
+      console.log("Buscando usuario por email:", email)
+      const usuarios = await sql`
+        SELECT 
+          u.usuario_id::text as id, 
+          u.nombre_usuario as email, 
+          u.fecha_creacion,
+          u.fk_empleado::text as empleado_id,
+          e.primer_nombre,
+          e.primer_apellido,
+          e.cedula,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_nombre
+        FROM ${sql(usuarioTable)} u
+        LEFT JOIN ${sql(empleadoTable)} e ON u.fk_empleado = e.empleado_id
+        WHERE u.nombre_usuario = ${email}
+      `
+
+      if (usuarios.length === 0) {
+        return Response.json({ error: "Usuario no encontrado" }, { status: 404 })
+      }
+
+      return Response.json({
+        message: "Usuario encontrado",
+        user: usuarios[0],
+      })
+    }
+
+    // Obtener todos los usuarios con información del empleado
+    console.log("Obteniendo todos los usuarios con empleados...")
+    const usuarios = await sql`
+      SELECT 
+        u.usuario_id::text as id, 
+        u.nombre_usuario as email, 
+        u.fecha_creacion,
+        u.fk_empleado::text as empleado_id,
+        u.fk_cliente_natural, 
+        u.fk_cliente_juridico, 
+        u.fk_miembro_acaucab,
+        e.primer_nombre,
+        e.primer_apellido,
+        e.cedula,
+        CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_nombre
+      FROM ${sql(usuarioTable)} u
+      LEFT JOIN ${sql(empleadoTable)} e ON u.fk_empleado = e.empleado_id
+      ORDER BY u.usuario_id
+    `
+
+    console.log("Usuarios obtenidos:", usuarios.length)
+
+    return Response.json({
+      message: "Usuarios obtenidos exitosamente",
+      users: usuarios,
+      count: usuarios.length,
+    })
   } catch (error) {
-    console.error("Error in PATCH /api/usuarios:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    console.error("=== ERROR GENERAL ===")
+    console.error("Error:", error)
+
+    return Response.json(
+      {
+        error: "Error interno del servidor",
+        details: error instanceof Error ? error.message : String(error),
+        type: error instanceof Error ? error.constructor.name : typeof error,
+      },
+      { status: 500 },
+    )
+  } finally {
+    if (sql) {
+      try {
+        await sql.end()
+      } catch (closeError) {
+        console.error("Error cerrando conexión:", closeError)
+      }
+    }
+  }
+}
+
+export async function POST(request: NextRequest) {
+  let sql: any = null
+
+  try {
+    console.log("=== INICIO POST /api/usuarios ===")
+
+    const { email, password, empleadoId } = await request.json()
+    console.log("Datos recibidos:", {
+      email,
+      password: password ? "[OCULTO]" : "undefined",
+      empleadoId,
+    })
+
+    if (!email || !password) {
+      return Response.json({ error: "Email y contraseña son requeridos" }, { status: 400 })
+    }
+
+    if (!empleadoId) {
+      return Response.json({ error: "Debe seleccionar un empleado" }, { status: 400 })
+    }
+
+    const postgres = (await import("postgres")).default
+    sql = postgres({
+      host: "localhost",
+      port: 5432,
+      database: "postgres",
+      username: "postgres",
+      password: "1602",
+      max: 5,
+      idle_timeout: 10,
+      connect_timeout: 5,
+    })
+
+    // Encontrar las tablas
+    const { schemaTable: usuarioTable } = await findUsuarioTable(sql)
+    const { schemaTable: empleadoTable } = await findEmpleadoTable(sql)
+
+    // Verificar que el empleado existe
+    const empleadoExiste = await sql`
+      SELECT empleado_id FROM ${sql(empleadoTable)} 
+      WHERE empleado_id = ${Number.parseInt(empleadoId)}
+    `
+
+    if (empleadoExiste.length === 0) {
+      return Response.json({ error: "El empleado seleccionado no existe" }, { status: 400 })
+    }
+
+    // Verificar si el email ya existe
+    const usuariosExistentes = await sql`
+      SELECT usuario_id FROM ${sql(usuarioTable)} WHERE nombre_usuario = ${email}
+    `
+
+    if (usuariosExistentes.length > 0) {
+      return Response.json({ error: "El email ya está registrado" }, { status: 400 })
+    }
+
+    // Crear nuevo usuario con empleado
+    const nuevoUsuario = await sql`
+      INSERT INTO ${sql(usuarioTable)} (nombre_usuario, hash_contrasena, fecha_creacion, fk_empleado) 
+      VALUES (${email}, ${password}, CURRENT_DATE, ${Number.parseInt(empleadoId)}) 
+      RETURNING usuario_id::text as id, nombre_usuario as email, fecha_creacion, fk_empleado::text as empleado_id
+    `
+
+    // Obtener información completa del usuario creado con empleado
+    const usuarioCompleto = await sql`
+      SELECT 
+        u.usuario_id::text as id, 
+        u.nombre_usuario as email, 
+        u.fecha_creacion,
+        u.fk_empleado::text as empleado_id,
+        e.primer_nombre,
+        e.primer_apellido,
+        CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_nombre
+      FROM ${sql(usuarioTable)} u
+      LEFT JOIN ${sql(empleadoTable)} e ON u.fk_empleado = e.empleado_id
+      WHERE u.usuario_id = ${nuevoUsuario[0].id}
+    `
+
+    return Response.json(
+      {
+        message: "Usuario creado exitosamente",
+        user: usuarioCompleto[0],
+      },
+      { status: 201 },
+    )
+  } catch (error) {
+    console.error("Error in POST:", error)
+    return Response.json(
+      {
+        error: "Error al crear usuario",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    )
+  } finally {
+    if (sql) {
+      try {
+        await sql.end()
+      } catch (closeError) {
+        console.error("Error cerrando conexión:", closeError)
+      }
+    }
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  let sql: any = null
+
+  try {
+    console.log("=== INICIO PUT /api/usuarios ===")
+
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get("id")
+    const { email, password, empleadoId } = await request.json()
+
+    console.log("Datos recibidos:", {
+      userId,
+      email,
+      password: password ? "[OCULTO]" : "undefined",
+      empleadoId,
+    })
+
+    if (!userId) {
+      return Response.json({ error: "ID de usuario requerido" }, { status: 400 })
+    }
+
+    const postgres = (await import("postgres")).default
+    sql = postgres({
+      host: "localhost",
+      port: 5432,
+      database: "postgres",
+      username: "postgres",
+      password: "1602",
+      max: 5,
+      idle_timeout: 10,
+      connect_timeout: 5,
+    })
+
+    // Encontrar las tablas
+    const { schemaTable: usuarioTable } = await findUsuarioTable(sql)
+    const { schemaTable: empleadoTable } = await findEmpleadoTable(sql)
+
+    // Verificar si el usuario existe
+    const usuariosExistentes = await sql`
+      SELECT usuario_id, nombre_usuario 
+      FROM ${sql(usuarioTable)}
+      WHERE usuario_id = ${Number.parseInt(userId)}
+    `
+
+    if (usuariosExistentes.length === 0) {
+      return Response.json({ error: "Usuario no encontrado" }, { status: 404 })
+    }
+
+    // Si se proporciona empleadoId, verificar que existe
+    if (empleadoId) {
+      const empleadoExiste = await sql`
+        SELECT empleado_id FROM ${sql(empleadoTable)} 
+        WHERE empleado_id = ${Number.parseInt(empleadoId)}
+      `
+
+      if (empleadoExiste.length === 0) {
+        return Response.json({ error: "El empleado seleccionado no existe" }, { status: 400 })
+      }
+    }
+
+    // Actualizar usuario
+    let usuarioActualizado
+    if (password && empleadoId) {
+      usuarioActualizado = await sql`
+        UPDATE ${sql(usuarioTable)}
+        SET nombre_usuario = ${email}, hash_contrasena = ${password}, fk_empleado = ${Number.parseInt(empleadoId)}
+        WHERE usuario_id = ${Number.parseInt(userId)}
+        RETURNING usuario_id::text as id, nombre_usuario as email, fecha_creacion, fk_empleado::text as empleado_id
+      `
+    } else if (password) {
+      usuarioActualizado = await sql`
+        UPDATE ${sql(usuarioTable)}
+        SET nombre_usuario = ${email}, hash_contrasena = ${password}
+        WHERE usuario_id = ${Number.parseInt(userId)}
+        RETURNING usuario_id::text as id, nombre_usuario as email, fecha_creacion, fk_empleado::text as empleado_id
+      `
+    } else if (empleadoId) {
+      usuarioActualizado = await sql`
+        UPDATE ${sql(usuarioTable)}
+        SET nombre_usuario = ${email}, fk_empleado = ${Number.parseInt(empleadoId)}
+        WHERE usuario_id = ${Number.parseInt(userId)}
+        RETURNING usuario_id::text as id, nombre_usuario as email, fecha_creacion, fk_empleado::text as empleado_id
+      `
+    } else {
+      usuarioActualizado = await sql`
+        UPDATE ${sql(usuarioTable)}
+        SET nombre_usuario = ${email}
+        WHERE usuario_id = ${Number.parseInt(userId)}
+        RETURNING usuario_id::text as id, nombre_usuario as email, fecha_creacion, fk_empleado::text as empleado_id
+      `
+    }
+
+    // Obtener información completa del usuario actualizado
+    const usuarioCompleto = await sql`
+      SELECT 
+        u.usuario_id::text as id, 
+        u.nombre_usuario as email, 
+        u.fecha_creacion,
+        u.fk_empleado::text as empleado_id,
+        e.primer_nombre,
+        e.primer_apellido,
+        CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_nombre
+      FROM ${sql(usuarioTable)} u
+      LEFT JOIN ${sql(empleadoTable)} e ON u.fk_empleado = e.empleado_id
+      WHERE u.usuario_id = ${Number.parseInt(userId)}
+    `
+
+    return Response.json({
+      message: "Usuario actualizado exitosamente",
+      user: usuarioCompleto[0],
+    })
+  } catch (error) {
+    console.error("Error in PUT:", error)
+    return Response.json(
+      {
+        error: "Error al actualizar usuario",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    )
+  } finally {
+    if (sql) {
+      try {
+        await sql.end()
+      } catch (closeError) {
+        console.error("Error cerrando conexión:", closeError)
+      }
+    }
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  let sql: any = null
+
+  try {
+    console.log("=== INICIO DELETE /api/usuarios ===")
+
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get("id")
+
+    console.log("ID de usuario a eliminar:", userId)
+
+    if (!userId) {
+      return Response.json({ error: "ID de usuario requerido" }, { status: 400 })
+    }
+
+    const postgres = (await import("postgres")).default
+    sql = postgres({
+      host: "localhost",
+      port: 5432,
+      database: "postgres",
+      username: "postgres",
+      password: "1602",
+      max: 5,
+      idle_timeout: 10,
+      connect_timeout: 5,
+    })
+
+    // Encontrar la tabla usuario
+    const { schemaTable } = await findUsuarioTable(sql)
+    console.log("Usando tabla:", schemaTable)
+
+    // Verificar si el usuario existe
+    console.log("Verificando si el usuario existe...")
+    const usuariosExistentes = await sql`
+      SELECT usuario_id, nombre_usuario 
+      FROM ${sql(schemaTable)}
+      WHERE usuario_id = ${Number.parseInt(userId)}
+    `
+
+    console.log("Usuarios encontrados:", usuariosExistentes.length)
+
+    if (usuariosExistentes.length === 0) {
+      return Response.json({ error: "Usuario no encontrado" }, { status: 404 })
+    }
+
+    console.log("Usuario a eliminar:", usuariosExistentes[0])
+
+    // Eliminar usuario
+    console.log("Eliminando usuario...")
+    const usuarioEliminado = await sql`
+      DELETE FROM ${sql(schemaTable)}
+      WHERE usuario_id = ${Number.parseInt(userId)} 
+      RETURNING usuario_id::text as id, nombre_usuario as email
+    `
+
+    console.log("Usuario eliminado:", usuarioEliminado)
+
+    return Response.json({
+      message: "Usuario eliminado exitosamente",
+      deletedUser: usuarioEliminado[0],
+    })
+  } catch (error) {
+    console.error("=== ERROR EN DELETE ===")
+    console.error("Error:", error)
+    console.error("Stack:", error instanceof Error ? error.stack : "No stack")
+
+    return Response.json(
+      {
+        error: "Error al eliminar usuario",
+        details: error instanceof Error ? error.message : String(error),
+        type: error instanceof Error ? error.constructor.name : typeof error,
+      },
+      { status: 500 },
+    )
+  } finally {
+    if (sql) {
+      try {
+        await sql.end()
+      } catch (closeError) {
+        console.error("Error cerrando conexión:", closeError)
+      }
+    }
   }
 }

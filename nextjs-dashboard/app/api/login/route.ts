@@ -31,7 +31,6 @@ export async function POST(request: Request) {
     // Dummy authentication; replace with your actual logic
   const result = await getUser(email,password);
   const res = result[0];
-
     if(res) {
 
         const response = NextResponse.json({ res }, { status:200 });
@@ -48,7 +47,9 @@ export async function POST(request: Request) {
                 filteredLinks=filteredLinks.filter((link) => {link.descripcion !== filters[i].descripcion});
             }
         }
-        response.cookies.set("permissions", JSON.stringify(filteredLinks), {
+        console.log(filteredLinks)
+        console.log(permissions)
+        response.cookies.set("permissions", JSON.stringify(filters), {
             httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 60 * 60 * 24,
