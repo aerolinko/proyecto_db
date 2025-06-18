@@ -6,6 +6,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ProductCard from "@/app/ui/venta/ProductCard";
 // Imports the CartItem component, also likely defined in a separate file within the app's UI directory.
 import CartItem from "@/app/ui/venta/CartItem";
+import MetodoPago from "@/app/ui/venta/MetodoPago";
 
 // Defines the main functional component for the sales page.
 export default function Page (){
@@ -15,9 +16,10 @@ export default function Page (){
     // `useState` hook to manage the list of products displayed on the page.
     // `products` holds the current array of products, `setProducts` is the function to update it.
     const [products, setProducts] = useState(allProducts);
+    const [pagando, setPagando] = useState(false);
     // `useState` hook to manage the shopping cart.
     // `cart` is an object where keys are product IDs and values are objects containing product details and quantity.
-    const [cart, setCart] = useState<Record<string, any>>({}); // Using a record for easy access by productId
+    const [cart, setCart] = useState<Record<string, any>>([]); // Using a record for easy access by productId
     // `useState` hook to manage temporary success or error messages displayed to the user.
     // `message` stores the current message (type and text), `setMessage` updates it.
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -50,7 +52,8 @@ export default function Page (){
                     // In a real application, these should come from your backend.
                     price: parseFloat(item.precio_unitario.toFixed(2)), // Generates a random price between 1 and 10.
                     stock: item.cantidad, // Generates a random stock quantity between 10 and 60.
-                    presentation: item.cap_volumen
+                    presentation: item.cap_volumen,
+                    quantity: 0
                 }));
                 setProducts(transformedProducts); // Updates the `products` state with the transformed data, triggering a re-render.
             } catch (err: any) {
@@ -61,8 +64,8 @@ export default function Page (){
         }
 
         fetchProducts(); // Calls the `fetchProducts` function when the component mounts.
-    }, []); // Empty dependency array means this effect runs only once after the initial render.
-    console.log(products);
+    }, []);
+    // Empty dependency array means this effect runs only once after the initial render.
     // `useCallback` hook to memoize the `showMessage` function.
     // This prevents the function from being recreated on every render, which can improve performance
     // if it's passed as a prop to child components.
@@ -77,6 +80,7 @@ export default function Page (){
     }, []); // Empty dependency array as this function doesn't depend on any props or state within its closure.
     // `useCallback` hook to memoize the `handleAddToCart` function.
     // This function handles adding a product to the cart or updating its quantity.
+
     const handleAddToCart = useCallback((productId: number, quantity: number) => {
         // Finds the product in the `products` array using its `productId`.
         const product = products.find(p => p.id === productId);
@@ -89,8 +93,8 @@ export default function Page (){
         if (quantity === 0) {
             // Updates the cart by removing the item with `productId`.
             setCart(prevCart => {
-                const newCart = { ...prevCart }; // Creates a shallow copy of the previous cart state.
-                delete newCart[productId]; // Deletes the item from the new cart object.
+                const newCart = [ ...prevCart ];// Creates a shallow copy of the previous cart state.
+                newCart.splice(newCart.findIndex(p => p.id === productId),newCart.findIndex(p => p.id === productId)+1); // Deletes the item from the new cart object.
                 showMessage('success', `${product.name} eliminado del carrito.`); // Displays a success message.
                 return newCart; // Returns the new cart state.
             });
@@ -98,11 +102,16 @@ export default function Page (){
         } else if (quantity > 0 && quantity <= product.stock) {
             // Updates the cart by adding or updating the item with `productId`.
             setCart(prevCart => {
-                const existingItem = prevCart[productId]; // Checks if the item already exists in the cart.
-                const newCart = {
-                    ...prevCart, // Creates a shallow copy of the previous cart state.
-                    [productId]: { product, quantity } // Adds or updates the product with its current quantity.
-                };
+                const newCart = [ ...prevCart ];
+                const existingItem = prevCart.find(p => p.id === productId);
+                if(!existingItem) {
+                    product.quantity=quantity;// Checks if the item already exists in the cart.
+                     newCart.push(product);
+                }
+                else {
+                    let i = newCart.findIndex(p => p.id === productId);
+                    newCart[i].quantity = quantity;
+                }
                 // Displays appropriate message based on whether the item was new or updated.
                 showMessage('success', `${product.name} (x${quantity}) ${existingItem ? 'actualizado' : 'agregado'} al carrito.`);
                 return newCart; // Returns the new cart state.
@@ -125,25 +134,24 @@ export default function Page (){
         );
     }, [products, searchTerm]);
 
-
     // `useMemo` hook to memoize the calculation of the total cart price.
     // This calculation will only re-run if the `cart` state changes, optimizing performance.
     const total = useMemo(() => {
         // Iterates over the values (individual cart items) in the `cart` object.
         // `reduce` sums up the total price by multiplying each item's price by its quantity.
-        return Object.values(cart).reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+        console.log('carrito: ',cart);
+        return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     }, [cart]); // Dependency: `cart` state.
 
     // Defines the `handleCheckout` function, which simulates the checkout process.
     const handleCheckout = () => {
-
+        setPagando(true);
         // If the cart is empty, displays an error message and stops the checkout process.
         if (Object.keys(cart).length === 0) {
             showMessage('error', 'El carrito está vacío. Agrega algunos productos.');
             return;
         }
         // Displays a success message for the completed purchase, including the total.
-        showMessage('success', `¡Compra realizada con éxito! Total: $${total.toFixed(2)}. Carrito vaciado.`);
         // Simulates reducing product stock on the client-side.
         // IMPORTANT: In a real application, stock updates should be handled on the backend.
         products.forEach((product) => {
@@ -157,29 +165,30 @@ export default function Page (){
             };
         })
 
-        setCart({})
+        /*setCart([])*/
         setSearchTerm(''); // Clears the cart after checkout.
         // In a real app, you'd send this data to a backend, update stock, etc. // Comment indicating next steps for a production app.
     };
 
+
     return (
         // Main container for the page, setting a minimum height, background gradient, and layout.
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex flex-col items-center p-6 font-sans">
-            {/* Inner container for the sales application, with styling for background, padding, shadow, and border. */}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex flex-col items-center p-6 font-sans">
+        {/* Inner container for the sales application, with styling for background, padding, shadow, and border. */}
+        { !pagando ? (
+        <div>
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl mb-8 border border-purple-200">
                 {/* Main title of the application. */}
                 <h1 className="text-4xl font-extrabold text-purple-800 text-center mb-6 pb-4 border-b-2 border-purple-300">
                     PLACEHOLDER NO TIENE NADA DE LOGICA IMPLEMENTADA (looks hella cool tho) {/* Placeholder title. */}
                 </h1>
-
                 {/* Message display area, conditionally rendered based on the `message` state. */}
                 {message && (
                     <div className={`p-4 rounded-lg mb-4 text-center text-lg font-semibold
-                        ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                           ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {message.text} {/* Displays the actual message text. */}
                     </div>
                 )}
-
                 <div className="mb-6 w-full">
                     <input
                         type="text"
@@ -189,11 +198,9 @@ export default function Page (){
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-
-
-                {/* Section title for available products. */}
-                <h2 className="text-2xl font-bold text-purple-700 mb-4">Productos Disponibles</h2>
-                {/* Grid container for displaying product cards. */}
+                    {/* Section title for available products. */}
+                    <h2 className="text-2xl font-bold text-purple-700 mb-4">Productos Disponibles</h2>
+                    {/* Grid container for displaying product cards. */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredProducts.length === 0 ? ( // Use filteredProducts here
                         // Message if no products are available after loading or after filtering.
@@ -205,46 +212,51 @@ export default function Page (){
                                 key={product.id} // `key` prop for efficient list rendering in React.
                                 product={product} // Passes the entire product object as a prop.
                                 onAddToCart={handleAddToCart} // Passes the cart-handling function as a prop.
-                                initialQuantity={cart[product.id]?.quantity || 0} // Passes the current quantity of this product in the cart.
+                                initialQuantity={cart.find((item)=>item.id==product.id) ?.quantity || 0} // Passes the current quantity of this product in the cart.
                             />
                         ))
                     )}
                 </div>
-
                 {/* Section for the shopping cart. */}
                 <div className="mt-10 pt-6 border-t-2 border-purple-300">
                     {/* Section title for the cart. */}
-                    <h2 className="text-2xl font-bold text-purple-700 mb-4">Tu Carrito</h2>
+                        <h2 className="text-2xl font-bold text-purple-700 mb-4">Tu Carrito</h2>
                     {/* Conditionally renders content based on whether the cart is empty. */}
                     {Object.keys(cart).length === 0 ? (
                         <p className="text-gray-600 text-center text-lg">El carrito está vacío.</p> // Message if cart is empty.
                     ) : (
-                        // Container for cart items if the cart is not empty.
-                        <div className="bg-purple-50 p-6 rounded-lg shadow-inner border border-purple-200">
-                            {/* Maps through the values (items) in the `cart` object to render `CartItem` components. */}
-                            {Object.values(cart).map(item => (
-                                <CartItem key={item.product.id} item={item} /> // Renders each `CartItem` with its unique key and item data.
-                            ))}
-                            {/* Displays the total price of the cart. */}
-                            <div className="flex justify-between items-center mt-6 pt-4 border-t-2 border-purple-300">
-                                <span className="text-xl font-bold text-purple-800">Total:</span>
-                                <span className="text-2xl font-extrabold text-purple-900">${total.toFixed(2)}</span> {/* Displays the calculated total formatted to two decimal places. */}
-                            </div>
+                    // Container for cart items if the cart is not empty.
+                    <div className="bg-purple-50 p-6 rounded-lg shadow-inner border border-purple-200">
+                        {/* Maps through the values (items) in the `cart` object to render `CartItem` components. */}
+                        {cart.map(item => (
+                            <CartItem key={item.id} item={item} /> // Renders each `CartItem` with its unique key and item data.
+                        ))}
+                        {/* Displays the total price of the cart. */}
+                        <div className="flex justify-between items-center mt-6 pt-4 border-t-2 border-purple-300">
+                            <span className="text-xl font-bold text-purple-800">Total:</span>
+                            <span className="text-2xl font-extrabold text-purple-900">${total.toFixed(2)}</span> {/* Displays the calculated total formatted to two decimal places. */}
                         </div>
+                    </div>
                     )}
-                    {/* Checkout button. */}
-                    <button
-                        onClick={handleCheckout} // Triggers the checkout function on click.
-                        // Dynamic styling for the button based on whether the cart is empty.
-                        className={`mt-8 w-full py-4 rounded-xl text-xl font-bold text-white shadow-lg transition-all duration-200 ease-in-out
-                        ${Object.keys(cart).length > 0 ? 'bg-green-600 hover:bg-green-700 transform hover:-translate-y-1' : 'bg-gray-400 cursor-not-allowed'}`}
-                        // Button is disabled if the cart is empty.
-                        disabled={Object.keys(cart).length === 0}
-                    >
-                        Pagar {/* Button text. */}
-                    </button>
+                        {/* Checkout button. */}
+                        <button
+                            onClick={handleCheckout} // Triggers the checkout function on click.
+                            // Dynamic styling for the button based on whether the cart is empty.
+                            className={`mt-8 w-full py-4 rounded-xl text-xl font-bold text-white shadow-lg transition-all duration-200 ease-in-out
+                            ${Object.keys(cart).length > 0 ? 'bg-green-600 hover:bg-green-700 transform hover:-translate-y-1' : 'bg-gray-400 cursor-not-allowed'}`}
+                            // Button is disabled if the cart is empty.
+                            disabled={Object.keys(cart).length === 0}
+                        >
+                            Pagar {/* Button text. */}
+                        </button>
                 </div>
             </div>
         </div>
+        ):(
+            <div>
+                <MetodoPago cart={cart} setPagando={setPagando}/>
+            </div>
+        )}
+    </div>
     );
 };
