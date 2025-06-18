@@ -69,6 +69,17 @@ export default function MetodoPago({ cart, setPagando }) {
         }
     };
 
+    const buscarCliente = (cliente:string) => {
+
+        if(isNaN(parseInt(cliente))){
+            console.log('es juridico');
+        } else {
+            console.log('es natural');
+        }
+
+    };
+
+
     // Custom Modal Component
     const Modal = ({ message, isOpen, onClose }:{message:string, isOpen:boolean, onClose:any}) => {
         if (!isOpen) return null;
@@ -109,9 +120,18 @@ export default function MetodoPago({ cart, setPagando }) {
                                     required
                                     className="mt-1 block w-full px-3 py-2 bg-gray-200 border border-gray-300 rounded-md shadow-sm sm:text-sm "
                                     placeholder="Cédula/RIF"
+                                    maxLength={12}
                                 />
                             </div>
                         </div>
+                        <button
+                            className={clsx(
+                                "bg-blue-600 text-white py-2 px-3 mt-3 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 shadow-md"
+                            )}
+                            onClick={() => buscarCliente(selectedClientId)}
+                                >
+                            <p className=" hidden md:block">Buscar Cliente</p>
+                        </button>
                     </div>
 
                     {/* Cart Display */}
