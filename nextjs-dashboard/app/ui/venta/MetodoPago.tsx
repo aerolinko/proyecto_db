@@ -15,12 +15,12 @@ export default function MetodoPago({ cart, setPagando }) {
 
     // State for client selection
     const [selectedClientId, setSelectedClientId] = useState('');
-    const [foundClientId, setFoundClientId] = useState();
+    const [foundClientId, setFoundClientId] = useState('');
 
     // State for payment methods
     const [paymentMethods, setPaymentMethods] = useState([]);
     const [selectablePaymentMethod, setSelectablePaymentMethod] = useState([]);
-    const [newPaymentMethodType, setNewPaymentMethodType] = useState({});
+    const [newPaymentMethodType, setNewPaymentMethodType] = useState<any>([]);
     const [newPaymentMethodAmount, setNewPaymentMethodAmount] = useState('');
 
     const [error, setError] = useState('');
@@ -52,6 +52,7 @@ export default function MetodoPago({ cart, setPagando }) {
             setIsModalOpen(true);
             return;
         }
+
 
         // @ts-ignore
         setPaymentMethods([...paymentMethods, {
