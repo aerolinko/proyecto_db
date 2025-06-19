@@ -47,9 +47,7 @@ export async function POST(request: Request) {
                 filteredLinks=filteredLinks.filter((link) => link.descripcion !== filters[i].descripcion);
             }
         }
-        console.log(filteredLinks)
-        console.log(permissions)
-        response.cookies.set("permissions", JSON.stringify(filters), {
+        response.cookies.set("permissions", JSON.stringify(filteredLinks), {
             httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 60 * 60 * 24,
