@@ -170,7 +170,7 @@ CREATE TABLE ROL_PERMISO(
     fk_rol integer NOT NULL,
     fk_permiso integer NOT NULL,
     constraint pk_rol_permiso_id primary key (rol_permiso_id),
-    constraint fk_rol_rol_permiso foreign key (fk_rol) references ROL(rol_id),
+    constraint fk_rol_rol_permiso foreign key (fk_rol) references ROL(rol_id) ON DELETE CASCADE,
     constraint fk_permiso_rol_permiso foreign key (fk_permiso) references PERMISO(permiso_id)
 );
 
@@ -570,9 +570,9 @@ CREATE TABLE ROL_USUARIO(
     fk_usuario integer NOT NULL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE,
-    constraint pk_rol_usuario_id primary key (rol_usuario_id),
-    constraint fk_rol_rol_usuario foreign key (fk_rol) references ROL(rol_id),
-    constraint fk_usuario_rol_usuario foreign key (fk_usuario) references USUARIO(usuario_id)
+    constraint pk_rol_usuario_id primary key (rol_usuario_id) ,
+    constraint fk_rol_rol_usuario foreign key (fk_rol) references ROL(rol_id) ON DELETE CASCADE,
+    constraint fk_usuario_rol_usuario foreign key (fk_usuario) references USUARIO(usuario_id) ON DELETE CASCADE
 );
 
 CREATE TABLE MEMBRESIA(
