@@ -5,7 +5,7 @@ import {ArrowLeftCircleIcon, PlusIcon} from "@heroicons/react/24/outline";
 
 
 // @ts-ignore
-export default function MetodoPago({ cart, setPagando }) {
+export default function RegistrarPago({ cart, setPagando }) {
     const [quantity, setQuantity] = useState();
 
     // Update internal quantity state if initialQuantity prop changes (e.g., cart is cleared)
