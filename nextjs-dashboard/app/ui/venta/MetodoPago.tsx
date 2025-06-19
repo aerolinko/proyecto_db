@@ -56,9 +56,9 @@ export default function MetodoPago({ cart, setPagando }) {
         // @ts-ignore
         setPaymentMethods([...paymentMethods, {
             tipo: newPaymentMethodType.tipo,
-            id: newPaymentMethodType.metodo_pago_id,
+            id: newPaymentMethodType.metodo_pago_id ? newPaymentMethodType.metodo_pago_id : null,
             cantidad: amount,
-            numero: newPaymentMethodType.numero
+            numero: newPaymentMethodType.numero ? newPaymentMethodType.numero : null,
         }]);
 
         setNewPaymentMethodAmount(''); // Clear amount field after adding
@@ -229,6 +229,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
                                 <select
                                     id="paymentType"
+                                    disabled={!selectedClientId}
                                     value={JSON.stringify(newPaymentMethodType)}
                                     onChange={(e) => setNewPaymentMethodType(JSON.parse(e.target.value))}
                                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
@@ -238,8 +239,19 @@ export default function MetodoPago({ cart, setPagando }) {
                                         Tarjeta de {item.tipo} ************{item.numero.substring(12,16)}
                                     </option>
                                 ))
-
                                 }
+                                    <option value={JSON.stringify({tipo:'efectivo'})} key={'cash'}
+                                    >
+                                        Efectivo
+                                    </option>
+                                    <option value={JSON.stringify({tipo:'cheque'})} key={'cheque'}
+                                    >
+                                        Cheque
+                                    </option>
+                                    <option value={JSON.stringify({tipo:'puntos'})} key={'points'}
+                                    >
+                                        Puntos
+                                    </option>
                                 </select>
                                 <div className='w-full mt-1'>
                                     <button
@@ -247,7 +259,7 @@ export default function MetodoPago({ cart, setPagando }) {
                                             'flex relative float-right rounded-md mb-2 transition duration-200 p-1.5 font-bold hover:bg-sky-100 hover:text-blue-600 ',
                                         )}
                                         onClick={() => {setPagando(false)}}>
-                                        <p className="pl-6 hidden md:block text-xs ">Registrar nuevo método</p>
+                                        <p className="pl-6 hidden md:block text-xs ">Registrar nueva tarjeta</p>
                                         <PlusIcon className="text-inherit absolute left-2 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-900 peer-focus:text-gray-900"> </PlusIcon>
                                     </button>
                                 </div>
@@ -291,7 +303,7 @@ export default function MetodoPago({ cart, setPagando }) {
                             {paymentMethods.length === 0 ? (
                                 <div className="p-3 text-center text-gray-500 text-sm">No hay métodos de pago aún.</div>
                             ) : (
-                                paymentMethods.map((method:any, index) => (
+                                paymentMethods.map((method:any, index) => method.tipo !== 'efectivo' && method.tipo !== 'cheque' && method.tipo !== 'puntos' ? (
                                     <div key={index} className="grid grid-cols-3 gap-2 p-3 text-sm border-b border-gray-200 last:border-b-0">
                                         <span className="text-gray-800">{method.tipo} ****{method.numero.substring(12,16)}</span>
                                         <span className="text-right text-gray-800">${method.cantidad.toFixed(2)}</span>
@@ -304,7 +316,18 @@ export default function MetodoPago({ cart, setPagando }) {
                       </button>
                     </span>
                                     </div>
-                                ))
+                                ):(<div key={index} className="grid grid-cols-3 gap-2 p-3 text-sm border-b border-gray-200 last:border-b-0">
+                                    <span className="text-gray-800">{method.tipo} {method.tipo == 'puntos' &&(`(${method.cantidad})`)} </span>
+                                    <span className="text-right text-gray-800">${method.cantidad.toFixed(2)}</span>
+                                    <span className="text-center">
+                      <button
+                          onClick={() => handleRemovePayment(index)}
+                          className="text-red-600 hover:text-red-800 font-medium text-sm transition duration-200"
+                      >
+                        Eliminar
+                      </button>
+                    </span>
+                                </div>))
                             )}
                         </div>
                         <div className="mt-4 text-right text-xl font-bold text-gray-800">
