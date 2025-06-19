@@ -2,7 +2,7 @@ import postgres from 'postgres';
 
 
 
-/*
+
 
 const sql = postgres({
     host: 'localhost',
@@ -12,8 +12,7 @@ const sql = postgres({
     password: 'root',
 });
 
-
-*/
+/*
 
 const sql = postgres({
     host: 'localhost',
@@ -24,8 +23,8 @@ const sql = postgres({
     connection: { options: '-c search_path=schema_name' }
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
-}); 
-
+});
+*/
 
 export async function getAllLugares() {
     return await sql`SELECT * FROM LUGAR`;
@@ -79,13 +78,13 @@ export async function getAllProducts() {
     return await sql`SELECT * from obtenerCervezas()`;
 }
 
-
+/*
 ///para usuarios
 export async function getAllUsuarios() {
     try {
         const result = await sql`
-      SELECT usuario_id::text as id, nombre_usuario as email 
-      FROM USUARIO 
+      SELECT usuario_id::text as id, nombre_usuario as email
+      FROM USUARIO
       ORDER BY usuario_id
     `
         return result
@@ -174,6 +173,26 @@ export async function deleteUsuario(id: string) {
         console.error("Error deleting usuario:", error)
         throw error
     }
+}
+ */
+
+export async function getEmpleados(){
+    return await sql`
+      SELECT 
+        empleado_id::text as id,
+        cedula,
+        primer_nombre,
+        primer_apellido,
+        segundo_nombre,
+        segundo_apellido,
+        direccion,
+        fecha_contrato,
+        fk_lugar,
+        CONCAT(primer_nombre, ' ', primer_apellido) as nombre_completo,
+        CONCAT(primer_nombre, ' ', COALESCE(segundo_nombre, ''), ' ', primer_apellido, ' ', COALESCE(segundo_apellido, '')) as nombre_completo_full
+      FROM empleado
+      ORDER BY primer_nombre, primer_apellido
+    `
 }
 
 // Funciones para encontrar tablas dinámicamente
