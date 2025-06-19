@@ -15,12 +15,14 @@ export default function MetodoPago({ cart, setPagando }) {
 
     // State for client selection
     const [selectedClientId, setSelectedClientId] = useState('');
-    const [foundClientId, setFoundClientId] = useState(false);
+    const [foundClientId, setFoundClientId] = useState();
 
     // State for payment methods
     const [paymentMethods, setPaymentMethods] = useState([]);
-    const [newPaymentMethodType, setNewPaymentMethodType] = useState('Cash');
+    const [selectablePaymentMethod, setSelectablePaymentMethod] = useState([]);
+    const [newPaymentMethodType, setNewPaymentMethodType] = useState({});
     const [newPaymentMethodAmount, setNewPaymentMethodAmount] = useState('');
+
     const [error, setError] = useState('');
     // State for custom modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +30,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
     // Calculate cart total
     const cartTotal = cart.reduce((sum:any, item:any) => sum + (item.price * item.quantity), 0);
-    const totalPaid = paymentMethods.reduce((sum, method:any) => sum + method.amount, 0);
+    const totalPaid = paymentMethods.reduce((sum, method:any) => sum + method.cantidad, 0);
     const remainingBalance = cartTotal - totalPaid;
     // Add a new payment method
     const handleAddPayment = () => {
@@ -53,8 +55,10 @@ export default function MetodoPago({ cart, setPagando }) {
 
         // @ts-ignore
         setPaymentMethods([...paymentMethods, {
-            type: newPaymentMethodType,
-            amount: amount
+            tipo: newPaymentMethodType.tipo,
+            id: newPaymentMethodType.metodo_pago_id,
+            cantidad: amount,
+            numero: newPaymentMethodType.numero
         }]);
 
         setNewPaymentMethodAmount(''); // Clear amount field after adding
@@ -76,31 +80,47 @@ export default function MetodoPago({ cart, setPagando }) {
 
     const buscarCliente = async (cliente:string) => {
     let response
-
+    let tipo;
         if(isNaN(parseInt(cliente))){
             response = await fetch("/api/clientes?RIF=" + cliente, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
+            tipo = 'juridico';
         } else {
              response = await fetch("/api/clientes?cedula=" + parseInt(cliente), {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
+            tipo = 'natural';
         }
         const res=await response.json();
         if (res.result && res.result.length > 0) {
-            setFoundClientId(true);
+            setFoundClientId(res.result[0]);
             setError('');
+            const paymentMethodsSearch = await fetch("/api/clientes?ID=" + res.result[0].cliente_id, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
 
+            if(paymentMethodsSearch.ok){
+                const res=await paymentMethodsSearch.json();
+                console.log('resultado del fetch',res.result);
+                setSelectablePaymentMethod(res.result);
+            }
         }
         else
         {
             setError('No existe el cliente.');
-            setFoundClientId(false);
+            setFoundClientId('');
         }
     };
-    console.log(foundClientId);
+    console.log('new payment',newPaymentMethodType);
+    console.log('all payments',paymentMethods);
+
+    useEffect(()=>{
+        setNewPaymentMethodType(selectablePaymentMethod[0]);
+    }, [selectablePaymentMethod]);
 
     // Custom Modal Component
     const Modal = ({ message, isOpen, onClose }:{message:string, isOpen:boolean, onClose:any}) => {
@@ -204,16 +224,22 @@ export default function MetodoPago({ cart, setPagando }) {
                         <div className="space-y-4">
                             <div>
                                 <label htmlFor="paymentType" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tipo
+                                    Métodos registrados
                                 </label>
 
                                 <select
                                     id="paymentType"
-                                    value={newPaymentMethodType}
-                                    onChange={(e) => setNewPaymentMethodType(e.target.value)}
+                                    value={JSON.stringify(newPaymentMethodType)}
+                                    onChange={(e) => setNewPaymentMethodType(JSON.parse(e.target.value))}
                                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
-                                >
+                                >{selectablePaymentMethod.map((item:any) => (
+                                    <option value={JSON.stringify(item)} key={item.metodo_pago_id+item.tipo}
+                                    >
+                                        Tarjeta de {item.tipo} ************{item.numero.substring(12,16)}
+                                    </option>
+                                ))
 
+                                }
                                 </select>
                                 <div className='w-full mt-1'>
                                     <button
@@ -267,8 +293,8 @@ export default function MetodoPago({ cart, setPagando }) {
                             ) : (
                                 paymentMethods.map((method:any, index) => (
                                     <div key={index} className="grid grid-cols-3 gap-2 p-3 text-sm border-b border-gray-200 last:border-b-0">
-                                        <span className="text-gray-800">{method.type}</span>
-                                        <span className="text-right text-gray-800">${method.amount.toFixed(2)}</span>
+                                        <span className="text-gray-800">{method.tipo} ****{method.numero.substring(12,16)}</span>
+                                        <span className="text-right text-gray-800">${method.cantidad.toFixed(2)}</span>
                                         <span className="text-center">
                       <button
                           onClick={() => handleRemovePayment(index)}

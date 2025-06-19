@@ -1001,3 +1001,14 @@ as
 $$
     Select * from cliente_natural where cedula=ced;
 $$;
+
+Create function buscarClienteNaturalMetodosDePago(id int)
+    returns table (metodo_pago_id integer, tipo varchar, numero bigint, banco varchar)
+    language sql
+as
+$$
+    (Select metodo_pago_id, 'credito', numero, banco from metodo_pago_credito where fk_cliente_natural=id )
+    union all
+    (SELECT metodo_pago_id, 'debito', numero, banco FROM metodo_pago_debito WHERE fk_cliente_natural=id)
+
+$$;

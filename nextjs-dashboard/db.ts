@@ -51,7 +51,9 @@ export async function getAllRolesPermisos(rol: number) {
     return await sql`SELECT * FROM obtenerRolPermisos(${rol})`;
 }
 
-
+export async function getNaturalClientPaymentMethods(id: number) {
+    return await sql`select * from buscarClienteNaturalMetodosDePago(${id});`;
+}
 
 export async function getNaturalClient(ced:number) {
     return await sql`SELECT * FROM buscarClienteNatural(${ced})`;
