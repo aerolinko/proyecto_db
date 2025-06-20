@@ -32,10 +32,6 @@ drop table ingrediente cascade;
 
 drop table tipo_ingrediente cascade;
 
-drop table caracteristica cascade;
-
-drop table cerveza_caracteristica cascade;
-
 drop table oferta cascade;
 
 drop table premio cascade;
@@ -47,6 +43,10 @@ drop table premiacion_evento cascade;
 drop table premiacion cascade;
 
 drop table tipo_cerveza_caracteristica cascade;
+
+drop table cerveza_caracteristica cascade;
+
+drop table caracteristica cascade;
 
 drop table detalle_reposicion_anaquel cascade;
 
@@ -68,6 +68,10 @@ drop table detalle_compra cascade;
 
 drop table detalle_venta_online cascade;
 
+drop table almacen_cerveza cascade;
+
+drop table almacen cascade;
+
 drop table estado_venta_online cascade;
 
 drop table estado cascade;
@@ -84,31 +88,11 @@ drop table anaquel cascade;
 
 drop table pasillo cascade;
 
-drop table punto_venta_compra cascade;
-
-drop table tasa_conversion cascade;
-
-drop table pago cascade;
-
-drop table membresia cascade;
-
-drop table usuario cascade;
-
-drop table empleado cascade;
-
-drop table compra_reposicion cascade;
-
-drop table almacen_cerveza cascade;
-
-drop table almacen cascade;
-
 drop table acaucab cascade;
 
 drop table cerveza_presentacion cascade;
 
 drop table presentacion cascade;
-
-drop table miembro_acaucab cascade;
 
 drop table cerveza cascade;
 
@@ -118,7 +102,23 @@ drop table tipo_cerveza cascade;
 
 drop table receta cascade;
 
+drop table punto_venta_compra cascade;
+
+drop table tasa_conversion cascade;
+
+drop table pago cascade;
+
+drop table membresia cascade;
+
+drop table compra_reposicion cascade;
+
 drop table venta_online cascade;
+
+drop table usuario cascade;
+
+drop table empleado cascade;
+
+drop table miembro_acaucab cascade;
 
 drop table venta_evento cascade;
 
@@ -152,6 +152,10 @@ drop procedure editarrol(integer, varchar, varchar) cascade;
 
 drop procedure guardarrol(varchar, varchar) cascade;
 
+drop function obtenerroles() cascade;
+
+drop function obtenerpermisos() cascade;
+
 drop function obtenerrolpermisos(integer) cascade;
 
 drop function obtenerusuario(varchar, varchar) cascade;
@@ -160,15 +164,9 @@ drop function obtenerpermisosusuario(integer) cascade;
 
 drop procedure insertarrolpermisos(integer, text[]) cascade;
 
-drop function reducirstock() cascade;
-
-drop function aumentarstock() cascade;
-
 drop function obtenercervezas() cascade;
 
 drop procedure insertarnuevatarjetacliente(varchar, integer, varchar, bigint, date, varchar) cascade;
-
-drop function buscarmetodosdepagocliente(varchar, integer) cascade;
 
 drop function buscarcliente(varchar, integer) cascade;
 
@@ -176,3 +174,10 @@ drop procedure insertarventatiendacondetalle(integer, integer, varchar, jsonb, j
 
 drop function ajustarpuntos() cascade;
 
+drop function buscarmetodosdepagocliente(varchar, integer) cascade;
+
+drop function reducirstock() cascade;
+
+drop function aumentarstock() cascade;
+
+drop function emitirordenreposicionanaquel() cascade;
