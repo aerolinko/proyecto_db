@@ -102,17 +102,17 @@ INSERT INTO CORREO_ELECTRONICO (usuario, dominio, fk_cliente_natural, fk_cliente
 ('ventas.express', '@friacerveza.com', NULL, NULL, 3);
 
 
-INSERT INTO Tipo_evento (id, nombre) VALUES
-(1, 'Fiesta'),
-(2, 'Feria de Empleo'),
-(3, 'Conferencia'),
-(4, 'Seminario'),
-(5, 'Taller'),
-(6, 'Concierto'),
-(7, 'Exposición'),
-(8, 'Festival'),
-(9, 'Reunión'),
-(10, 'Lanzamiento de Producto');
+INSERT INTO Tipo_evento ( nombre) VALUES
+('Fiesta'),
+('Feria de Empleo'),
+('Conferencia'),
+('Seminario'),
+('Taller'),
+('Concierto'),
+('Exposición'),
+('Festival'),
+('Reunión'),
+( 'Lanzamiento de Producto');
 
 INSERT INTO Evento (nombre, capacidad, direccion, entrada_paga, fecha_inicio, fecha_fin, estacionamiento, numero_entradas, precio_entradas, fk_tipo_evento, fk_lugar) VALUES
 ('Conferencia Futuro Cerveza Artesanal', 300, 'Calle Río Negro', 't', '2025-09-08', '2025-09-10', 't', 270, 65, 3, 360),
