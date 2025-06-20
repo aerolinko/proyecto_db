@@ -205,6 +205,11 @@ export default function MetodoPago({ cart, setPagando }) {
                                     maxLength={12}
                                 />
                             </div>
+                            {foundClientId &&(
+                                <div className={`rounded-lg text-center font-semibold bg-green-100 text-green-800`}>
+                                    Puntos disponibles: {foundClientId.totalpuntos}pts
+                                </div>
+                            )}
                         </div>
                         <button
                             className={clsx(
@@ -352,7 +357,14 @@ export default function MetodoPago({ cart, setPagando }) {
                                     type="number"
                                     id="paymentAmount"
                                     value={newPaymentMethodAmount}
-                                    onChange={(e) => setNewPaymentMethodAmount(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (newPaymentMethodType && newPaymentMethodType.tipo === 'puntos' && parseFloat(value) > foundClientId.totalpuntos) {
+                                            setNewPaymentMethodAmount(foundClientId.totalpuntos);
+                                        } else {
+                                            setNewPaymentMethodAmount(value);
+                                        }
+                                    }}
                                     placeholder="e.j. 50.00"
                                     min="0.01"
                                     step="0.01"
