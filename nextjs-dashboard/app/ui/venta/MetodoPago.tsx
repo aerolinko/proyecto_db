@@ -32,7 +32,7 @@ export default function MetodoPago({ cart, setPagando }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
     const [registrando, setRegistrando] = useState(false);
-
+    console.log(newPaymentMethodType)
     // Calculate cart total
     const cartTotal = cart.reduce((sum:any, item:any) => sum + (item.price * item.quantity), 0);
     const totalPaid = paymentMethods.reduce((sum, method:any) => sum + method.cantidad, 0);
@@ -155,10 +155,13 @@ export default function MetodoPago({ cart, setPagando }) {
     useEffect(()=>{
     },[paymentMethods]);
 
-
-
     useEffect(()=>{
-        setNewPaymentMethodType(selectablePaymentMethod[0]);
+        if(selectablePaymentMethod.length==0){
+            setNewPaymentMethodType({tipo:'efectivo'});
+        }
+        else{
+            setNewPaymentMethodType(selectablePaymentMethod[0]);
+        }
     }, [selectablePaymentMethod]);
 
     // Custom Modal Component

@@ -959,21 +959,28 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER triggerReducirStock
     after insert on detalle_venta_tienda
     for each row
-execute procedure reducirstock();
+execute FUNCTION reducirstock();
 
 CREATE FUNCTION aumentarstock()
     RETURNS TRIGGER AS $$
+    declare
+        rep record;
 BEGIN
+    if new.fecha_entrega IS NOT NULL then
+        for rep in select cantidad,fk_anaquel_cerveza from detalle_reposicion_anaquel
+        where new.reposicion_anaquel_id=fk_reposicion_anaquel
+    LOOP
     UPDATE anaquel_cerveza
-    SET cantidad = cantidad + NEW.cantidad
-    WHERE anaquel_cerveza_id = NEW.fk_anaquel_cerveza;
+    SET cantidad = cantidad + rep.cantidad
+    WHERE anaquel_cerveza_id = rep.fk_anaquel_cerveza;
+    END LOOP;
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE TRIGGER triggerAumentarStock
-    after insert on detalle_reposicion_anaquel
+    after update on reposicion_anaquel
     for each row
 execute procedure aumentarstock();
 
@@ -1295,6 +1302,56 @@ create trigger triggerajustarpuntos
     on punto_venta_compra
     for each row
 execute procedure ajustarpuntos();
+
+create function emitirOrdenReposicionAnaquel()
+    RETURNS TRIGGER
+language plpgsql
+as
+$$
+declare
+    orderid integer;
+    almacenid integer;
+    existe boolean;
+    begin
+
+        if(NEW.cantidad) < 20 then
+            select exists(
+                select reposicion_anaquel_id from reposicion_anaquel where
+                fecha_entrega is null
+                order by reposicion_anaquel_id desc
+                limit 1
+            ) into existe;
+
+            IF NOT existe THEN
+                INSERT INTO reposicion_anaquel (fecha)
+                VALUES (CURRENT_DATE)
+                RETURNING reposicion_anaquel_id INTO orderid;
+            ELSE
+                select reposicion_anaquel_id into orderid from reposicion_anaquel where
+                    fecha_entrega is null
+                order by reposicion_anaquel_id desc
+                limit 1;
+        end if;
+
+        select almacen_cerveza_id into almacenid
+        from almacen_cerveza where fk_cerveza_presentacion = new.fk_cerveza_presentacion
+        order by almacen_cerveza_id
+        limit 1;
+
+        insert into detalle_reposicion_anaquel (cantidad, precio_unitario, fk_almacen_cerveza, fk_reposicion_anaquel, fk_anaquel_cerveza)
+            values (200,new.precio_unitario,almacenid,orderid,new.anaquel_cerveza_id);
+
+
+        END IF;
+
+        return new;
+end;
+$$;
+
+create trigger triggerEmitirOrdenReposicionAnaquel
+    after update on anaquel_cerveza
+    for each row
+execute function emitirOrdenReposicionAnaquel();
 
 
 
