@@ -3039,6 +3039,10 @@ SELECT 6, permiso_id FROM PERMISO WHERE descripcion IN (
                                                         'crear VENTA_TIENDA', 'consultar CERVEZA'
     ) LIMIT 2;
 
+INSERT INTO rol_permiso (fk_rol, fk_permiso)
+SELECT 1, permiso_id
+FROM permiso;
+
 INSERT INTO ROL_USUARIO (fk_rol, fk_usuario, fecha_inicio) VALUES
                                                                (1, 1, '2023-01-15'),
                                                                (2, 2, '2023-02-20'),
