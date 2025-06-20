@@ -146,3 +146,33 @@ drop table metodo_pago_cheque cascade;
 
 drop table metodo_pago_punto cascade;
 
+drop procedure eliminarrol(integer) cascade;
+
+drop procedure editarrol(integer, varchar, varchar) cascade;
+
+drop procedure guardarrol(varchar, varchar) cascade;
+
+drop function obtenerrolpermisos(integer) cascade;
+
+drop function obtenerusuario(varchar, varchar) cascade;
+
+drop function obtenerpermisosusuario(integer) cascade;
+
+drop procedure insertarrolpermisos(integer, text[]) cascade;
+
+drop function reducirstock() cascade;
+
+drop function aumentarstock() cascade;
+
+drop function obtenercervezas() cascade;
+
+drop procedure insertarnuevatarjetacliente(varchar, integer, varchar, bigint, date, varchar) cascade;
+
+drop function buscarmetodosdepagocliente(varchar, integer) cascade;
+
+drop function buscarcliente(varchar, integer) cascade;
+
+drop procedure insertarventatiendacondetalle(integer, integer, varchar, jsonb, jsonb) cascade;
+
+drop function ajustarpuntos() cascade;
+
