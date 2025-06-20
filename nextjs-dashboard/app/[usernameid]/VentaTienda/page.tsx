@@ -182,7 +182,7 @@ export default function Page (){
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl mb-8 border border-purple-200">
                 {/* Main title of the application. */}
                 <h1 className="text-4xl font-extrabold text-purple-800 text-center mb-6 pb-4 border-b-2 border-purple-300">
-                    PLACEHOLDER NO TIENE NADA DE LOGICA IMPLEMENTADA (looks hella cool tho) {/* Placeholder title. */}
+                    Registro de Ventas {/* Placeholder title. */}
                 </h1>
                 {/* Message display area, conditionally rendered based on the `message` state. */}
                 {message && (

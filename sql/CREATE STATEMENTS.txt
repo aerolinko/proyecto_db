@@ -994,26 +994,6 @@ WHERE pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion AND pc
 GROUP BY pc.cerveza_presentacion_id, c.nombre, p.cap_volumen, ac.precio_unitario;
 $$;
 
-
-Create function buscarClienteNatural(ced int)
-    returns setof cliente_natural
-    language sql
-as
-$$
-    Select * from cliente_natural where cedula=ced;
-$$;
-
-Create function buscarClienteNaturalMetodosDePago(id int)
-    returns table (metodo_pago_id integer, tipo varchar, numero bigint, banco varchar)
-    language sql
-as
-$$
-    (Select metodo_pago_id, 'credito', numero, banco from metodo_pago_credito where fk_cliente_natural=id )
-    union all
-    (SELECT metodo_pago_id, 'debito', numero, banco FROM metodo_pago_debito WHERE fk_cliente_natural=id)
-
-$$;
-
 CREATE PROCEDURE insertarMetodoPagoCliente(
     p_cliente_tipo varchar,
     p_cliente_id INTEGER,
@@ -1161,9 +1141,6 @@ BEGIN
             SELECT mpd.metodo_pago_id, 'debito'::varchar, mpd.numero, mpd.banco
             FROM metodo_pago_debito mpd
             WHERE mpd.fk_cliente_juridico = p_id;
-
-    ELSE
-        RAISE EXCEPTION 'Tipo de cliente no válido: %', p_tipo_cliente;
     END IF;
 
     RETURN;
