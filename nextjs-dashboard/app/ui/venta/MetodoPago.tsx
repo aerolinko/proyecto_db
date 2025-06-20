@@ -39,6 +39,14 @@ export default function MetodoPago({ cart, setPagando }) {
     const remainingBalance = cartTotal - totalPaid;
     // Add a new payment method
     const handleAddPayment = () => {
+        let filteredpayments = paymentMethods;
+
+        if(filteredpayments.some((element)=>element.tipo=='puntos') && newPaymentMethodType.tipo=='puntos'){
+            filteredpayments = filteredpayments.filter((element:any)=>element.tipo!=='puntos');
+        }
+
+        const totalPaidcheck = filteredpayments.reduce((sum, method:any) => sum + method.cantidad, 0);
+
         const amount = parseFloat(newPaymentMethodAmount);
         const numero_cuenta = newPaymentMethodNumeroCuenta;
         const numero_cheque = newPaymentMethodNumeroCheque;
@@ -55,15 +63,14 @@ export default function MetodoPago({ cart, setPagando }) {
             return;
         }
 
-        if (totalPaid + amount > cartTotal + 0.01) { // Adding a small tolerance for floating point issues
+        if (totalPaidcheck + amount > cartTotal) { // Adding a small tolerance for floating point issues
             setModalMessage("El total excede el monto a pagar. Por favor ajuste la cantidad.");
             setIsModalOpen(true);
             return;
         }
-
-
         // @ts-ignore
-        setPaymentMethods([...paymentMethods, {
+
+        setPaymentMethods([...filteredpayments, {
             tipo: newPaymentMethodType.tipo,
             id: newPaymentMethodType.metodo_pago_id ? newPaymentMethodType.metodo_pago_id : null,
             cantidad: amount,
@@ -94,6 +101,7 @@ export default function MetodoPago({ cart, setPagando }) {
         console.log('metodos de pago',paymentMethods);
         console.log('carrito',cart);
         console.log('cliente encontrado',foundClientId);
+        /*
         const response = await fetch("/api/ventas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -102,7 +110,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
         if (response.ok) {
             console.log('MANDAR UN MENSAJE DE EXITO Y REDIRECCIONAR CON UN setTimeout');
-        }
+        }*/
 
     };
 
