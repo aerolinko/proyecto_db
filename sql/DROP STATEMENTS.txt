@@ -152,10 +152,6 @@ drop procedure editarrol(integer, varchar, varchar) cascade;
 
 drop procedure guardarrol(varchar, varchar) cascade;
 
-drop function obtenerroles() cascade;
-
-drop function obtenerpermisos() cascade;
-
 drop function obtenerrolpermisos(integer) cascade;
 
 drop function obtenerusuario(varchar, varchar) cascade;
