@@ -94,11 +94,10 @@ export default function MetodoPago({ cart, setPagando }) {
         console.log('metodos de pago',paymentMethods);
         console.log('carrito',cart);
         console.log('cliente encontrado',foundClientId);
-
         const response = await fetch("/api/ventas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({paymentMethods, cart, foundClientId}),
+            body: JSON.stringify({paymentMethods, cart, foundClientId }),
         })
 
         if (response.ok) {

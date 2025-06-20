@@ -765,7 +765,6 @@ CREATE TABLE METODO_PAGO_CHEQUE(
 
 CREATE TABLE METODO_PAGO_PUNTO(
     metodo_pago_id serial,
-    cantidad integer NOT NULL,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
     constraint pk_metodo_pago_punto_id primary key (metodo_pago_id),
@@ -1177,13 +1176,18 @@ CREATE OR REPLACE PROCEDURE insertarVentaTiendaConDetalle(
     p_total INTEGER,
     p_cliente INTEGER,
     p_tipo varchar,
-    p_detalles JSONB
+    p_detalles JSONB,
+    p_metodos JSONB
 )
     LANGUAGE plpgsql
 AS $$
 DECLARE
     v_venta_tienda_id INTEGER;
     detalle JSONB;
+    metodos JSONB;
+    p_punto_id integer;
+    p_cheque_id integer;
+    p_efectivo_id integer;
 BEGIN
     if p_tipo = 'natural' then
     INSERT INTO VENTA_TIENDA (
@@ -1224,6 +1228,100 @@ BEGIN
                          (detalle->>'quantity')::INTEGER
                      );
         END LOOP;
+
+    FOR metodos IN SELECT * FROM jsonb_array_elements(p_metodos)
+        LOOP
+        IF (metodos->>'tipo')::varchar = 'cheque' then
+            IF p_tipo='natural' then
+            INSERT INTO metodo_pago_cheque (numero, numero_c, banco, fk_cliente_natural)
+            VALUES (
+                       (metodos->>'numero_cheque')::INTEGER,
+                       (metodos->>'numero_cuenta')::BIGINT,
+                       (metodos->>'banco')::varchar,
+                         p_cliente
+                     )
+            returning metodo_pago_id into p_cheque_id;
+            insert into pago (monto, fecha, fk_venta_tienda, fk_metodo_pago_cheque)
+            values ((metodos->>'cantidad')::INTEGER,current_date,v_venta_tienda_id,p_cheque_id);
+            ELSIF p_tipo='juridico' then
+            INSERT INTO metodo_pago_cheque (numero, numero_c, banco, fk_cliente_juridico)
+            VALUES (
+                       (metodos->>'numero_cheque')::INTEGER,
+                       (metodos->>'numero_cuenta')::BIGINT,
+                       (metodos->>'banco')::varchar,
+                       p_cliente
+                   )
+            returning metodo_pago_id into p_cheque_id;
+            insert into pago (monto, fecha, fk_venta_tienda, fk_metodo_pago_cheque)
+            values ((metodos->>'cantidad')::INTEGER,current_date,v_venta_tienda_id,p_cheque_id);
+
+        END IF;
+        END IF;
+        IF (metodos->>'tipo')::varchar = 'efectivo'then
+            IF p_tipo='natural' THEN
+                INSERT INTO metodo_pago_efectivo (denominacion, fk_cliente_natural)
+            VALUES (
+                       1::INTEGER,
+                       p_cliente
+                   )
+                returning metodo_pago_id into p_efectivo_id;
+                insert into pago (monto, fecha, fk_venta_tienda, fk_metodo_pago_efectivo)
+                values ((metodos->>'cantidad')::INTEGER,current_date,v_venta_tienda_id,p_efectivo_id);
+
+            ELSIF p_tipo='juridico' then
+                INSERT INTO metodo_pago_efectivo (denominacion, fk_cliente_juridico)
+                VALUES (
+                           1::INTEGER,
+                           p_cliente
+                       )
+                returning metodo_pago_id into p_efectivo_id;
+                insert into pago (monto, fecha, fk_venta_tienda, fk_metodo_pago_efectivo)
+                values ((metodos->>'cantidad')::INTEGER,current_date,v_venta_tienda_id,p_efectivo_id);
+            END IF;
+        END IF;
+        IF (metodos->>'tipo')::varchar = 'puntos' then
+            IF p_tipo='natural' then
+            INSERT INTO metodo_pago_punto (fk_cliente_natural)
+            VALUES (
+                       p_cliente
+                   )
+            RETURNING metodo_pago_id INTO p_punto_id;
+            insert into punto_venta_compra (fk_venta_tienda, fk_cliente_natural, fk_metodo_pago_punto, cantidad, fecha, tipo)
+                values (v_venta_tienda_id,p_cliente,p_punto_id,
+                        (metodos->>'cantidad')::INTEGER, current_date,'gasto');
+            insert into pago (monto, fecha, fk_venta_tienda, fk_metodo_pago_punto) values
+             ((metodos->>'cantidad')::INTEGER,current_date,v_venta_tienda_id,p_punto_id);
+            elseif p_tipo = 'juridico' then
+                INSERT INTO metodo_pago_punto (fk_cliente_juridico)
+                VALUES (
+                           p_cliente
+                       )
+                RETURNING metodo_pago_id INTO p_punto_id;
+                insert into punto_venta_compra (fk_venta_tienda, fk_cliente_juridico, fk_metodo_pago_punto, cantidad, fecha, tipo)
+                values (v_venta_tienda_id,p_cliente,p_punto_id,
+                        (metodos->>'cantidad')::INTEGER, current_date,'gasto');
+                insert into pago (monto, fecha, fk_venta_tienda, fk_metodo_pago_punto) values
+                    ((metodos->>'cantidad')::INTEGER,current_date,v_venta_tienda_id,p_punto_id);
+            END IF;
+        END IF;
+        IF (metodos->>'tipo')::varchar = 'debito' then
+            INSERT INTO pago (monto, fecha, fk_venta_tienda, fk_metodo_pago_debito)
+            VALUES ((metodos->>'cantidad')::INTEGER,current_date,v_venta_tienda_id,(metodos->>'id')::INTEGER);
+        END IF;
+        IF (metodos->>'tipo')::varchar = 'credito' then
+            INSERT INTO pago (monto, fecha, fk_venta_tienda, fk_metodo_pago_credito)
+            VALUES ((metodos->>'cantidad')::INTEGER,current_date,v_venta_tienda_id,(metodos->>'id')::INTEGER);
+        END IF;
+        END LOOP;
+    IF p_tipo = 'natural' then
+    insert into punto_venta_compra (fk_venta_tienda, fk_cliente_natural, fk_metodo_pago_punto, cantidad, fecha, tipo)
+    values (v_venta_tienda_id,p_cliente,p_punto_id,
+            p_total, current_date,'adquisicion');
+    elsif p_tipo = 'juridico' then
+    insert into punto_venta_compra (fk_venta_tienda, fk_cliente_juridico, fk_metodo_pago_punto, cantidad, fecha, tipo)
+    values (v_venta_tienda_id,p_cliente,p_punto_id,
+            p_total, current_date,'adquisicion');
+    END IF;
 END;
 $$;
 
