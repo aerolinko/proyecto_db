@@ -88,6 +88,14 @@ export async function getAllProducts() {
     return await sql`SELECT * from obtenerCervezas()`;
 }
 
+export async function saveVenta(montoTotal:number,id:number,tipo:string,detalle:string) {
+    return await sql`CALL insertarVentaTiendaConDetalle(${montoTotal},${id},${tipo},${sql.json(detalle)})`;
+}
+export async function saveDetalleVenta(id:number,montoTotal:number) {
+    return await sql`INSERT INTO venta_tienda (total,fecha,fk_cliente_natural) values (${montoTotal},CURRENT_DATE,${id})`;
+}
+
+
 /*
 ///para usuarios
 export async function getAllUsuarios() {

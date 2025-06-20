@@ -1171,3 +1171,59 @@ BEGIN
     RETURN;
 END;
 $$;
+
+
+CREATE OR REPLACE PROCEDURE insertarVentaTiendaConDetalle(
+    p_total INTEGER,
+    p_cliente INTEGER,
+    p_tipo varchar,
+    p_detalles JSONB
+)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_venta_tienda_id INTEGER;
+    detalle JSONB;
+BEGIN
+    if p_tipo = 'natural' then
+    INSERT INTO VENTA_TIENDA (
+        total,
+        fecha,
+        fk_cliente_natual
+    ) VALUES (
+                 p_total,
+                 current_date,
+        p_cliente
+             )
+    RETURNING venta_tienda_id INTO v_venta_tienda_id;
+    elsif p_tipo='juridico' then
+        INSERT INTO VENTA_TIENDA (
+            total,
+            fecha,
+            fk_cliente_juridico
+        ) VALUES (
+                     p_total,
+                     current_date,
+          p_cliente
+                 )
+        RETURNING venta_tienda_id INTO v_venta_tienda_id;
+    END IF;
+
+    -- Insert each detail item from the JSON array
+    FOR detalle IN SELECT * FROM jsonb_array_elements(p_detalles)
+        LOOP
+            INSERT INTO DETALLE_VENTA_TIENDA (
+                fk_venta_tienda,
+                fk_anaquel_cerveza,
+                precio_unitario,
+                cantidad
+            ) VALUES (
+                         v_venta_tienda_id,
+                         (detalle->>'id')::INTEGER,
+                         (detalle->>'price')::INTEGER,
+                         (detalle->>'quantity')::INTEGER
+                     );
+        END LOOP;
+END;
+$$;
+

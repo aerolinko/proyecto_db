@@ -85,7 +85,7 @@ export default function MetodoPago({ cart, setPagando }) {
     };
 
     // Handle form submission (placeholder for actual transaction logic)
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (remainingBalance > 0.01) { // Check if remaining balance is negligible
             setModalMessage(`No se pudo completar el pago. Total faltante: $${remainingBalance.toFixed(2)}`);
             setIsModalOpen(true);
@@ -94,6 +94,17 @@ export default function MetodoPago({ cart, setPagando }) {
         console.log('metodos de pago',paymentMethods);
         console.log('carrito',cart);
         console.log('cliente encontrado',foundClientId);
+
+        const response = await fetch("/api/ventas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({paymentMethods, cart, foundClientId}),
+        })
+
+        if (response.ok) {
+            console.log('MANDAR UN MENSAJE DE EXITO Y REDIRECCIONAR CON UN setTimeout');
+        }
+
     };
 
     const buscarCliente = async (cliente:string) => {

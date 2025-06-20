@@ -43,10 +43,11 @@ export default function Page (){
 
                 // Parses the JSON body of the response.
                 const data = await response.json();
+
                 // Transforms the fetched data (`data.result`) into a format suitable for the application.
                 // It maps each item to an object with `id`, `name`, and randomly generated `price` and `stock`.
                 const transformedProducts = data.result.map((item: any) => ({
-                    id: item.cerveza_presentacion_id, // Uses `cerveza_presentacion_id` as the product ID.
+                    id: item.anaquel_cerveza_id, // Uses `cerveza_presentacion_id` as the product ID.
                     name: item.nombre, // Uses `nombre` as the product name.
                     // IMPORTANT: Adding placeholder price and stock as your API only returns 'nombre' and 'cerveza_presentacion_id'.
                     // In a real application, these should come from your backend.
