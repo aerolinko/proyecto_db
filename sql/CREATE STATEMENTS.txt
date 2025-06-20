@@ -779,7 +779,7 @@ CREATE TABLE PUNTO_VENTA_COMPRA(
     fk_venta_online integer,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
-    fk_metodo_pago_punto integer NOT NULL,
+    fk_metodo_pago_punto integer,
     cantidad integer NOT NULL,
     fecha DATE NOT NULL,
     tipo varchar(11) NOT NULL,
@@ -979,6 +979,7 @@ CREATE TRIGGER triggerAumentarStock
 
 CREATE FUNCTION obtenerCervezas()
 RETURNS TABLE(
+anaquel_cerveza_id integer,
 cerveza_presentacion_id integer,
 nombre varchar(50),
 precio_unitario integer,
@@ -987,10 +988,10 @@ cantidad integer)
     language sql
 AS
 $$
-SELECT pc.cerveza_presentacion_id,c.nombre, ac.precio_unitario, p.cap_volumen, sum(ac.cantidad) as cantidad
+SELECT ac.anaquel_cerveza_id, pc.cerveza_presentacion_id,c.nombre, ac.precio_unitario, p.cap_volumen, sum(ac.cantidad) as cantidad
 FROM CERVEZA_PRESENTACION pc,CERVEZA c,PRESENTACION p, anaquel_cerveza ac
 WHERE pc.fk_cerveza=c.cerveza_id AND p.presentacion_id=pc.fk_presentacion AND pc.cerveza_presentacion_id=ac.fk_cerveza_presentacion
-GROUP BY pc.cerveza_presentacion_id, c.nombre, p.cap_volumen, ac.precio_unitario;
+GROUP BY pc.cerveza_presentacion_id, c.nombre, p.cap_volumen, ac.precio_unitario,ac.anaquel_cerveza_id;
 $$;
 
 CREATE PROCEDURE insertarNuevaTarjetaCliente(
@@ -1248,12 +1249,12 @@ BEGIN
         END IF;
         END LOOP;
     IF p_tipo = 'natural' then
-    insert into punto_venta_compra (fk_venta_tienda, fk_cliente_natural, fk_metodo_pago_punto, cantidad, fecha, tipo)
-    values (v_venta_tienda_id,p_cliente,p_punto_id,
+    insert into punto_venta_compra (fk_venta_tienda, fk_cliente_natural, cantidad, fecha, tipo)
+    values (v_venta_tienda_id,p_cliente,
             p_total, current_date,'adquisicion');
     elsif p_tipo = 'juridico' then
-    insert into punto_venta_compra (fk_venta_tienda, fk_cliente_juridico, fk_metodo_pago_punto, cantidad, fecha, tipo)
-    values (v_venta_tienda_id,p_cliente,p_punto_id,
+    insert into punto_venta_compra (fk_venta_tienda, fk_cliente_juridico, cantidad, fecha, tipo)
+    values (v_venta_tienda_id,p_cliente,
             p_total, current_date,'adquisicion');
     END IF;
 END;
