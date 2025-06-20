@@ -367,3 +367,4 @@ INSERT INTO permiso (descripcion) VALUES ('crear METODO_PAGO_PUNTO');
 INSERT INTO permiso (descripcion) VALUES ('eliminar METODO_PAGO_PUNTO');
 INSERT INTO permiso (descripcion) VALUES ('modificar METODO_PAGO_PUNTO');
 INSERT INTO permiso (descripcion) VALUES ('consultar METODO_PAGO_PUNTO');
+INSERT INTO permiso (descripcion) VALUES ('consultar REPORTES');
