@@ -1,39 +1,3 @@
-INSERT INTO TELEFONO (codigo, numero, fk_personal_contacto, fk_miembro_acaucab, fk_cliente_juridico, fk_cliente_natural) VALUES
-(58, 4121234567, NULL, NULL, NULL, 1),
-(58, 2128765432, NULL, NULL, NULL, 2),
-(58, 2511020304, NULL, NULL, 1, NULL),
-(58, 4125060708, NULL, NULL, 2, NULL),
-(58, 2128765432, NULL, NULL, 3, NULL),
-(58, 4146543210, NULL, 1, NULL, NULL),
-(58, 2519876543, NULL, 2, NULL, NULL),
-(58, 4120123456, NULL, 3, NULL, NULL),
-(58, 2413444333, 1, NULL, NULL, NULL),
-(58, 4144446744, 2, NULL, NULL, NULL);
-
-INSERT INTO CORREO_ELECTRONICO (usuario, dominio, fk_cliente_natural, fk_cliente_juridico, fk_miembro_acaucab) VALUES
-('garcia.ana', '@gmail.com', 1, NULL, NULL),
-('martinez.luis', '@outlook.com', 2, NULL, NULL),
-('rodriguez.sofia', '@yahoo.com', 3, NULL, NULL),
-('hernandez.diego', '@hotmail.com', 4, NULL, NULL),
-('support', '@cerveceriaavila.com', NULL, 1, NULL),
-('info', '@regionalzulia.com', NULL, 2, NULL),
-('admin', '@cervezacarabobo.com', NULL, 3, NULL),
-('contacto.compras', '@laespumadorada.com', NULL, NULL, 1),
-('logistica.malta', '@maltapura.com', NULL, NULL, 2),
-('ventas.express', '@friacerveza.com', NULL, NULL, 3);
-
-INSERT INTO PERSONAL_CONTACTO (primer_nombre, primer_apellido, fk_cliente_juridico, fk_miembro_acaucab) VALUES
-('Ana', 'Gómez', 1, NULL),
-('Luis', 'Pérez', 13, NULL),
-('María', 'Rodríguez', NULL, 8),
-('Carlos', 'Sánchez', NULL, 7),
-('Laura', 'Díaz', 3, NULL),
-('Javier', 'Fernández', NULL, 12),
-('Sofía', 'Martínez', 4, NULL),
-('Miguel', 'López', NULL, 15),
-('Elena', 'González', 5, NULL),
-('Pedro', 'Ruiz', NULL, 20);
-
 INSERT INTO MIEMBRO_ACAUCAB (razon_social, denominacion_comercial, RIF, direccion, direccion_fiscal, pagina_web, fk_lugar, fk_lugar_fiscal) VALUES
 ('Cervecería La Espuma C.A.', 'La Espuma Dorada', 'J-10001000-1', 'Av. Francisco de Miranda, Centro Lido, Nivel Mezzanina, Local M-10, Caracas', 'Av. Francisco de Miranda, Torre América, Piso 5, Oficina 501, Caracas', 'www.laespumadorada.com', 983, 983),
 ('Distribuciones Malta Pura S.A.', 'Malta y Sabor', 'J-10001001-2', 'Av. Bolívar Norte, C.C. Camoruco, Local 5, Valencia', 'Av. Bolívar Norte, Edificio Centro Plaza, Piso 8, Oficina 802, Valencia', 'www.maltaysabor.com', 661, 661),
@@ -99,6 +63,44 @@ INSERT INTO CLIENTE_JURIDICO (RIF, direccion, denominacion_comercial, razon_soci
 ('J-00889900-7', 'Av. 4 de Mayo, C.C. La Vela, Local 70, Porlamar', 'Isleña Craft Brewers', 'Productores de Cerveza Artesanal Insular S.A.', 420000, 'www.islenacraft.com', 'Av. 4 de Mayo, C.C. La Vela, Local 70, Porlamar', 1077, 4800, 1077),
 ('J-00990011-8', 'Calle El Parque, Sector Las Delicias, Casa 1, Ciudad Ojeda', 'Zulia Premium Beers', 'Distribuidora de Cervezas Premium Zulia C.A.', 780000, 'www.zuliapremiumbeers.com', 'Calle El Parque, Sector Las Delicias, Casa 1, Ciudad Ojeda', 1420, 8000, 1420),
 ('J-01010101-9', 'Av. Intercomunal La Morita, C.C. Los Naranjos, Local 25, Palo Negro', 'Aragua Brewhouse', 'Maestros Cerveceros de Aragua C.A.', 620000, 'www.araguabrewhouse.com', 'Av. Intercomunal La Morita, C.C. Los Naranjos, Local 25, Palo Negro', 497, 6500, 497);
+
+INSERT INTO PERSONAL_CONTACTO (primer_nombre, primer_apellido, fk_cliente_juridico, fk_miembro_acaucab) VALUES
+('Ana', 'Gómez', 1, NULL),
+('Luis', 'Pérez', 13, NULL),
+('María', 'Rodríguez', NULL, 8),
+('Carlos', 'Sánchez', NULL, 7),
+('Laura', 'Díaz', 3, NULL),
+('Javier', 'Fernández', NULL, 12),
+('Sofía', 'Martínez', 4, NULL),
+('Miguel', 'López', NULL, 15),
+('Elena', 'González', 5, NULL),
+('Pedro', 'Ruiz', NULL, 20);
+
+
+INSERT INTO TELEFONO (codigo, numero, fk_personal_contacto, fk_miembro_acaucab, fk_cliente_juridico, fk_cliente_natural) VALUES
+(58, 4121234567, NULL, NULL, NULL, 1),
+(58, 2128765432, NULL, NULL, NULL, 2),
+(58, 2511020304, NULL, NULL, 1, NULL),
+(58, 4125060708, NULL, NULL, 2, NULL),
+(58, 2128765432, NULL, NULL, 3, NULL),
+(58, 4146543210, NULL, 1, NULL, NULL),
+(58, 2519876543, NULL, 2, NULL, NULL),
+(58, 4120123456, NULL, 3, NULL, NULL),
+(58, 2413444333, 1, NULL, NULL, NULL),
+(58, 4144446744, 2, NULL, NULL, NULL);
+
+INSERT INTO CORREO_ELECTRONICO (usuario, dominio, fk_cliente_natural, fk_cliente_juridico, fk_miembro_acaucab) VALUES
+('garcia.ana', '@gmail.com', 1, NULL, NULL),
+('martinez.luis', '@outlook.com', 2, NULL, NULL),
+('rodriguez.sofia', '@yahoo.com', 3, NULL, NULL),
+('hernandez.diego', '@hotmail.com', 4, NULL, NULL),
+('support', '@cerveceriaavila.com', NULL, 1, NULL),
+('info', '@regionalzulia.com', NULL, 2, NULL),
+('admin', '@cervezacarabobo.com', NULL, 3, NULL),
+('contacto.compras', '@laespumadorada.com', NULL, NULL, 1),
+('logistica.malta', '@maltapura.com', NULL, NULL, 2),
+('ventas.express', '@friacerveza.com', NULL, NULL, 3);
+
 
 INSERT INTO Tipo_evento (id, nombre) VALUES
 (1, 'Fiesta'),
@@ -342,6 +344,43 @@ INSERT INTO ANAQUEL (estantes, capacidad, fk_pasillo) VALUES
 (5, 130, 5),
 (6, 160, 5);
 
+INSERT INTO DEPARTAMENTO (nombre, fk_acaucab) VALUES
+('Dirección General', 1),
+('Administración y Finanzas', 1),
+('Recursos Humanos', 1),
+('Ventas y Marketing', 1),
+('Almacén y Logística', 1),
+('Atención al Cliente', 1),
+('Sistemas y Tecnología', 1),
+('Calidad y Control', 1),
+('Compras y Proveedores', 1),
+('Seguridad y Mantenimiento', 1);
+
+INSERT INTO DEPARTAMENTO_EMPLEADO (fecha_inicio, salario, fk_departamento, fk_empleado, fk_cargo) VALUES
+('2023-01-15', 3500000, 1, 1, 2),
+('2023-02-20', 2800000, 4, 2, 3),
+('2023-03-10', 2200000, 4, 3, 4),
+('2023-04-05', 1800000, 4, 4, 6),
+('2023-05-12', 2500000, 5, 5, 3),
+('2023-06-18', 1600000, 5, 6, 7),
+('2023-07-22', 1900000, 6, 7, 6),
+('2023-08-30', 2600000, 7, 8, 3),
+('2023-09-15', 2000000, 2, 9, 5),
+('2023-10-01', 1700000, 3, 10, 8);
+
+INSERT INTO EMPLEADO (cedula, primer_nombre, primer_apellido, direccion, segundo_nombre, segundo_apellido, fecha_contrato, fk_lugar) VALUES
+(12345678, 'Juan', 'Pérez', 'Av. Urdaneta, Edif. La Bolsa, Piso 4, Altagracia, Caracas', 'Carlos', 'González', '2023-01-15', 1484),
+(23456789, 'María', 'Rodríguez', 'Calle Real de Antímano, Casa #50, Antímano, Caracas', 'Elena', 'Martínez', '2023-02-20', 1485),
+(34567890, 'Pedro', 'López', 'UD7, Sector Las Fuentes, Edif. Girasol, Apto 1A, Caricuao, Caracas', 'Antonio', 'Hernández', '2023-03-10', 1486),
+(45678901, 'Ana', 'García', 'Esquina de La Bolsa, Edif. Banco Mercantil, Piso 2, Catedral, Caracas', 'Isabel', 'Fernández', '2023-04-05', 1487),
+(56789012, 'Luis', 'Martín', 'Calle Cajigal, Mercado de Coche, Galpón 3, Coche, Caracas', 'Miguel', 'Sánchez', '2023-05-12', 1488),
+(67890123, 'Carmen', 'Jiménez', 'Km 15 El Junquito, Vía Principal, Parcela El Mirador, El Junquito, Caracas', 'Rosa', 'Morales', '2023-06-18', 1489),
+(78901234, 'Roberto', 'Díaz', 'Av. Páez, Res. Anauco, Torre B, Piso 10, El Paraíso, Caracas', 'José', 'Ruiz', '2023-07-22', 1490),
+(89012345, 'Laura', 'Vásquez', 'Calle Real de Sabana Grande, Edif. Caracas, Piso 6, El Recreo, Caracas', 'Patricia', 'Torres', '2023-08-30', 1491),
+(90123456, 'Carlos', 'Mendoza', 'Av. Intercomunal de El Valle, Calle 1, Res. Los Jardines, El Valle, Caracas', 'Alberto', 'Silva', '2023-09-15', 1492),
+(01234567, 'Sofía', 'Ramírez', 'Av. Urdaneta, Edif. Centro Plaza, Oficina 8A, La Candelaria, Caracas', 'Alejandra', 'Castro', '2023-10-01', 1493);
+
+
 INSERT INTO HORARIO_EMPLEADO (fk_empleado, fk_horario) VALUES
 (1, 1), (2, 2), (3, 3), (4, 4), (5, 5),
 (6, 6), (7, 7), (8, 8), (9, 9), (10, 10);
@@ -402,41 +441,6 @@ INSERT INTO JUEZ (primer_nombre, primer_apellido, area, fk_premiacion_evento) VA
 ('Laura', 'Silva', 'Diseño Gráfico', 9),
 ('Miguel', 'Fernández', 'Jurado Especial', 10);
 
-INSERT INTO DEPARTAMENTO (nombre, fk_acaucab) VALUES 
-('Dirección General', 1),
-('Administración y Finanzas', 1),
-('Recursos Humanos', 1),
-('Ventas y Marketing', 1),
-('Almacén y Logística', 1),
-('Atención al Cliente', 1),
-('Sistemas y Tecnología', 1),
-('Calidad y Control', 1),
-('Compras y Proveedores', 1),
-('Seguridad y Mantenimiento', 1);
-
-INSERT INTO DEPARTAMENTO_EMPLEADO (fecha_inicio, salario, fk_departamento, fk_empleado, fk_cargo) VALUES
-('2023-01-15', 3500000, 1, 1, 2),
-('2023-02-20', 2800000, 4, 2, 3),
-('2023-03-10', 2200000, 4, 3, 4),
-('2023-04-05', 1800000, 4, 4, 6),
-('2023-05-12', 2500000, 5, 5, 3),
-('2023-06-18', 1600000, 5, 6, 7),
-('2023-07-22', 1900000, 6, 7, 6),
-('2023-08-30', 2600000, 7, 8, 3),
-('2023-09-15', 2000000, 2, 9, 5),
-('2023-10-01', 1700000, 3, 10, 8);
-
-INSERT INTO EMPLEADO (cedula, primer_nombre, primer_apellido, direccion, segundo_nombre, segundo_apellido, fecha_contrato, fk_lugar) VALUES
-(12345678, 'Juan', 'Pérez', 'Av. Urdaneta, Edif. La Bolsa, Piso 4, Altagracia, Caracas', 'Carlos', 'González', '2023-01-15', 1484),
-(23456789, 'María', 'Rodríguez', 'Calle Real de Antímano, Casa #50, Antímano, Caracas', 'Elena', 'Martínez', '2023-02-20', 1485),
-(34567890, 'Pedro', 'López', 'UD7, Sector Las Fuentes, Edif. Girasol, Apto 1A, Caricuao, Caracas', 'Antonio', 'Hernández', '2023-03-10', 1486),
-(45678901, 'Ana', 'García', 'Esquina de La Bolsa, Edif. Banco Mercantil, Piso 2, Catedral, Caracas', 'Isabel', 'Fernández', '2023-04-05', 1487),
-(56789012, 'Luis', 'Martín', 'Calle Cajigal, Mercado de Coche, Galpón 3, Coche, Caracas', 'Miguel', 'Sánchez', '2023-05-12', 1488),
-(67890123, 'Carmen', 'Jiménez', 'Km 15 El Junquito, Vía Principal, Parcela El Mirador, El Junquito, Caracas', 'Rosa', 'Morales', '2023-06-18', 1489),
-(78901234, 'Roberto', 'Díaz', 'Av. Páez, Res. Anauco, Torre B, Piso 10, El Paraíso, Caracas', 'José', 'Ruiz', '2023-07-22', 1490),
-(89012345, 'Laura', 'Vásquez', 'Calle Real de Sabana Grande, Edif. Caracas, Piso 6, El Recreo, Caracas', 'Patricia', 'Torres', '2023-08-30', 1491),
-(90123456, 'Carlos', 'Mendoza', 'Av. Intercomunal de El Valle, Calle 1, Res. Los Jardines, El Valle, Caracas', 'Alberto', 'Silva', '2023-09-15', 1492),
-(01234567, 'Sofía', 'Ramírez', 'Av. Urdaneta, Edif. Centro Plaza, Oficina 8A, La Candelaria, Caracas', 'Alejandra', 'Castro', '2023-10-01', 1493);
 
 INSERT INTO OFERTA (fecha_inicio, fecha_fin, descuento, fk_cerveza_presentacion) VALUES
 ('2025-06-01', '2025-06-30', 15, 1),
