@@ -298,13 +298,12 @@ export default function MetodoPago({ cart, setPagando }) {
                                             type="number"
                                             id="chequeNumber"
                                             value={newPaymentMethodNumeroCheque}
-                                            onKeyPress={(e) => {
-                                                // Prevent typing if already at max length
-                                                if (e.target.value.length >= 10) {
-                                                    e.preventDefault();
-                                                }
+                                            maxLength={10}
+                                            onChange={(e) => {
+                                                // Only keep numbers and limit to 20 digits
+                                                const numbersOnly = e.target.value.replace(/\D/g, '');
+                                                setNewPaymentMethodNumeroCheque(numbersOnly.slice(0, 10));
                                             }}
-                                            onChange={(e) => setNewPaymentMethodNumeroCheque(e.target.value)}
                                             placeholder="e.j. 1234567890"
                                             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                         />
@@ -314,9 +313,12 @@ export default function MetodoPago({ cart, setPagando }) {
                                         <input
                                             type="number"
                                             id="checkAccount"
-                                            maxLength={20}
                                             value={newPaymentMethodNumeroCuenta}
-                                            onChange={(e) => setNewPaymentMethodNumeroCuenta(e.target.value)}
+                                            onChange={(e) => {
+                                                // Only keep numbers and limit to 20 digits
+                                                const numbersOnly = e.target.value.replace(/\D/g, '');
+                                                setNewPaymentMethodNumeroCuenta(numbersOnly.slice(0, 20));
+                                            }}
                                             placeholder="e.j. 1234567890000000000"
                                             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                         />
