@@ -839,28 +839,19 @@ INSERT INTO PAGO (monto, fecha, fk_venta_online, fk_venta_tienda, fk_compra_repo
 (120, '2025-02-01', NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2);
 
 INSERT INTO ACAUCAB (direccion, denomiancion_comercial, RIF, razon_social, fk_lugar) VALUES
-('Av. Francisco de Miranda, Caracas', 'ACAUCAB Capital', 'J-11111111-1', 'Asociación de Cerveceros Artesanales de Caracas', 983),
-('Calle 72, Maracaibo', 'ACAUCAB Maracaibo', 'J-22222222-2', 'Asociación de Cerveceros Artesanales de Maracaibo', 351),
-('Av. Bolívar, Valencia', 'ACAUCAB Carabobo Centro', 'J-33333333-3', 'Asociación de Cerveceros Artesanales de Carabobo', 661),
-('Zona Industrial II, Calle 5, Barquisimeto', 'ACAUCAB Lara Oeste', 'J-44444444-4', 'Asociación de Cerveceros Artesanales de Lara', 833),
-('Calle El Hambre, Sector 3, Mérida', 'ACAUCAB Andina', 'J-55555555-5', 'Asociación de Cerveceros Artesanales de Mérida', 922),
-('Av. Principal de Lechería, Lechería', 'ACAUCAB Oriental', 'J-66666666-6', 'Asociación de Cerveceros Artesanales de Anzoátegui', 397),
-('Calle La Paz, San Cristóbal', 'ACAUCAB Los Andes', 'J-77777777-7', 'Asociación de Cerveceros Artesanales del Táchira', 1234),
-('Av. Francisco Fajardo, Porlamar', 'ACAUCAB Insular', 'J-88888888-8', 'Asociación de Cerveceros Artesanales de Nueva Esparta', 1067),
-('Av. Urdaneta, Caracas', 'ACAUCAB Centro Caracas', 'J-99999999-9', 'Asociación de Cerveceros del Centro de Caracas', 1493),
-('Calle Mariño, Maracay', 'ACAUCAB Aragua Central', 'J-00000000-0', 'Asociación de Cerveceros Artesanales del Centro de Aragua', 480);
+('Av. Principal, Edificio Sede ACAUCAB, Caracas', 'ACAUCAB Central', 'J-12345678-0', 'Asociación de Cerveceros Artesanales de la UCAB', 1485);
 
 INSERT INTO ALMACEN (capacidad, direccion, fk_lugar, fk_acaucab) VALUES
 (1500, 'Calle 10, Qta. Los Pinos, Urb. El Cafetal, Caracas', 976, 1),
-(2000, 'Zona Industrial II, Barquisimeto', 833, 4),
-(1200, 'Calle La Paz, San Cristóbal', 1234, 7),
-(900, 'Av. Principal, Puerto La Cruz', 417, 6),
-(1800, 'Calle 100, Av. Fuerzas Armadas, Maracaibo', 1443, 2),
-(700, 'Av. Francisco Fajardo, Porlamar', 1067, 8),
-(1000, 'Av. Intercomunal, Res. Las Acacias, Apto 3A, Valencia', 661, 3),
-(500, 'Calle El Hambre, Sector 3, Mérida', 922, 5),
-(2500, 'Av. Urdaneta, Caracas', 1493, 9),
-(800, 'Calle Mariño, Maracay', 480, 10);
+(2000, 'Zona Industrial II, Barquisimeto', 833, 1),
+(1200, 'Calle La Paz, San Cristóbal', 1234, 1),
+(900, 'Av. Principal, Puerto La Cruz', 417, 1),
+(1800, 'Calle 100, Av. Fuerzas Armadas, Maracaibo', 1443, 1),
+(700, 'Av. Francisco Fajardo, Porlamar', 1067, 1),
+(1000, 'Av. Intercomunal, Res. Las Acacias, Apto 3A, Valencia', 661, 1),
+(500, 'Calle El Hambre, Sector 3, Mérida', 922, 1),
+(2500, 'Av. Urdaneta, Caracas', 1493, 1),
+(800, 'Calle Mariño, Maracay', 480, 1);
 
 INSERT INTO VENTA_ONLINE (direccion, fecha_emision, fecha_estimada, fecha_entrega, total, fk_lugar, fk_usuario) VALUES
 ('Av. Francisco de Miranda, Edificio Sol, Piso 7, Apto 7B, Caracas', '2025-06-01', '2025-06-05', '2025-06-04', 150, 983, 1),
