@@ -164,6 +164,17 @@ INSERT INTO CERVEZA_CARACTERISTICA (fk_cerveza, fk_caracteristica) VALUES
 (6, 1),
 (7, 9);
 
+INSERT INTO PRESENTACION (material, cap_volumen) VALUES
+('aluminio', 330),
+('vidrio', 500),
+('plastico', 1000),
+('aluminio', 473),
+('vidrio', 330),
+('plastico', 2000),
+('aluminio', 250),
+('vidrio', 750),
+('plastico', 500),
+('aluminio', 650);
 
 
 
@@ -179,14 +190,3 @@ INSERT INTO CERVEZA_PRESENTACION (fk_presentacion, fk_cerveza, fk_miembro_acauca
 (4, 9, 9),
 (5, 10, 10);
 
-INSERT INTO PRESENTACION (material, cap_volumen) VALUES
-('aluminio', 330),
-('vidrio', 500),
-('plastico', 1000),
-('aluminio', 473),
-('vidrio', 330),
-('plastico', 2000),
-('aluminio', 250),
-('vidrio', 750),
-('plastico', 500),
-('aluminio', 650);

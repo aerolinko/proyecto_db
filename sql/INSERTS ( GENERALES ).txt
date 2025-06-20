@@ -64,6 +64,10 @@ INSERT INTO CLIENTE_JURIDICO (RIF, direccion, denominacion_comercial, razon_soci
 ('J-00990011-8', 'Calle El Parque, Sector Las Delicias, Casa 1, Ciudad Ojeda', 'Zulia Premium Beers', 'Distribuidora de Cervezas Premium Zulia C.A.', 780000, 'www.zuliapremiumbeers.com', 'Calle El Parque, Sector Las Delicias, Casa 1, Ciudad Ojeda', 1420, 8000, 1420),
 ('J-01010101-9', 'Av. Intercomunal La Morita, C.C. Los Naranjos, Local 25, Palo Negro', 'Aragua Brewhouse', 'Maestros Cerveceros de Aragua C.A.', 620000, 'www.araguabrewhouse.com', 'Av. Intercomunal La Morita, C.C. Los Naranjos, Local 25, Palo Negro', 497, 6500, 497);
 
+INSERT INTO ACAUCAB (direccion, denomiancion_comercial, RIF, razon_social, fk_lugar) VALUES
+('Av. Principal, Edificio Sede ACAUCAB, Caracas', 'ACAUCAB Central', 'J-12345678-0', 'Asociación de Cerveceros Artesanales de la UCAB', 1485);
+
+
 INSERT INTO PERSONAL_CONTACTO (primer_nombre, primer_apellido, fk_cliente_juridico, fk_miembro_acaucab) VALUES
 ('Ana', 'Gómez', 1, NULL),
 ('Luis', 'Pérez', 13, NULL),
@@ -854,8 +858,6 @@ INSERT INTO PAGO (monto, fecha, fk_venta_online, fk_venta_tienda, fk_compra_repo
 (75, '2025-08-20', NULL, NULL, NULL, 3, NULL, NULL, NULL, 2, NULL),
 (120, '2025-02-01', NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 2);
 
-INSERT INTO ACAUCAB (direccion, denomiancion_comercial, RIF, razon_social, fk_lugar) VALUES
-('Av. Principal, Edificio Sede ACAUCAB, Caracas', 'ACAUCAB Central', 'J-12345678-0', 'Asociación de Cerveceros Artesanales de la UCAB', 1485);
 
 INSERT INTO ALMACEN (capacidad, direccion, fk_lugar, fk_acaucab) VALUES
 (1500, 'Calle 10, Qta. Los Pinos, Urb. El Cafetal, Caracas', 976, 1),
