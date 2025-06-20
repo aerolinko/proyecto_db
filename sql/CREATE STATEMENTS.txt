@@ -424,6 +424,18 @@ CREATE TABLE ALMACEN_CERVEZA(
     constraint fk_cerveza_presentacion_almacen_cerveza foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id)
 );
 
+CREATE TABLE ANAQUEL_CERVEZA(
+    anaquel_cerveza_id serial,
+    fk_anaquel integer NOT NULL,
+    fk_cerveza_presentacion integer NOT NULL,
+    cantidad integer NOT NULL,
+    fecha DATE NOT NULL,
+    precio_unitario integer NOT NULL,
+    constraint pk_anaquel_cerveza_id primary key (anaquel_cerveza_id),
+    constraint fk_anaquel_anaquel_cerveza foreign key (fk_anaquel) references ANAQUEL(anaquel_id),
+    constraint fk_cerveza_presentacion_anaquel_cerveza foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id)
+);
+
 CREATE TABLE DETALLE_REPOSICION_ANAQUEL(
     detalle_reposicion_anaquel_id serial,
     cantidad integer NOT NULL,
@@ -435,18 +447,6 @@ CREATE TABLE DETALLE_REPOSICION_ANAQUEL(
     constraint fk_reposicion_anaquel_detalle_reposicion_anaquel foreign key (fk_reposicion_anaquel) references REPOSICION_ANAQUEL(reposicion_anaquel_id),
     constraint fk_almacen_cerveza_detalle_reposicion_anaquel foreign key (fk_almacen_cerveza) references ALMACEN_CERVEZA(almacen_cerveza_id),
     constraint fk_anaquel_cerveza_detalle_reposicion_anaquel foreign key (fk_anaquel_cerveza) references ANAQUEL_CERVEZA(anaquel_cerveza_id)
-);
-
-CREATE TABLE ANAQUEL_CERVEZA(
-    anaquel_cerveza_id serial,
-    fk_anaquel integer NOT NULL,
-    fk_cerveza_presentacion integer NOT NULL,
-    cantidad integer NOT NULL,
-    fecha DATE NOT NULL,
-    precio_unitario integer NOT NULL,
-    constraint pk_anaquel_cerveza_id primary key (anaquel_cerveza_id),
-    constraint fk_anaquel_anaquel_cerveza foreign key (fk_anaquel) references ANAQUEL(anaquel_id),
-    constraint fk_cerveza_presentacion_anaquel_cerveza foreign key (fk_cerveza_presentacion) references CERVEZA_PRESENTACION(cerveza_presentacion_id)
 );
 
 CREATE TABLE CLIENTE_NATURAL(
