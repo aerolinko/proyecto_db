@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import clsx from "clsx";
 import {ArrowLeftCircleIcon, PlusIcon} from "@heroicons/react/24/outline";
+import RegistrarPago from "@/app/ui/venta/RegistrarPago";
 
 
 // @ts-ignore
@@ -30,6 +31,7 @@ export default function MetodoPago({ cart, setPagando }) {
     // State for custom modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
+    const [registrando, setRegistrando] = useState(false);
 
     // Calculate cart total
     const cartTotal = cart.reduce((sum:any, item:any) => sum + (item.price * item.quantity), 0);
@@ -109,9 +111,10 @@ export default function MetodoPago({ cart, setPagando }) {
         }
         const res=await response.json();
         if (res.result && res.result.length > 0) {
-            setFoundClientId(res.result[0]);
+            setFoundClientId({...res.result[0],
+            tipo:tipo});
             setError('');
-            const paymentMethodsSearch = await fetch("/api/clientes?ID=" + res.result[0].cliente_id, {
+            const paymentMethodsSearch = await fetch("/api/clientes?ID=" + res.result[0].cliente_id +'&tipo=' + tipo, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
@@ -137,6 +140,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
     useEffect(()=>{
         setNewPaymentMethodType(selectablePaymentMethod[0]);
+        console.log(foundClientId);
     }, [selectablePaymentMethod]);
 
     // Custom Modal Component
@@ -161,6 +165,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
     return (
         <div className="min-h-full  p-4 font-sans flex items-center justify-center">
+            { !registrando ? (
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl space-y-8 md:space-y-0 md:grid md:grid-cols-2 md:gap-8">
                 {/* Left Column: Client and Cart */}
                 <div className="space-y-[53.5px]">
@@ -272,10 +277,11 @@ export default function MetodoPago({ cart, setPagando }) {
                                 </select>
                                 <div className='w-full mt-1'>
                                     <button
+                                        disabled={!foundClientId}
                                         className={clsx(
-                                            'flex relative float-right rounded-md mb-2 transition duration-200 p-1.5 font-bold hover:bg-sky-100 hover:text-blue-600 ',
-                                        )}
-                                        onClick={() => {setPagando(false)}}>
+                                            `flex relative float-right rounded-md mb-2 transition duration-200 p-1.5 font-bold ${!foundClientId ? 'bg-gray-300 text-blue-50 cursor-not-allowed' :
+                                                                       'hover:bg-sky-100 hover:text-blue-600'}` )}
+                                        onClick={() => {setRegistrando(true)}}>
                                         <p className="pl-6 hidden md:block text-xs ">Registrar nueva tarjeta</p>
                                         <PlusIcon className="text-inherit absolute left-2 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-900 peer-focus:text-gray-900"> </PlusIcon>
                                     </button>
@@ -292,7 +298,12 @@ export default function MetodoPago({ cart, setPagando }) {
                                             type="number"
                                             id="chequeNumber"
                                             value={newPaymentMethodNumeroCheque}
-                                            maxLength={10}
+                                            onKeyPress={(e) => {
+                                                // Prevent typing if already at max length
+                                                if (e.target.value.length >= 10) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
                                             onChange={(e) => setNewPaymentMethodNumeroCheque(e.target.value)}
                                             placeholder="e.j. 1234567890"
                                             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -407,8 +418,14 @@ export default function MetodoPago({ cart, setPagando }) {
                         Completar Pago
                     </button>
                 </div>
+                <Modal message={modalMessage} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             </div>
-            <Modal message={modalMessage} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+                     ):(
+        <RegistrarPago setRegistrando={setRegistrando} foundClientId={foundClientId} setFoundClientId={setFoundClientId}
+                       setSelectedClientId={setSelectedClientId} setSelectablePaymentMethod={setSelectablePaymentMethod} setPaymentMethods={setPaymentMethods} />
+                )
+            }
         </div>
     );
 };

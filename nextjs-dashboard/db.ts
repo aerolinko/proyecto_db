@@ -58,16 +58,26 @@ export async function getAllRolesPermisos(rol: number) {
     return await sql`SELECT * FROM obtenerRolPermisos(${rol})`;
 }
 
-export async function getNaturalClientPaymentMethods(id: number) {
-    return await sql`select * from buscarClienteNaturalMetodosDePago(${id});`;
+export async function getClientPaymentMethods(id: number,tipo:string) {
+    return await sql`select * from buscarmetodosdepagocliente(${tipo},${id});`;
 }
 
 export async function getNaturalClient(ced:number) {
-    return await sql`SELECT * FROM buscarClienteNatural(${ced})`;
+    return await sql`SELECT * FROM buscarCliente('natural', ${ced}::integer)
+        AS (cliente_id integer, nombre varchar, cedula integer, direccion varchar, totalpuntos integer, rif varchar, apellido varchar);`;
+}
+
+export async function getLegalClient(rif:string) {
+    return await sql`SELECT * FROM buscarCliente('juridico', ${rif})
+        AS (cliente_id integer, razon_social varchar, RIF varchar, direccion varchar, total_puntos integer);`;
 }
 
 export async function getUser(nombre:string,pass:string) {
     return await sql`SELECT * FROM obtenerUsuario(${nombre},${pass})`;
+}
+
+export async function saveNewCard(cliente_tipo:string,id:number,tipo:string,numero:number,fechaExp:date|null,banco:string) {
+    return await sql`call insertarnuevatarjetacliente(${cliente_tipo},${id},${tipo},${numero},${fechaExp},${banco})`;
 }
 
 export async function getUserPermissions(id:number) {

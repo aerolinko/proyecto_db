@@ -765,6 +765,7 @@ CREATE TABLE METODO_PAGO_CHEQUE(
 
 CREATE TABLE METODO_PAGO_PUNTO(
     metodo_pago_id serial,
+    cantidad integer NOT NULL,
     fk_cliente_natural integer,
     fk_cliente_juridico integer,
     constraint pk_metodo_pago_punto_id primary key (metodo_pago_id),
@@ -1011,4 +1012,185 @@ $$
     union all
     (SELECT metodo_pago_id, 'debito', numero, banco FROM metodo_pago_debito WHERE fk_cliente_natural=id)
 
+$$;
+
+CREATE PROCEDURE insertarMetodoPagoCliente(
+    p_cliente_tipo varchar,
+    p_cliente_id INTEGER,
+    p_tipo VARCHAR,
+    p_banco VARCHAR(50) DEFAULT NULL,
+    p_numero_cheque VARCHAR(20) DEFAULT NULL,
+    p_numero_cuenta VARCHAR(20) DEFAULT NULL,
+    p_puntos_usados INTEGER DEFAULT NULL
+)
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_cliente_tipo ='natural' then
+
+    IF p_tipo= 'puntos' THEN
+        INSERT INTO metodo_pago_punto (
+            fk_cliente_natural,
+            cantidad
+        ) VALUES (
+            p_cliente_id,
+                   p_puntos_usados
+                 );
+
+    ELSIF p_tipo = 'cheque' THEN
+        INSERT INTO metodo_pago_cheque (numero, numero_c, banco, fk_cliente_natural)
+        VALUES (
+                     p_numero_cheque,
+                p_numero_cuenta,
+                     p_banco,
+                     p_cliente_id
+                 );
+    ELSIF p_tipo = 'efectivo' THEN
+        INSERT INTO metodo_pago_efectivo (denominacion, fk_cliente_natural) VALUES (
+                     1,
+                     p_cliente_id
+                 );
+    END IF;
+        ELSIF p_cliente_tipo ='juridico' then
+            IF p_tipo= 'puntos' THEN
+                INSERT INTO metodo_pago_punto (
+                    fk_cliente_juridico,
+                    cantidad
+                ) VALUES (
+                             p_cliente_id,
+                             p_puntos_usados
+                         );
+
+            ELSIF p_tipo = 'cheque' THEN
+                INSERT INTO metodo_pago_cheque (numero, numero_c, banco, fk_cliente_juridico)
+                VALUES (
+                           p_numero_cheque,
+                           p_numero_cuenta,
+                           p_banco,
+                           p_cliente_id
+                       );
+            ELSIF p_tipo = 'efectivo' THEN
+                INSERT INTO metodo_pago_efectivo (denominacion, fk_cliente_juridico) VALUES (
+                1,
+                p_cliente_id
+                                                                                           );
+            END IF;
+        END IF;
+END;
+$$;
+
+
+CREATE PROCEDURE insertarNuevaTarjetaCliente(
+    p_cliente_tipo varchar,
+    p_cliente_id INTEGER,
+    p_tipo VARCHAR,
+    p_numero_tarjeta bigint DEFAULT NULL,
+    p_fecha_vencimiento DATE DEFAULT NULL,
+    p_banco VARCHAR(50) DEFAULT NULL
+)
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_cliente_tipo = 'natural' then
+    IF p_tipo = 'debito' THEN
+        INSERT INTO metodo_pago_debito (numero, banco, fk_cliente_natural) VALUES (
+            p_numero_tarjeta,
+            p_banco,
+            p_cliente_id
+                                                                                  );
+    ELSIF p_tipo = 'credito' THEN
+        INSERT INTO metodo_pago_credito (numero, fecha_exp, banco, fk_cliente_natural) VALUES (
+            p_numero_tarjeta,
+            p_fecha_vencimiento,
+            p_banco,
+            p_cliente_id
+                                                                                              );
+    END IF;
+    elsif p_cliente_tipo ='juridico' then
+        IF p_tipo = 'debito' THEN
+            INSERT INTO metodo_pago_debito (numero, banco, fk_cliente_juridico) VALUES (
+            p_numero_tarjeta,
+            p_banco,
+            p_cliente_id
+                                                                                      );
+        ELSIF p_tipo = 'credito' THEN
+            INSERT INTO metodo_pago_credito (numero, fecha_exp, banco, fk_cliente_juridico) VALUES (
+            p_numero_tarjeta,
+            p_fecha_vencimiento,
+            p_banco,
+            p_cliente_id
+                                                                                                  );
+        END IF;
+    End if;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION buscarMetodosDePagoCliente(
+    p_tipo_cliente VARCHAR,
+    p_id INTEGER
+)
+    RETURNS TABLE(
+                     metodo_pago_id INTEGER,
+                     tipo CHARACTER VARYING,
+                     numero BIGINT,
+                     banco CHARACTER VARYING
+                 )
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_tipo_cliente = 'natural' THEN
+        RETURN QUERY
+            SELECT mpc.metodo_pago_id, 'credito'::varchar, mpc.numero, mpc.banco
+            FROM metodo_pago_credito mpc
+            WHERE mpc.fk_cliente_natural = p_id
+
+            UNION ALL
+
+            SELECT mpd.metodo_pago_id, 'debito'::varchar, mpd.numero, mpd.banco
+            FROM metodo_pago_debito mpd
+            WHERE mpd.fk_cliente_natural = p_id;
+
+    ELSIF p_tipo_cliente = 'juridico' THEN
+        RETURN QUERY
+            SELECT mpc.metodo_pago_id, 'credito'::varchar, mpc.numero, mpc.banco
+            FROM metodo_pago_credito mpc
+            WHERE mpc.fk_cliente_juridico = p_id
+
+            UNION ALL
+
+            SELECT mpd.metodo_pago_id, 'debito'::varchar, mpd.numero, mpd.banco
+            FROM metodo_pago_debito mpd
+            WHERE mpd.fk_cliente_juridico = p_id;
+
+    ELSE
+        RAISE EXCEPTION 'Tipo de cliente no válido: %', p_tipo_cliente;
+    END IF;
+
+    RETURN;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION buscarCliente(
+    p_tipo_cliente VARCHAR,
+    p_identificacion integer
+)
+    RETURNS SETOF record
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_tipo_cliente = 'natural' THEN
+        RETURN QUERY
+            SELECT n.cliente_id, n.primer_nombre, n.cedula, n.direccion, n.total_puntos, n.rif,n.primer_apellido
+            FROM cliente_natural n
+            WHERE n.cedula = p_identificacion;
+
+    ELSIF p_tipo_cliente = 'juridico' THEN
+        RETURN QUERY
+            SELECT j.cliente_id, j.razon_social, j.rif, j.direccion, j.total_puntos
+            FROM cliente_juridico j
+            WHERE j.rif = p_identificacion::varchar;
+    END IF;
+
+    RETURN;
+END;
 $$;
