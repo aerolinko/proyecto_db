@@ -384,10 +384,29 @@ INSERT INTO EMPLEADO (cedula, primer_nombre, primer_apellido, direccion, segundo
 (90123456, 'Carlos', 'Mendoza', 'Av. Intercomunal de El Valle, Calle 1, Res. Los Jardines, El Valle, Caracas', 'Alberto', 'Silva', '2023-09-15', 1492),
 (01234567, 'Sofía', 'Ramírez', 'Av. Urdaneta, Edif. Centro Plaza, Oficina 8A, La Candelaria, Caracas', 'Alejandra', 'Castro', '2023-10-01', 1493);
 
+INSERT INTO EVENTO_EMPLEADO (fk_evento, fk_empleado) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10);
 
 INSERT INTO HORARIO_EMPLEADO (fk_empleado, fk_horario) VALUES
-(1, 1), (2, 2), (3, 3), (4, 4), (5, 5),
-(6, 6), (7, 7), (8, 8), (9, 9), (10, 10);
+(1, 1), 
+(2, 2), 
+(3, 3), 
+(4, 4), 
+(5, 5),
+(6, 6), 
+(7, 7), 
+(8, 8), 
+(9, 9), 
+(10, 10);
 
 INSERT INTO ASISTENCIA (fecha_hora_entrada, fecha_hora_salida, fk_empleado) VALUES
 ('2025-06-01 08:00:00', '2025-06-01 17:00:00', 1),
