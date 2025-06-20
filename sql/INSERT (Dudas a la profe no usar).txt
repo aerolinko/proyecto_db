@@ -159,3 +159,15 @@ INSERT INTO ESTILO_CERVEZA (nombre) VALUES
 ('Sweet Stout'),
 ('Weizen-Weissbier'),
 ('Witbier');
+
+INSERT INTO CERVEZA_PRESENTACION (fk_presentacion, fk_cerveza, fk_miembro_acaucab) VALUES
+(1, 1, 1),
+(2, 2, 2),
+(3, 3, 3),
+(4, 4, 4),
+(5, 5, 5),
+(1, 6, 6),
+(2, 7, 7),
+(3, 8, 8),
+(4, 9, 9),
+(5, 10, 10);
