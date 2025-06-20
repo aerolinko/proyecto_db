@@ -1260,3 +1260,41 @@ BEGIN
 END;
 $$;
 
+create function ajustarPuntos() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF NEW.tipo = 'adquisicion' THEN
+        IF NEW.fk_cliente_natural IS NULL THEN
+            UPDATE cliente_juridico
+            SET total_puntos = total_puntos + NEW.cantidad
+            WHERE cliente_id = NEW.fk_cliente_juridico;
+        ELSiF NEW.fk_cliente_juridico IS NULL THEN
+            UPDATE cliente_natural
+            SET total_puntos = total_puntos + NEW.cantidad
+            WHERE cliente_id = NEW.fk_cliente_natural;
+        END IF;
+    ELSIF NEW.tipo = 'gasto' THEN
+        IF NEW.fk_cliente_natural IS NULL THEN
+            UPDATE cliente_juridico
+            SET total_puntos = total_puntos - NEW.cantidad
+            WHERE cliente_id = NEW.fk_cliente_juridico;
+        ELSiF NEW.fk_cliente_juridico IS NULL THEN
+            UPDATE cliente_natural
+            SET total_puntos = total_puntos - NEW.cantidad
+            WHERE cliente_id = NEW.fk_cliente_natural;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+create trigger triggerajustarpuntos
+    after insert
+    on punto_venta_compra
+    for each row
+execute procedure ajustarpuntos();
+
+
+

@@ -101,7 +101,7 @@ export default function MetodoPago({ cart, setPagando }) {
         console.log('metodos de pago',paymentMethods);
         console.log('carrito',cart);
         console.log('cliente encontrado',foundClientId);
-        /*
+
         const response = await fetch("/api/ventas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -110,7 +110,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
         if (response.ok) {
             console.log('MANDAR UN MENSAJE DE EXITO Y REDIRECCIONAR CON UN setTimeout');
-        }*/
+        }
 
     };
 
