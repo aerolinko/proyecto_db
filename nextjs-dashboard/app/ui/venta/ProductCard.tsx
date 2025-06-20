@@ -62,6 +62,7 @@ export default function ProductCard({ product, onAddToCart, initialQuantity }){
                     Stock: {product.stock} unidades
                 </p>
             </div>
+            <div className="flex flex-col">
             <div className="flex items-center space-x-2">
                 <button
                     onClick={decrement}
@@ -78,7 +79,7 @@ export default function ProductCard({ product, onAddToCart, initialQuantity }){
                     onChange={handleQuantityChange}
                     min="0"
                     max={product.stock}
-                    className="w-16 text-center border rounded-md py-1 px-2 text-lg font-medium focus:ring-purple-500 focus:border-purple-500"
+                    className="w-16 text-center mb-2 border rounded-md py-1 px-2 text-lg font-medium focus:ring-purple-500 focus:border-purple-500"
                     aria-label={`Quantity of ${product.name}`}
                 />
                 <button
@@ -101,6 +102,7 @@ export default function ProductCard({ product, onAddToCart, initialQuantity }){
             >
                 {initialQuantity > 0 && quantity > 0 ? 'Actualizar' : (quantity === 0 && initialQuantity > 0 ? 'Eliminar' : 'Agregar')}
             </button>
+        </div>
         </div>
     );
 };
