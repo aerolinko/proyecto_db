@@ -91,9 +91,13 @@ export default function MetodoPago({ cart, setPagando }) {
             setIsModalOpen(true);
             return;
         }
+        console.log('metodos de pago',paymentMethods);
+        console.log('carrito',cart);
+        console.log('cliente encontrado',foundClientId);
     };
 
     const buscarCliente = async (cliente:string) => {
+        setPaymentMethods([]);
     let response
     let tipo;
         if(isNaN(parseInt(cliente))){
@@ -121,7 +125,6 @@ export default function MetodoPago({ cart, setPagando }) {
 
             if(paymentMethodsSearch.ok){
                 const res=await paymentMethodsSearch.json();
-                console.log('resultado del fetch',res.result);
                 setSelectablePaymentMethod(res.result);
             }
         }
@@ -132,15 +135,12 @@ export default function MetodoPago({ cart, setPagando }) {
         }
     };
     useEffect(()=>{
-        console.log('new payment',newPaymentMethodType);
-        console.log('all payments',paymentMethods);
     },[paymentMethods]);
 
 
 
     useEffect(()=>{
         setNewPaymentMethodType(selectablePaymentMethod[0]);
-        console.log(foundClientId);
     }, [selectablePaymentMethod]);
 
     // Custom Modal Component

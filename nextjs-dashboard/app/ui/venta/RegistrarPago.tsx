@@ -65,7 +65,6 @@ export default function RegistrarPago({ foundClientId, setRegistrando, setFoundC
             tipo: tipo,
             fechaExp: fechaExp ? fechaExp : null,
         });
-        console.log(newTarjeta);
     },[fechaExp, banco, tipo, numero]);
 
     return (
