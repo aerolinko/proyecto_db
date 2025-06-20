@@ -259,16 +259,16 @@ INSERT INTO ESTADO (nombre, descripcion) VALUES
 ('Devuelto', 'El artículo ha sido regresado.');
 
 INSERT INTO CARGO (nombre) VALUES
+('Director Ejecutivo'),
 ('Gerente General'),
-('Jefe de Almacén'),
-('Operador de Logística'),
-('Especialista de Ventas Online'),
-('Asistente Administrativo'),
-('Analista de Datos'),
-('Organizador de Eventos'),
-('Representante de Atención al Cliente'),
-('Jefe de Marketing'),
-('Maestro Cervecero');
+('Gerente de Área'),
+('Supervisor'),
+('Coordinador'),
+('Especialista Senior'),
+('Especialista Junior'),
+('Analista'),
+('Asistente'),
+('Auxiliar');
 
 INSERT INTO HORARIO (hora_inicio, hora_fin, dia) VALUES
 ('08:00:00', '17:00:00', 'lunes'),
@@ -402,29 +402,41 @@ INSERT INTO JUEZ (primer_nombre, primer_apellido, area, fk_premiacion_evento) VA
 ('Laura', 'Silva', 'Diseño Gráfico', 9),
 ('Miguel', 'Fernández', 'Jurado Especial', 10);
 
-INSERT INTO DEPARTAMENTO (nombre, fk_acaucab) VALUES
-('Administración Central', 1),
-('Logística y Almacén', 1),
-('Ventas y Marketing', 1),
+INSERT INTO DEPARTAMENTO (nombre, fk_acaucab) VALUES 
+('Dirección General', 1),
+('Administración y Finanzas', 1),
 ('Recursos Humanos', 1),
-('Eventos y Relaciones Públicas', 1),
-('Control de Calidad', 2),
-('Investigación y Desarrollo', 2),
-('Finanzas', 3),
-('Soporte al Miembro', 3),
-('Producción', 4);
+('Ventas y Marketing', 1),
+('Almacén y Logística', 1),
+('Atención al Cliente', 1),
+('Sistemas y Tecnología', 1),
+('Calidad y Control', 1),
+('Compras y Proveedores', 1),
+('Seguridad y Mantenimiento', 1);
 
-INSERT INTO DEPARTAMENTO_EMPLEADO (fecha_inicio, fecha_fin, salario, fk_departamento, fk_empleado, fk_cargo) VALUES
-('2024-01-01', NULL, 1500, 1, 1, 1),
-('2024-01-01', NULL, 1200, 2, 2, 2),
-('2024-02-01', NULL, 800, 3, 3, 4),
-('2024-03-01', NULL, 750, 4, 4, 5),
-('2024-04-01', NULL, 900, 5, 5, 7),
-('2024-05-01', NULL, 1100, 6, 6, 10),
-('2024-06-01', NULL, 850, 7, 7, 6),
-('2024-07-01', NULL, 700, 8, 8, 8),
-('2024-08-01', NULL, 1000, 9, 9, 9),
-('2024-09-01', NULL, 950, 10, 10, 3);
+INSERT INTO DEPARTAMENTO_EMPLEADO (fecha_inicio, salario, fk_departamento, fk_empleado, fk_cargo) VALUES
+('2023-01-15', 3500000, 1, 1, 2),
+('2023-02-20', 2800000, 4, 2, 3),
+('2023-03-10', 2200000, 4, 3, 4),
+('2023-04-05', 1800000, 4, 4, 6),
+('2023-05-12', 2500000, 5, 5, 3),
+('2023-06-18', 1600000, 5, 6, 7),
+('2023-07-22', 1900000, 6, 7, 6),
+('2023-08-30', 2600000, 7, 8, 3),
+('2023-09-15', 2000000, 2, 9, 5),
+('2023-10-01', 1700000, 3, 10, 8);
+
+INSERT INTO EMPLEADO (cedula, primer_nombre, primer_apellido, direccion, segundo_nombre, segundo_apellido, fecha_contrato, fk_lugar) VALUES
+(12345678, 'Juan', 'Pérez', 'Av. Urdaneta, Edif. La Bolsa, Piso 4, Altagracia, Caracas', 'Carlos', 'González', '2023-01-15', 1484),
+(23456789, 'María', 'Rodríguez', 'Calle Real de Antímano, Casa #50, Antímano, Caracas', 'Elena', 'Martínez', '2023-02-20', 1485),
+(34567890, 'Pedro', 'López', 'UD7, Sector Las Fuentes, Edif. Girasol, Apto 1A, Caricuao, Caracas', 'Antonio', 'Hernández', '2023-03-10', 1486),
+(45678901, 'Ana', 'García', 'Esquina de La Bolsa, Edif. Banco Mercantil, Piso 2, Catedral, Caracas', 'Isabel', 'Fernández', '2023-04-05', 1487),
+(56789012, 'Luis', 'Martín', 'Calle Cajigal, Mercado de Coche, Galpón 3, Coche, Caracas', 'Miguel', 'Sánchez', '2023-05-12', 1488),
+(67890123, 'Carmen', 'Jiménez', 'Km 15 El Junquito, Vía Principal, Parcela El Mirador, El Junquito, Caracas', 'Rosa', 'Morales', '2023-06-18', 1489),
+(78901234, 'Roberto', 'Díaz', 'Av. Páez, Res. Anauco, Torre B, Piso 10, El Paraíso, Caracas', 'José', 'Ruiz', '2023-07-22', 1490),
+(89012345, 'Laura', 'Vásquez', 'Calle Real de Sabana Grande, Edif. Caracas, Piso 6, El Recreo, Caracas', 'Patricia', 'Torres', '2023-08-30', 1491),
+(90123456, 'Carlos', 'Mendoza', 'Av. Intercomunal de El Valle, Calle 1, Res. Los Jardines, El Valle, Caracas', 'Alberto', 'Silva', '2023-09-15', 1492),
+(01234567, 'Sofía', 'Ramírez', 'Av. Urdaneta, Edif. Centro Plaza, Oficina 8A, La Candelaria, Caracas', 'Alejandra', 'Castro', '2023-10-01', 1493);
 
 INSERT INTO OFERTA (fecha_inicio, fecha_fin, descuento, fk_cerveza_presentacion) VALUES
 ('2025-06-01', '2025-06-30', 15, 1),
@@ -864,3 +876,62 @@ INSERT INTO VENTA_ONLINE (direccion, fecha_emision, fecha_estimada, fecha_entreg
 ('Prolongación 5 de Julio, Edif. Costa Azul, Piso 8, Apto 802, Maracaibo', '2025-06-08', '2025-06-12', NULL, 130, 1448, 8),
 ('Calle 3, Edif. Altamira, Pb, Local 5, Porlamar', '2025-06-09', '2025-06-13', '2025-06-13', 350, 1067, 9),
 ('Calle Los Samanes, Qta. La Rosaleda, Urb. Prados del Este, Res. Bella Flor, Piso 4, Apto 4D, Caracas', '2025-06-10', '2025-06-14', NULL, 95, 1498, 10);
+
+INSERT INTO ROL (nombre, descripcion) VALUES
+('Administrador', 'Acceso completo al sistema, puede gestionar usuarios, roles y permisos'),
+('Gerente General', 'Gestión completa de operaciones, ventas, inventario y empleados'),
+('Gerente de Ventas', 'Supervisión del equipo de ventas y estrategias comerciales'),
+('Gerente de Almacén', 'Gestión completa del inventario y logística'),
+('Supervisor de Tienda', 'Supervisión de operaciones diarias en tienda'),
+('Vendedor Senior', 'Ventas especializadas y atención a clientes premium'),
+('Vendedor Junior', 'Ventas básicas y atención al cliente'),
+('Almacenista', 'Gestión de inventario y reposición de productos'),
+('Cajero', 'Procesamiento de ventas y manejo de pagos'),
+('Cliente Premium', 'Cliente con acceso a funciones especiales y descuentos');
+
+INSERT INTO USUARIO (fecha_creacion, nombre_usuario, hash_contrasena, fk_empleado) VALUES
+('2023-01-15', 'juan.perez@acaucab.com', 'hash123admin', 1),
+('2023-02-20', 'maria.rodriguez@acaucab.com', 'hash456gerente', 2),
+('2023-03-10', 'pedro.lopez@acaucab.com', 'hash789supervisor', 3),
+('2023-04-05', 'ana.garcia@acaucab.com', 'hash012vendedor', 4),
+('2023-05-12', 'luis.martin@acaucab.com', 'hash345almacen', 5);
+
+INSERT INTO USUARIO (fecha_creacion, nombre_usuario, hash_contrasena, fk_cliente_natural) VALUES
+('2023-09-01', 'ana.garcia@email.com', 'hashclient001', 1),
+('2023-09-15', 'luis.martinez@email.com', 'hashclient002', 2),
+('2023-10-01', 'sofia.rodriguez@email.com', 'hashclient003', 3),
+('2023-10-15', 'diego.hernandez@email.com', 'hashclient004', 4),
+('2023-11-01', 'valeria.torres@email.com', 'hashclient005', 5);
+
+INSERT INTO ROL_PERMISO (fk_rol, fk_permiso)
+SELECT 1, permiso_id FROM PERMISO WHERE descripcion IN (
+    'crear USUARIO', 'eliminar USUARIO', 'modificar USUARIO', 'consultar USUARIO'
+) LIMIT 4;
+
+INSERT INTO ROL_PERMISO (fk_rol, fk_permiso)
+SELECT 2, permiso_id FROM PERMISO WHERE descripcion IN (
+    'consultar EMPLEADO', 'modificar EMPLEADO'
+) LIMIT 2;
+
+INSERT INTO ROL_PERMISO (fk_rol, fk_permiso)
+SELECT 3, permiso_id FROM PERMISO WHERE descripcion IN (
+    'crear VENTA_TIENDA', 'consultar VENTA_TIENDA'
+) LIMIT 2;
+
+INSERT INTO ROL_PERMISO (fk_rol, fk_permiso)
+SELECT 6, permiso_id FROM PERMISO WHERE descripcion IN (
+    'crear VENTA_TIENDA', 'consultar CERVEZA'
+) LIMIT 2;
+
+INSERT INTO ROL_USUARIO (fk_rol, fk_usuario, fecha_inicio) VALUES
+(1, 1, '2023-01-15'),
+(2, 2, '2023-02-20'),
+(3, 3, '2023-03-10'),
+(6, 4, '2023-04-05'),
+(8, 5, '2023-05-12'),
+(10, 6, '2023-09-01'), 
+(10, 7, '2023-09-15'), 
+(10, 8, '2023-10-01'), 
+(10, 9, '2023-10-15'), 
+(10, 10, '2023-11-01'); 
+
