@@ -79,7 +79,7 @@ export async function getNaturalClient(ced:number) {
 
 export async function getLegalClient(rif:string) {
     return await sql`SELECT * FROM buscarCliente('juridico', ${rif}::varchar)
-        AS (cliente_id integer, razon_social varchar, RIF varchar, direccion varchar, total_puntos integer);`;
+        AS (cliente_id integer, razon_social varchar, RIF varchar, direccion varchar, totalpuntos integer);`;
 }
 
 export async function getUser(nombre:string,pass:string) {
