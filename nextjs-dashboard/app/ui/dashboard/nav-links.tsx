@@ -11,8 +11,8 @@ import clsx from 'clsx'
 // @ts-ignore
 export default function NavLinks({currentUser}) {
   const links = [
-    { name: 'Home', href: `/${currentUser.usuario_id}/dashboard`, icon: HomeIcon },
-    { name: 'Profile', href: `/${currentUser.usuario_id}/profile`, icon: UserIcon }
+    { name: 'Menú Principal', href: `/${currentUser.usuario_id}/dashboard`, icon: HomeIcon },
+    { name: 'Perfil', href: `/${currentUser.usuario_id}/profile`, icon: UserIcon }
   ];
   const pathname = usePathname();
   return (
