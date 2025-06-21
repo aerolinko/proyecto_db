@@ -1305,34 +1305,41 @@ execute procedure ajustarpuntos();
 
 create function emitirOrdenReposicionAnaquel()
     RETURNS TRIGGER
-language plpgsql
+    language plpgsql
 as
 $$
 declare
     orderid integer;
     almacenid integer;
     existe boolean;
-    begin
+    yapedido boolean;
+begin
 
-        if(NEW.cantidad) < 20 then
-            select exists(
-                select reposicion_anaquel_id from reposicion_anaquel where
+    if(NEW.cantidad) < 20 then
+        select exists(
+            select reposicion_anaquel_id from reposicion_anaquel where
                 fecha_entrega is null
-                order by reposicion_anaquel_id desc
-                limit 1
-            ) into existe;
+            order by reposicion_anaquel_id desc
+            limit 1
+        ) into existe;
 
-            IF NOT existe THEN
-                INSERT INTO reposicion_anaquel (fecha)
-                VALUES (CURRENT_DATE)
-                RETURNING reposicion_anaquel_id INTO orderid;
-            ELSE
-                select reposicion_anaquel_id into orderid from reposicion_anaquel where
-                    fecha_entrega is null
-                order by reposicion_anaquel_id desc
-                limit 1;
+        IF NOT existe THEN
+            INSERT INTO reposicion_anaquel (fecha)
+            VALUES (CURRENT_DATE)
+            RETURNING reposicion_anaquel_id INTO orderid;
+        ELSE
+            select reposicion_anaquel_id into orderid from reposicion_anaquel where
+                fecha_entrega is null
+            order by reposicion_anaquel_id desc
+            limit 1;
         end if;
 
+        select exists(
+            select fk_anaquel_cerveza from detalle_reposicion_anaquel where
+                fk_reposicion_anaquel = orderid AND fk_anaquel_cerveza = new.anaquel_cerveza_id
+        ) into yapedido;
+
+        IF NOT yapedido THEN
         select almacen_cerveza_id into almacenid
         from almacen_cerveza where fk_cerveza_presentacion = new.fk_cerveza_presentacion
         order by almacen_cerveza_id
@@ -1340,10 +1347,9 @@ declare
 
         insert into detalle_reposicion_anaquel (cantidad, precio_unitario, fk_almacen_cerveza, fk_reposicion_anaquel, fk_anaquel_cerveza)
             values (200,new.precio_unitario,almacenid,orderid,new.anaquel_cerveza_id);
+        end if;
 
-
-        END IF;
-
+    END IF;
         return new;
 end;
 $$;
