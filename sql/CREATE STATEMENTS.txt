@@ -1090,7 +1090,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION buscarCliente(
     p_tipo_cliente VARCHAR,
-    p_identificacion integer
+    p_identificacion VARCHAR
 )
     RETURNS SETOF record
     LANGUAGE plpgsql
@@ -1100,13 +1100,13 @@ BEGIN
         RETURN QUERY
             SELECT n.cliente_id, n.primer_nombre, n.cedula, n.direccion, n.total_puntos, n.rif,n.primer_apellido
             FROM cliente_natural n
-            WHERE n.cedula = p_identificacion;
+            WHERE n.cedula = p_identificacion::integer;
 
     ELSIF p_tipo_cliente = 'juridico' THEN
         RETURN QUERY
             SELECT j.cliente_id, j.razon_social, j.rif, j.direccion, j.total_puntos
             FROM cliente_juridico j
-            WHERE j.rif = p_identificacion::varchar;
+            WHERE j.rif = p_identificacion;
     END IF;
 
     RETURN;

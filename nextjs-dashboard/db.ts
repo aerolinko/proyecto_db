@@ -73,12 +73,12 @@ export async function getClientPaymentMethods(id: number,tipo:string) {
 }
 
 export async function getNaturalClient(ced:number) {
-    return await sql`SELECT * FROM buscarCliente('natural', ${ced}::integer)
+    return await sql`SELECT * FROM buscarCliente('natural', ${ced})
         AS (cliente_id integer, nombre varchar, cedula integer, direccion varchar, totalpuntos integer, rif varchar, apellido varchar);`;
 }
 
 export async function getLegalClient(rif:string) {
-    return await sql`SELECT * FROM buscarCliente('juridico', ${rif})
+    return await sql`SELECT * FROM buscarCliente('juridico', ${rif}::varchar)
         AS (cliente_id integer, razon_social varchar, RIF varchar, direccion varchar, total_puntos integer);`;
 }
 
