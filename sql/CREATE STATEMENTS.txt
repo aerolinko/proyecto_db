@@ -589,7 +589,7 @@ CREATE TABLE COMPRA_REPOSICION(
                                   compra_reposicion_id serial,
                                   fecha_emision DATE NOT NULL,
                                   fecha_entrega DATE,
-                                  fecha_pago_estimada DATE NOT NULL,
+                                  fecha_pago_estimada DATE,
                                   fecha_pago_real DATE,
                                   aprobacion boolean default 'f',
                                   total integer NOT NULL,
@@ -1393,5 +1393,154 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION estadoRepAnaquel()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO estado_reposicion_anaquel (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel)
+    VALUES (current_date, NULL, 1,new.reposicion_anaquel_id);
+    RETURN NEW;
+END;
+$$;
 
+CREATE TRIGGER triggerEstadoRepAnaquel
+    AFTER INSERT ON reposicion_anaquel
+    FOR EACH ROW EXECUTE FUNCTION estadoRepAnaquel();
+
+CREATE OR REPLACE FUNCTION reposicionAnaquelEntregado()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF new.fk_estado = 8 then
+    UPDATE reposicion_anaquel set fecha_entrega = current_date
+    where reposicion_anaquel_id = new.fk_reposicion_anaquel;
+    end if;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER triggerReposicionAnaquelEntregado
+    AFTER UPDATE on estado_reposicion_anaquel
+    FOR EACH ROW EXECUTE FUNCTION reposicionAnaquelEntregado();
+
+CREATE OR REPLACE FUNCTION reducirStockAlmacen()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS $$
+    declare
+        almacen_id integer;
+BEGIN
+    IF new.fk_estado = 8 then
+        for almacen_id in (select fk_almacen_cerveza from
+        detalle_reposicion_anaquel dra where dra.fk_reposicion_anaquel = new.fk_reposicion_anaquel)
+        loop
+        UPDATE almacen_cerveza set cantidad = cantidad -200
+        where almacen_cerveza_id = almacen_id;
+        end loop;
+    end if;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER triggerReducirStockAlmacen
+    AFTER UPDATE on estado_reposicion_anaquel
+    FOR EACH ROW EXECUTE FUNCTION reducirStockAlmacen();
+
+create or replace function emitirCompraReposicion()
+    RETURNS TRIGGER
+    language plpgsql
+as
+$$
+declare
+    orderid integer;
+    cantpedido integer;
+    existe boolean;
+begin
+
+    if(NEW.cantidad) <= 100 then
+        select exists(
+            select compra_reposicion_id from compra_reposicion cr where
+                cr.fecha_entrega is null AND cr.fk_miembro_acaucab = (select ma.miembro_id from miembro_acaucab ma, cerveza_presentacion pc
+                                                                where new.fk_cerveza_presentacion = pc.cerveza_presentacion_id
+                                                                AND pc.fk_miembro_acaucab = ma.miembro_id)
+        ) into existe;
+
+        IF NOT existe THEN
+            INSERT INTO compra_reposicion (fecha_emision, fecha_entrega, fecha_pago_estimada, fecha_pago_real, total, fk_miembro_acaucab)
+            VALUES (CURRENT_DATE,null,null,null,0,(select ma.miembro_id from miembro_acaucab ma,
+                                                                                                                                            cerveza_presentacion pc
+                                                                                                                    where new.fk_cerveza_presentacion = pc.cerveza_presentacion_id
+                                                                                                                    AND pc.fk_miembro_acaucab = ma.miembro_id))
+            RETURNING compra_reposicion_id INTO orderid;
+            insert into estado_compra_reposicion (fecha_inicio, fecha_fin, fk_estado, fk_compra_reposicion)
+            values (current_date,null,6,orderid);
+        ELSE
+            select compra_reposicion_id into orderid from compra_reposicion cr where
+                cr.fecha_entrega is null AND cr.fk_miembro_acaucab = (select ma.miembro_id from miembro_acaucab ma, cerveza_presentacion pc
+                                                                      where new.fk_cerveza_presentacion = pc.cerveza_presentacion_id
+                                                                        AND pc.fk_miembro_acaucab = ma.miembro_id);
+        end if;
+
+            insert into detalle_compra (fk_cerveza_presentacion, fk_compra_reposicion, precio_unitario, cantidad)
+            values (new.fk_cerveza_presentacion,orderid,new.precio_unitario,10000)
+            RETURNING precio_unitario*10000 into cantpedido;
+
+            update compra_reposicion set total = total + cantpedido*0.7
+            where compra_reposicion_id = orderid;
+
+    END IF;
+
+    return new;
+end;
+$$;
+
+create trigger triggerCompraReposicion
+    after update on almacen_cerveza
+    for each row
+execute function emitirCompraReposicion();
+
+CREATE OR REPLACE FUNCTION aumentarStockAlmacen()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS $$
+declare
+    almacen_id integer;
+BEGIN
+    IF new.fk_estado = 8 then
+        for almacen_id in (select almacen_cerveza_id from
+            detalle_compra dc, almacen_cerveza ac where dc.fk_compra_reposicion = new.fk_compra_reposicion
+            AND dc.fk_cerveza_presentacion = ac.fk_cerveza_presentacion)
+            loop
+                UPDATE almacen_cerveza set cantidad = cantidad +10000
+                where almacen_cerveza_id = almacen_id;
+            end loop;
+    end if;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER triggerAumentarStockAlmacen
+    AFTER UPDATE on estado_compra_reposicion
+    FOR EACH ROW EXECUTE FUNCTION aumentarStockAlmacen();
+
+
+CREATE OR REPLACE FUNCTION reposicionAlmacenEntregado()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF new.fk_estado = 8 then
+        UPDATE compra_reposicion set fecha_entrega = current_date,
+        fecha_pago_estimada = current_date+15
+        where compra_reposicion_id = new.fk_compra_reposicion;
+    end if;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER triggerReposicionAlmacenEntregado
+    AFTER UPDATE on estado_compra_reposicion
+    FOR EACH ROW EXECUTE FUNCTION reposicionAlmacenEntregado();
 
