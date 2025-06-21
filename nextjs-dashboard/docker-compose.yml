@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  jasperserver:
+    image: bitnami/jasperserver:latest
+    container_name: jasperserver
+    ports:
+      - "8080:8080"
+    environment:
+      - JASPERSERVER_USERNAME=admin
+      - JASPERSERVER_PASSWORD=admin123
+      - POSTGRESQL_HOST=postgres
+      - POSTGRESQL_PORT=5432
+      - POSTGRESQL_DATABASE=jasperdb
+      - POSTGRESQL_USERNAME=jasper
+      - POSTGRESQL_PASSWORD=jasper123
+    volumes:
+      - jasperserver_data:/bitnami/jasperserver
+      - ./jasper-reports:/opt/bitnami/jasperserver/apache-tomcat/webapps/jasperserver/WEB-INF/reports
+    depends_on:
+      - postgres
+    networks:
+      - jasper-network
+
+  postgres:
+    image: postgres:13
+    container_name: jasper_postgres
+    environment:
+      - POSTGRES_DB=jasperdb
+      - POSTGRES_USER=jasper
+      - POSTGRES_PASSWORD=jasper123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jasper-network
+
+volumes:
+  jasperserver_data:
+  postgres_data:
+
+networks:
+  jasper-network:
+    driver: bridge 

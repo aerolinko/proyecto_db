@@ -7,6 +7,7 @@ interface ReportParameters {
   fechaInicio?: string
   fechaFin?: string
   lugarId?: number
+  clienteId?: number
 }
 
 interface Lugar {
@@ -26,17 +27,41 @@ interface ReportData {
 }
 
 const reportTypes = [
-  { value: "usuarios", label: "Usuarios", description: "Reporte de usuarios registrados" },
-  { value: "empleados", label: "Empleados", description: "Reporte de empleados por lugar" },
-  { value: "ventas", label: "Ventas", description: "Reporte de ventas por período" },
-  { value: "roles", label: "Roles", description: "Reporte de roles del sistema" },
-  { value: "productos", label: "Productos", description: "Reporte de productos disponibles" },
-  { value: "lugares", label: "Lugares", description: "Reporte de lugares registrados" },
+  {
+    value: "productos-mayor-demanda",
+    label: "Productos con Mayor Demanda",
+    description: "Lista los productos de cerveza con mayor volumen de ventas",
+    parameters: ["fechaInicio", "fechaFin"]
+  },
+  {
+    value: "reposicion-anaqueles",
+    label: "Reposición de Anaqueles",
+    description: "Órdenes automáticas cuando el stock desciende a 20 unidades",
+    parameters: ["fechaInicio", "fechaFin"]
+  },
+  {
+    value: "cuotas-afiliacion-pendientes",
+    label: "Cuotas de Afiliación Pendientes",
+    description: "Miembros proveedores con cuotas mensuales pendientes",
+    parameters: []
+  },
+  {
+    value: "nomina-departamento",
+    label: "Nómina por Departamento",
+    description: "Costo total de nómina por departamento y cargo",
+    parameters: ["fechaInicio", "fechaFin"]
+  },
+  {
+    value: "historial-compras-cliente-juridico",
+    label: "Historial de Compras Cliente Jurídico",
+    description: "Resumen detallado de compras por razón social",
+    parameters: ["clienteId", "fechaInicio", "fechaFin"]
+  }
 ]
 
 export default function ReportesPage({ params }: { params: { username: string } }) {
   const [parameters, setParameters] = useState<ReportParameters>({
-    reportType: "usuarios",
+    reportType: "productos-mayor-demanda",
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [lugares, setLugares] = useState<Lugar[]>([])
@@ -68,15 +93,33 @@ export default function ReportesPage({ params }: { params: { username: string } 
   }
 
   const handleGenerateReport = async () => {
+    console.log("=== INICIO handleGenerateReport ===")
+    console.log("Parámetros actuales:", parameters)
+    
     if (!parameters.reportType) {
       setError("Por favor selecciona un tipo de reporte")
       return
     }
 
+    // Validar parámetros según el tipo de reporte seleccionado
+    const selectedReportType = reportTypes.find(rt => rt.value === parameters.reportType)
+    console.log("Tipo de reporte seleccionado:", selectedReportType)
+    
+    if (!selectedReportType) {
+      console.error("Tipo de reporte no encontrado en reportTypes:", parameters.reportType)
+      setError("Tipo de reporte no válido")
+      return
+    }
+
     // Validar fechas si son requeridas
-    const needsDateRange = ["usuarios", "ventas"].includes(parameters.reportType)
-    if (needsDateRange && (!parameters.fechaInicio || !parameters.fechaFin)) {
+    if (selectedReportType.parameters.includes("fechaInicio") && (!parameters.fechaInicio || !parameters.fechaFin)) {
       setError("Por favor selecciona el rango de fechas")
+      return
+    }
+
+    // Validar clienteId si es requerido
+    if (selectedReportType.parameters.includes("clienteId") && !parameters.clienteId) {
+      setError("Por favor ingresa el ID del cliente jurídico")
       return
     }
 
@@ -87,18 +130,23 @@ export default function ReportesPage({ params }: { params: { username: string } 
 
     try {
       console.log("Generando reporte con parámetros:", parameters)
+      console.log("URL del endpoint: /api/jasper-reports")
 
-      const response = await fetch("/api/reportes", {
+      const requestBody = {
+        reportType: parameters.reportType,
+        parameters,
+      }
+      console.log("Cuerpo de la petición:", JSON.stringify(requestBody, null, 2))
+
+      const response = await fetch("/api/jasper-reports", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          reportType: parameters.reportType,
-          parameters,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
+      console.log("Respuesta recibida, status:", response.status)
       const data = await response.json()
       console.log("Respuesta del servidor:", data)
 
@@ -111,7 +159,7 @@ export default function ReportesPage({ params }: { params: { username: string } 
         throw new Error(data.error || "Error generando reporte")
       }
     } catch (error) {
-      console.error("Error:", error)
+      console.error("Error en handleGenerateReport:", error)
       setError(`Error generando el reporte: ${(error as Error).message}`)
     } finally {
       setIsGenerating(false)
@@ -165,8 +213,8 @@ export default function ReportesPage({ params }: { params: { username: string } 
     return String(value)
   }
 
-  const needsDateRange = ["usuarios", "ventas"].includes(parameters.reportType)
-  const needsLocation = parameters.reportType === "empleados"
+  // Obtener el objeto del tipo de reporte seleccionado
+  const selectedReportType = reportTypes.find(rt => rt.value === parameters.reportType) || reportTypes[0];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -208,104 +256,68 @@ export default function ReportesPage({ params }: { params: { username: string } 
           </div>
         )}
 
-        {/* Formulario de generación */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">📊 Generador de Reportes</h2>
-
-          <div className="space-y-6">
-            {/* Selección de tipo de reporte */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Tipo de Reporte</label>
-              <select
-                value={parameters.reportType}
-                onChange={(e) => setParameters({ ...parameters, reportType: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {reportTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label} - {type.description}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Parámetros de fecha */}
-            {needsDateRange && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">📅 Fecha Inicio</label>
-                  <input
-                    type="date"
-                    value={parameters.fechaInicio || ""}
-                    onChange={(e) => setParameters({ ...parameters, fechaInicio: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">📅 Fecha Fin</label>
-                  <input
-                    type="date"
-                    value={parameters.fechaFin || ""}
-                    onChange={(e) => setParameters({ ...parameters, fechaFin: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Selección de lugar */}
-            {needsLocation && (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">📍 Lugar (Opcional)</label>
-                <select
-                  value={parameters.lugarId?.toString() || ""}
-                  onChange={(e) =>
-                    setParameters({
-                      ...parameters,
-                      lugarId: e.target.value ? Number.parseInt(e.target.value) : undefined,
-                    })
-                  }
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Todos los lugares</option>
-                  {lugares.map((lugar) => (
-                    <option key={lugar.lugar_id} value={lugar.lugar_id.toString()}>
-                      {lugar.nombre} {lugar.tipo && `(${lugar.tipo})`}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500">{lugares.length} lugares disponibles</p>
-              </div>
-            )}
-
-            {/* Botón generar */}
-            <button
-              onClick={handleGenerateReport}
-              disabled={isGenerating || !parameters.reportType}
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+        {/* Formulario de selección de reporte y parámetros */}
+        <form
+          className="bg-white border rounded-lg p-6 mb-8 flex flex-col gap-4"
+          onSubmit={e => { e.preventDefault(); handleGenerateReport(); }}
+        >
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <label className="font-medium">Tipo de reporte:</label>
+            <select
+              className="border rounded px-3 py-2"
+              value={parameters.reportType}
+              onChange={e => setParameters({ ...parameters, reportType: e.target.value })}
             >
-              {isGenerating ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generando Reporte...
-                </>
-              ) : (
-                <>📊 Generar Reporte</>
-              )}
-            </button>
-
-            {/* Error */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-red-500">⚠️</span>
-                  <p className="text-red-700 font-medium">Error</p>
-                </div>
-                <p className="text-red-600 mt-1">{error}</p>
-              </div>
-            )}
+              {reportTypes.map(rt => (
+                <option key={rt.value} value={rt.value}>{rt.label}</option>
+              ))}
+            </select>
+            <span className="text-gray-500 text-sm">{selectedReportType.description}</span>
           </div>
-        </div>
+
+          {/* Campos dinámicos según el tipo de reporte */}
+          {selectedReportType.parameters.includes("fechaInicio") && (
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <label className="font-medium">Fecha inicio:</label>
+              <input
+                type="date"
+                className="border rounded px-3 py-2"
+                value={parameters.fechaInicio || ""}
+                onChange={e => setParameters({ ...parameters, fechaInicio: e.target.value })}
+              />
+              <label className="font-medium">Fecha fin:</label>
+              <input
+                type="date"
+                className="border rounded px-3 py-2"
+                value={parameters.fechaFin || ""}
+                onChange={e => setParameters({ ...parameters, fechaFin: e.target.value })}
+              />
+            </div>
+          )}
+
+          {selectedReportType.parameters.includes("clienteId") && (
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <label className="font-medium">ID Cliente Jurídico:</label>
+              <input
+                type="number"
+                className="border rounded px-3 py-2"
+                value={parameters.clienteId || ""}
+                onChange={e => setParameters({ ...parameters, clienteId: Number(e.target.value) })}
+                min={1}
+              />
+              <span className="text-gray-500 text-xs">(ID numérico de la razón social)</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 disabled:opacity-50"
+            disabled={isGenerating}
+          >
+            {isGenerating ? "Generando..." : "Generar Reporte"}
+          </button>
+          {error && <div className="text-red-600 font-medium">{error}</div>}
+        </form>
 
         {/* Resultados del reporte */}
         {reportData && (
