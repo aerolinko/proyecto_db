@@ -2,11 +2,10 @@
 
 import {
   UserGroupIcon,
-  HomeIcon,
   DocumentDuplicateIcon,
   ShoppingBagIcon,
   Cog6ToothIcon,
-  InformationCircleIcon,
+  TruckIcon, BuildingStorefrontIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -16,7 +15,9 @@ export default function UserNavs({ permissions }) {
     { path: `VentaTienda`, nombre: 'Manejo de caja', icon: ShoppingBagIcon, id: 'consultar VENTA_TIENDA' },
     { path: `Roles`, nombre: 'Manejo de roles', icon: Cog6ToothIcon, id: 'consultar ROL' },
     { path: `GestionUsuarios`, nombre: 'Manejo de usuarios', icon: UserGroupIcon, id: 'consultar USUARIO' },
-    { path: `Reportes`, nombre: 'Manejo de reportes', icon: DocumentDuplicateIcon, id: 'consultar REPORTES' }
+    { path: `Reportes`, nombre: 'Manejo de reportes', icon: DocumentDuplicateIcon, id: 'consultar REPORTES' },
+    { path: `ReposicionAlmacenes`, nombre: 'Manejo de estados de las órdenes a proveedores', icon: TruckIcon, id: 'consultar ESTADO_COMPRA_REPOSICION' },
+    { path: `ReposicionAnaqueles`, nombre: 'Manejo de estados de las ordenes de anaqueles', icon: BuildingStorefrontIcon, id: 'consultar ESTADO_REPOSICION_ANAQUEL' }
   ];
 
   let filteredLinks = Links.filter(link =>
@@ -24,7 +25,7 @@ export default function UserNavs({ permissions }) {
   );
 
   return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredLinks.map((link) => {
           const LinkIcon = link.icon;
 
