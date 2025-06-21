@@ -1,103 +1,121 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-// NOTA: Se ha eliminado el import de "next/link" para resolver los errores de compilación en este entorno.
-// Se usará una etiqueta <a> estándar para los enlaces.
 import clsx from "clsx";
 import { MagnifyingGlassIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
-// Define un tipo para tus datos de rol para una mejor seguridad de tipos
-// Define un tipo para la dirección de ordenación
+// Define types
 type SortDirection = 'asc' | 'desc';
 
-export default function Roles({
-                                  params
-                              }:{
-    // Los params de ruta son directamente accesibles, no como una Promise
-    params: { usernameid: number }
-}) {
-    // @ts-ignore
-    const { usernameid } = React.use(params);
-    const [filter, setFilter] = useState(''); // Estado para la entrada de búsqueda
-    const [ordenes, setOrdenes] = useState<any[]>([]); // Estado para almacenar los datos de los roles
-    const [currentPage, setCurrentPage] = useState(1); // Página actual para la paginación
-    const [itemsPerPage] = useState(5); // Número de elementos por página
-    const [error, setError] = useState<string | null>(null); // Estado para manejar errores de la API
-    const [mensaje, setMensaje] = useState<string | null>(null);
-    const [permissions, setPermissions] = useState([]);
-    // Estados para la ordenación
-    const [sortColumn, setSortColumn] = useState<keyof Role>('rol_id'); // Columna de ordenación por defecto
-    const [sortDirection, setSortDirection] = useState<SortDirection>('asc'); // Dirección de ordenación por defecto
+interface Order {
+    compra_reposicion_id: number;
+    denominacion_comercial: string;
+    productos: string;
+    estado?: string;
+}
 
-    // En una aplicación real, obtendrías los roles aquí de una API
+interface OrderStatus {
+    orderId: number;
+    status: string;
+}
+
+interface StatusOption {
+    value: string;
+    label: string;
+}
+
+export default function Orders({ params }: { params: { usernameid: number } }) {
+    const { usernameid } = React.use(params);
+    const [filter, setFilter] = useState('');
+    const [ordenes, setOrdenes] = useState<Order[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5);
+    const [error, setError] = useState<string | null>(null);
+    const [mensaje, setMensaje] = useState<string | null>(null);
+    const [sortColumn, setSortColumn] = useState<keyof Order>('compra_reposicion_id');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+    // Status management state
+    const [selectedStatuses, setSelectedStatuses] = useState<OrderStatus[]>([]);
+    const [statusOptions, setStatusOptions] = useState<StatusOption[]>([
+        { value: 'pending', label: 'Pending' },
+        { value: 'processing', label: 'Processing' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'cancelled', label: 'Cancelled' },
+    ]);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Fetch orders
     useEffect(() => {
-        async function fetchRoles() {
+        async function fetchOrders() {
             try {
                 const response = await fetch("/api/ordenes?almacen=1", {
-                    method: "GET", // Especifica el metodo HTTP como GET.
-                    headers: { "Content-Type": "application/json" } // Establece el encabezado de la solicitud.
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
                 });
-                // Comprueba si la respuesta HTTP fue exitosa (código de estado 200-299).
+
                 if (!response.ok) {
-                    // Lanza un error si la respuesta HTTP indica un problema.
                     throw new Error(`¡Error HTTP! Estado: ${response.status}`);
                 }
+
                 const data = await response.json();
                 console.log(data.result);
                 setOrdenes(data.result);
-                setError(null); // Limpiar errores si la carga fue exitosa
+                setError(null);
+
+                // Initialize statuses from fetched orders if they have estado
+                const initialStatuses = data.result
+                    .filter((order: Order) => order.estado)
+                    .map((order: Order) => ({
+                        orderId: order.compra_reposicion_id,
+                        status: order.estado as string
+                    }));
+                setSelectedStatuses(initialStatuses);
             } catch (error: any) {
                 setError(error.message);
-                setRoles([]); // Si hay un error, limpiar los roles
+                setOrdenes([]);
             }
         }
-        fetchRoles();
-
-
+        fetchOrders();
     }, []);
-    // Función para manejar la ordenación por columna
-    const handleSort = useCallback((column: keyof Role) => {
+
+    // Sorting handler
+    const handleSort = useCallback((column: keyof Order) => {
         if (sortColumn === column) {
-            // Si se hace clic en la misma columna, alternar la dirección
-            setSortDirection(prevDirection => (prevDirection === 'asc' ? 'desc' : 'asc'));
+            setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
         } else {
-            // Si se hace clic en una nueva columna, establecerla como columna de ordenación y ordenar ascendente
             setSortColumn(column);
             setSortDirection('asc');
         }
     }, [sortColumn]);
 
-
-    // Roles filtrados y ordenados
+    // Filter and sort orders
     const sortedAndFilteredOrdenes = useMemo(() => {
-        let currentOrdenes = [...ordenes]; // Crear una copia para no mutar el estado original
+        let currentOrdenes = [...ordenes];
 
-        // 1. Filtrar
+        // Filter
         if (filter) {
             const lowerCaseFilter = filter.toLowerCase();
             currentOrdenes = currentOrdenes.filter(orden =>
                 orden.denominacion_comercial.toLowerCase().includes(lowerCaseFilter) ||
                 orden.productos.toLowerCase().includes(lowerCaseFilter) ||
-                orden.compra_reposicion_id.toString().toLowerCase().includes(lowerCaseFilter) // También permite filtrar por ID
+                orden.compra_reposicion_id.toString().toLowerCase().includes(lowerCaseFilter)
             );
         }
 
-        // 2. Ordenar
+        // Sort
         if (sortColumn) {
             currentOrdenes.sort((a, b) => {
                 const aValue = a[sortColumn];
                 const bValue = b[sortColumn];
 
-                // Manejo básico de tipos para comparación (asume strings o números simples)
                 if (typeof aValue === 'string' && typeof bValue === 'string') {
                     return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
                 }
-                // Si son números (aunque rol_id sea string, si en un futuro hubieran números, esto serviría)
                 if (typeof aValue === 'number' && typeof bValue === 'number') {
                     return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
                 }
-                // Fallback para otros tipos o si no se pueden comparar directamente
                 return 0;
             });
         }
@@ -105,78 +123,68 @@ export default function Roles({
         return currentOrdenes;
     }, [ordenes, filter, sortColumn, sortDirection]);
 
-    // Calcular el total de páginas para la paginación
+    // Pagination
     const totalPages = useMemo(() => {
         return Math.ceil(sortedAndFilteredOrdenes.length / itemsPerPage);
     }, [sortedAndFilteredOrdenes.length, itemsPerPage]);
 
-    // Obtener roles para la página actual
     const paginatedOrdenes = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         return sortedAndFilteredOrdenes.slice(startIndex, endIndex);
     }, [sortedAndFilteredOrdenes, currentPage, itemsPerPage]);
 
-    // Manejar cambios de página
     const handlePageChange = useCallback((page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
     }, [totalPages]);
 
-    // Manejar el cambio de la entrada de filtro y reiniciar la página a 1
     const handleFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(event.target.value);
-        setCurrentPage(1); // Reiniciar a la primera página al cambiar el filtro
+        setCurrentPage(1);
     }, []);
 
-    // Manejar la edición de un rol
-    const handleEdit = useCallback((role: Role) => {
-        // Usa window.location.href directamente para la navegación
-        // Codifica los parámetros para manejar caracteres especiales
-        const encodedNombre = encodeURIComponent(role.nombre);
-        const encodedDescripcion = encodeURIComponent(role.descripcion);
-        window.location.href = `/${usernameid}/Roles/${role.rol_id}?nombre=${encodedNombre}&descripcion=${encodedDescripcion}`;
-    }, [usernameid]);
+    // Status management
+    const handleStatusChange = useCallback((orderId: number, newStatus: string) => {
+        setSelectedStatuses(prev => {
+            const filtered = prev.filter(item => item.orderId !== orderId);
+            return newStatus ? [...filtered, { orderId, status: newStatus }] : filtered;
+        });
+    }, []);
 
-    // Manejar la eliminación de un rol
-    const handleDelete = useCallback(async (roleId: string) => {
-        // En una aplicación real, harías una llamada DELETE a tu API aquí
-        console.log(`Eliminando rol con ID: ${roleId}`);
+    const getCurrentStatus = useCallback((orderId: number) => {
+        const statusObj = selectedStatuses.find(item => item.orderId === orderId);
+        return statusObj ? statusObj.status : '';
+    }, [selectedStatuses]);
+
+    // Save status changes
+    const saveStatusChanges = useCallback(async () => {
+        if (selectedStatuses.length === 0) return;
+
+        setIsSaving(true);
         try {
-            const response = await fetch(`/api/roles?rol_id=${roleId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" }
+            const response = await fetch('/api/update-order-statuses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ statusUpdates: selectedStatuses })
             });
 
             if (!response.ok) {
-                throw new Error(`Error al eliminar el rol: ${response.statusText}`);
+                throw new Error(`Error saving statuses: ${response.statusText}`);
             }
 
-            // Si la eliminación es exitosa en el backend, actualiza el estado local
-            setRoles(prevRoles => {
-                const newRoles = prevRoles.filter(role => role.rol_id !== roleId);
-                // Ajustar la página actual si la última página queda vacía
-                const newTotalPages = Math.ceil(newRoles.length / itemsPerPage);
-                if (currentPage > newTotalPages && newTotalPages > 0) {
-                    setCurrentPage(newTotalPages);
-                } else if (newTotalPages === 0) {
-                    setCurrentPage(1); // Si no quedan roles, ir a la página 1
-                }
-                return newRoles;
-            });
-            setError(null)
-            setMensaje('Rol eliminado exitosamente');
-            setTimeout(()=> setMensaje(null),2000)// Limpiar errores si la eliminación fue exitosa
+            setMensaje('Status changes saved successfully');
+            setTimeout(() => setMensaje(null), 2000);
         } catch (error: any) {
-            console.error("Error eliminando rol:", error);
             setError(error.message);
+        } finally {
+            setIsSaving(false);
         }
-    }, [currentPage, itemsPerPage]);
+    }, [selectedStatuses]);
 
-
-    // Función auxiliar para renderizar el icono de ordenación
-    const renderSortArrow = (column: keyof Role) => {
+    // Render sort arrow
+    const renderSortArrow = (column: keyof Order) => {
         if (sortColumn === column) {
             return sortDirection === 'asc' ? ' ↑' : ' ↓';
         }
@@ -215,7 +223,7 @@ export default function Roles({
                     </div>
                 )}
 
-                {/* Roles Table */}
+                {/* Orders Table */}
                 <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-md">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -230,9 +238,9 @@ export default function Roles({
                             <th
                                 scope="col"
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-                                onClick={() => handleSort('orden.denominacion_comercial')}
+                                onClick={() => handleSort('denominacion_comercial')}
                             >
-                                Nombre del Proveedor {renderSortArrow('orden.denominacion_comercial')}
+                                Nombre del Proveedor {renderSortArrow('denominacion_comercial')}
                             </th>
                             <th
                                 scope="col"
@@ -242,7 +250,7 @@ export default function Roles({
                                 Productos {renderSortArrow('productos')}
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Acciones
+                                Estado
                             </th>
                         </tr>
                         </thead>
@@ -261,19 +269,17 @@ export default function Roles({
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center rounded space-x-3">
-                                            <select className='border border-gray-300 rounded-md shadow-sm'>
-                                                <option>
-                                                    awadd
-                                                </option>
-                                                <option>
-                                                    aaa
-                                                </option>
-                                                <option>
-                                                    addd
-                                                </option>
-                                                <option>
-                                                    awff
-                                                </option>
+                                            <select
+                                                className='border border-gray-300 rounded-md shadow-sm'
+                                                value={getCurrentStatus(orden.compra_reposicion_id)}
+                                                onChange={(e) => handleStatusChange(orden.compra_reposicion_id, e.target.value)}
+                                            >
+                                                <option value="">Select status...</option>
+                                                {statusOptions.map(option => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                     </td>
@@ -282,12 +288,26 @@ export default function Roles({
                         ) : (
                             <tr>
                                 <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
-                                    No se encontraron roles.
+                                    No se encontraron ordenes.
                                 </td>
                             </tr>
                         )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Save Status Changes Button */}
+                <div className="mt-4 flex justify-end">
+                    <button
+                        onClick={saveStatusChanges}
+                        disabled={selectedStatuses.length === 0 || isSaving}
+                        className={clsx(
+                            "bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors",
+                            { "opacity-50 cursor-not-allowed": selectedStatuses.length === 0 || isSaving }
+                        )}
+                    >
+                        {isSaving ? 'Guardando...' : 'Guardar Cambios de Estado'}
+                    </button>
                 </div>
 
                 {/* Pagination Controls */}
