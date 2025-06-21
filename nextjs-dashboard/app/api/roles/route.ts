@@ -1,7 +1,7 @@
 'use server'
 
 import { NextResponse } from "next/server";
-import { getAllRoles, getAllRolesPermisos, saveRole, updateRole, deleteRole} from "@/db";
+import {getAllRoles, getAllRolesPermisos, saveRole, updateRole, deleteRole, saveRolesUsuario} from "@/db";
 
 export async function GET(request: Request) {
     const url = new URL(request.url);
@@ -26,6 +26,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     // Parse the incoming JSON payload
+    const url = new URL(request.url);
+    const params = url.searchParams;
+    let roladd = params.get('user');
+
+    if(!roladd){
     try{
         const { nombre, descripcion } = await request.json();
         // Dummy authentication; replace with your actual logic
@@ -39,6 +44,22 @@ export async function POST(request: Request) {
         console.error('Error during creation:', err);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
+    }else {
+        try{
+            const { selectedUser, selectedRole } = await request.json();
+            // Dummy authentication; replace with your actual logic
+            const res = await saveRolesUsuario(selectedUser.id,selectedRole);
+            if(res) {
+                return NextResponse.json({ res }, { status: 200 });
+            }
+            return NextResponse.json({ error: 'Invalid User-Role Parameters' }, { status: 401 });
+        }
+        catch(err){
+            console.error('Error during creation:', err);
+            return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        }
+    }
+
 }
 
 export async function PUT(request: Request) {

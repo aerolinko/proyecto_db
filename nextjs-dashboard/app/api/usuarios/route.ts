@@ -5,7 +5,7 @@ import {
   getUsuarioWithEmpleadoByEmail,
   createUsuarioWithEmpleado,
   updateUsuarioWithEmpleado,
-  deleteUsuarioById,
+  deleteUsuarioById, getAllRolesUsuario,
 } from "@/db"
 
 export async function GET(request: NextRequest) {
@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get("id")
     const email = searchParams.get("email")
+    const role = searchParams.get("roles")
 
     if (userId) {
       console.log("Buscando usuario por ID:", userId)
@@ -27,6 +28,20 @@ export async function GET(request: NextRequest) {
       return Response.json({
         message: "Usuario encontrado",
         user: usuarios[0],
+      })
+    }
+
+    if (role) {
+      console.log("Buscando usuario roles de usurio:", role)
+      const rolesU = await getAllRolesUsuario(role)
+
+      if (rolesU.length === 0) {
+        return Response.json({ error: "Usuario no encontrado" }, { status: 404 })
+      }
+
+      return Response.json({
+        message: "Usuario encontrado",
+        roles: rolesU,
       })
     }
 

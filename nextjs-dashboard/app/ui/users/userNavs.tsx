@@ -19,7 +19,6 @@ export default function UserNavs({ permissions }) {
     {path:`Roles`,nombre:'Manejo de roles', icon: Cog6ToothIcon, id:'consultar ROL'},
     {path:`GestionUsuarios`,nombre:'Manejo de usuarios', icon: UserGroupIcon, id:'consultar USUARIO' },
     {path:`Reportes`,nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:'consultar REPORTES'}]
-  let i=0
   let filteredLinks=Links;
   for (let i=0; i<4; i++) {
     if(!permissions.some((permission:{descripcion:string}) => permission.descripcion == Links[i].id)) {

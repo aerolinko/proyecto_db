@@ -357,6 +357,14 @@ export default function Roles({
                         <p className="hidden md:block">Crear Rol</p>
                     </Link>
                     ) : null}
+                    {permissions.some((element:{descripcion:string})=>element.descripcion.includes('ROL_USUARIO')) ? (
+                        <Link href={`/${usernameid}/Roles/asignarUsuarios`}
+                              className={clsx(
+                                  'flex place-self-center w-fit gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
+                              )}>
+                            <p className="hidden md:block">Asignar Usuarios</p>
+                        </Link>
+                    ) : null}
                 </div>
             </div>
         </div>

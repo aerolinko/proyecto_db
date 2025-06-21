@@ -21,7 +21,8 @@ const filters=[
     {descripcion:'modificar USUARIO' },
     {descripcion:'modificar ROL_PERMISO' },
     {descripcion:'crear ROL_PERMISO' },
-    {descripcion:'consultar ROL_PERMISO' }]
+    {descripcion:'consultar ROL_PERMISO' },
+    {descripcion:'consultar ROL_USUARIO' }]
 
 export async function POST(request: Request) {
     // Parse the incoming JSON payload

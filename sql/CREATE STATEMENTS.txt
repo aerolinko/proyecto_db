@@ -1353,5 +1353,39 @@ create trigger triggerEmitirOrdenReposicionAnaquel
     for each row
 execute function emitirOrdenReposicionAnaquel();
 
+create or replace function obtenerRolUsuario(id integer)
+    returns table(rol_id integer, nombre varchar)
+    language sql
+as
+    $$
+        select rol.rol_id, rol.nombre from rol, rol_usuario where fk_usuario = id AND
+        fk_rol=rol_id;
+    $$;
+
+
+CREATE OR REPLACE PROCEDURE insertarusuariorol(
+    p_usuario_id INTEGER,
+    p_roles_ids jsonb
+)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    rol_id jsonb;
+BEGIN
+    FOR rol_ID IN SELECT * FROM jsonb_array_elements(p_roles_ids)
+        LOOP
+            INSERT INTO rol_usuario(
+                fk_rol,
+                fk_usuario,
+                fecha_inicio
+            ) VALUES (
+            (rol_id->>'rol_id')::INTEGER,
+                         p_usuario_id,
+                         CURRENT_DATE
+                     );
+        END LOOP;
+END;
+$$;
+
 
 

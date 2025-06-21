@@ -58,6 +58,14 @@ export async function getAllRolesPermisos(rol: number) {
     return await sql`SELECT * FROM obtenerRolPermisos(${rol})`;
 }
 
+export async function getAllRolesUsuario(id: number) {
+    return await sql`SELECT * FROM obtenerRolUsuario(${id})`;
+}
+
+export async function saveRolesUsuario(userid:number,ids:string) {
+    return await sql`Call insertarusuariorol(${userid},${sql.json(ids)})`;
+}
+
 export async function getClientPaymentMethods(id: number,tipo:string) {
     return await sql`select * from buscarmetodosdepagocliente(${tipo},${id});`;
 }
