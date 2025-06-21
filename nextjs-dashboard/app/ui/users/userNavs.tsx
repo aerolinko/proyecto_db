@@ -4,58 +4,65 @@ import {
   UserGroupIcon,
   HomeIcon,
   DocumentDuplicateIcon,
-  ShoppingBagIcon, // Example: Add another icon for a new link
-  Cog6ToothIcon, InformationCircleIcon,  // Example: Another icon
+  ShoppingBagIcon,
+  Cog6ToothIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link'
 import clsx from 'clsx'
 
-
-
-// @ts-ignore
 export default function UserNavs({ permissions }) {
-  const Links= [
-    {path:`VentaTienda`,nombre:'Manejo de caja', icon: ShoppingBagIcon, id:'consultar VENTA_TIENDA'},
-    {path:`Roles`,nombre:'Manejo de roles', icon: Cog6ToothIcon, id:'consultar ROL'},
-    {path:`GestionUsuarios`,nombre:'Manejo de usuarios', icon: UserGroupIcon, id:'consultar USUARIO' },
-    {path:`Reportes`,nombre:'Manejo de reportes', icon: DocumentDuplicateIcon, id:'consultar REPORTES'}]
-  let filteredLinks=Links;
-  for (let i=0; i<4; i++) {
-    if(!permissions.some((permission:{descripcion:string}) => permission.descripcion == Links[i].id)) {
-      filteredLinks = filteredLinks.filter((link) => link.id !== Links[i].id);
-    }
-  }
+  const Links = [
+    { path: `VentaTienda`, nombre: 'Manejo de caja', icon: ShoppingBagIcon, id: 'consultar VENTA_TIENDA' },
+    { path: `Roles`, nombre: 'Manejo de roles', icon: Cog6ToothIcon, id: 'consultar ROL' },
+    { path: `GestionUsuarios`, nombre: 'Manejo de usuarios', icon: UserGroupIcon, id: 'consultar USUARIO' },
+    { path: `Reportes`, nombre: 'Manejo de reportes', icon: DocumentDuplicateIcon, id: 'consultar REPORTES' }
+  ];
 
-
+  let filteredLinks = Links.filter(link =>
+      permissions.some(permission => permission.descripcion === link.id)
+  );
 
   return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4 p-6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {filteredLinks.map((link) => {
-          // Ensure the icon component exists in our map or is directly provided
           const LinkIcon = link.icon;
-
-          if (!LinkIcon) {
-            console.warn(`Icon for link "${link.nombre}" not found.`);
-            return null; // Don't render if icon is missing
-          }
 
           return (
               <Link
                   key={link.nombre}
                   href={link.path}
-                  className={clsx( // Apply clsx here once
-                      // --- START: Card CSS Classes ---
-                      'flex flex-col items-center justify-center', // Stacks icon and text vertically, centers them
-                      'p-4 rounded-xl', // More padding, larger rounded corners
-                      'bg-gray-200 border border-gray-200', // White background, subtle border
-                      'shadow-md hover:shadow-lg transition-all duration-200 ease-in-out', // Shadow for depth, smooth hover effect
-                      'text-gray-800 text-center font-medium', // Default text color, center text
-                      'w-full h-36', // Fixed size for cards (w-full fills grid cell, h-36 is fixed height)
-                      'hover:scale-105 transform', // Subtle grow on hover
+                  className={clsx(
+                      'group relative flex flex-col items-center justify-center',
+                      'p-6 rounded-xl transition-all duration-300',
+                      'bg-white border border-gray-200 shadow-sm',
+                      'hover:shadow-lg hover:border-blue-500 hover:bg-blue-50',
+                      'h-full min-h-[180px]'
                   )}
               >
-                <LinkIcon className="w-6" />
-                <p className="hidden md:block">{link.nombre}</p>
+                <div className={clsx(
+                    'absolute top-4 right-4 w-2 h-2 rounded-full',
+                    'bg-blue-500 opacity-0 group-hover:opacity-100',
+                    'transition-opacity duration-300'
+                )} />
+
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <div className={clsx(
+                      'p-3 rounded-full bg-blue-100 text-blue-600',
+                      'group-hover:bg-blue-600 group-hover:text-white',
+                      'transition-colors duration-300'
+                  )}>
+                    <LinkIcon className="w-6 h-6" />
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                    {link.nombre}
+                  </h3>
+
+                  <p className="text-sm text-gray-500 group-hover:text-blue-500 transition-colors">
+                    Click para acceder
+                  </p>
+                </div>
               </Link>
           );
         })}

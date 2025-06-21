@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
+import {PencilIcon, TrashIcon} from "@heroicons/react/24/outline";
 
 interface Empleado {
   id: string
@@ -387,18 +388,18 @@ export default function GestionUsuarios() {
                             <p className="text-xs text-gray-400">Creado: {user.fecha_creacion}</p>
                           )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 pr-6">
                           <button
-                            onClick={() => setEditingUser(user)}
-                            className="bg-yellow-500 text-white px-3 py-2 rounded-md hover:bg-yellow-600 transition-colors"
+                              onClick={() => setEditingUser(user)}
+                              className="inline-flex items-center p-2 rounded-full text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
                           >
-                            ✏️
+                            <PencilIcon className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => deleteUser(user.id)}
-                            className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition-colors"
+                              onClick={() => deleteUser(user.id)}
+                              className="inline-flex items-center p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
                           >
-                            🗑️
+                            <TrashIcon className="h-5 w-5" />
                           </button>
                         </div>
                       </>

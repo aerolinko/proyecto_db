@@ -7,7 +7,7 @@ import Link from "next/link";
 import {redirect, usePathname} from "next/navigation";
 
 
-export default function CrearRol({
+export default function EditarRol({
                                      params,
                                  }: {
                                      params: Promise<{ usernameid:number ,rol_id:number }>

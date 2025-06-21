@@ -185,282 +185,355 @@ export default function MetodoPago({ cart, setPagando }) {
 
 
     return (
-        <div className="min-h-full  p-4 font-sans flex items-center justify-center">
-            { !registrando ? (
-            <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl space-y-8 md:space-y-0 md:grid md:grid-cols-2 md:gap-8">
-                {/* Left Column: Client and Cart */}
-                <div className="space-y-[53.5px]">
-                    <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">Ventana de Pago</h1>
+        <div className="min-h-screen bg-gray-50 p-4 md:p-6 font-sans flex items-center justify-center">
+            {!registrando ? (
+                <div className="bg-white rounded-xl shadow-lg w-full max-w-6xl overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+                        <h1 className="text-2xl md:text-3xl font-bold text-center">Ventana de Pago</h1>
+                    </div>
+
+                    {/* Error Message */}
                     {error && (
-                        <div className={`p-4 rounded-lg text-center text-lg font-semibold bg-red-100 text-red-800`}>
-                            {error} {/* Displays the actual message text. */}
+                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mx-4 mt-4 rounded">
+                            <p className="font-medium">{error}</p>
                         </div>
                     )}
 
-                    {/* Client Selection */}
-                    <div className="bg-gray-50 p-6 rounded-lg border-gray-300 border-2 shadow-sm">
-                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Detalles del Cliente</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <label htmlFor="paymentType" className="block text-sm font-medium text-gray-700 mb-1">
-                                    ID
-                                </label>
-                                <input
-                                    type="text"
-                                    id="clientIdInput"
-                                    value={selectedClientId}
-                                    onChange={(e) => setSelectedClientId(e.target.value)}
-                                    required
-                                    className="mt-1 block w-full px-3 py-2 bg-gray-200 border border-gray-300 rounded-md shadow-sm sm:text-sm "
-                                    placeholder="Cédula/RIF"
-                                    maxLength={12}
-                                />
-                            </div>
-                            {foundClientId &&(
-                                <div className={`rounded-lg text-center font-semibold bg-green-100 text-green-800`}>
-                                    Puntos disponibles: {foundClientId.totalpuntos}pts
-                                </div>
-                            )}
-                        </div>
-                        <button
-                            className={clsx(
-                                "bg-blue-600 text-white py-2 px-3 mt-3 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 shadow-md"
-                            )}
-                            onClick={() => buscarCliente(selectedClientId)}
-                                >
-                            <p className=" hidden md:block">Buscar Cliente</p>
-                        </button>
-                    </div>
+                    <div className="md:flex">
+                        {/* Left Column - Client and Cart */}
+                        <div className="p-6 md:w-1/2 border-b md:border-b-0 md:border-r border-gray-200">
+                            {/* Client Section */}
+                            <div className="mb-8">
+                                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                    <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    Detalles del Cliente
+                                </h2>
 
-                    {/* Cart Display */}
-                    <div className="bg-gray-50 p-6 border-gray-300 border-2 rounded-lg shadow-sm">
-                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Carrito</h2>
-                        <div className="border border-gray-200 rounded-md overflow-hidden shadow-sm">
-                            <div className="bg-gray-100 p-3 grid grid-cols-4 gap-2 text-sm font-medium text-gray-600 border-b border-gray-200">
-                                <span className="col-span-2">Producto</span>
-                                <span className="text-center">Cantidad</span>
-                                <span className="text-right">Precio</span>
-                            </div>
-                            {cart.map((item:any) => (
-                                <div key={item.id} className="grid grid-cols-4 gap-2 p-3 text-sm border-b border-gray-200 last:border-b-0">
-                                    <span className="col-span-2 text-gray-800">{item.name+' '+item.presentation+'ml'}</span>
-                                    <span className="text-center text-gray-600">{item.quantity}</span>
-                                    <span className="text-right text-gray-800">${(item.price * 1).toFixed(2)}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-4 text-right text-xl font-bold text-gray-800">
-                            Monto Total: ${cartTotal.toFixed(2)}
-                        </div>
-
-                    </div>
-                    <button
-                          className={clsx(
-                              'flex relative w-fit mt-4 gap-2 rounded-md bg-gray-200 p-3 font-medium hover:bg-sky-100 hover:text-blue-600 ',
-                          )}
-                    onClick={() => {setPagando(false)}}>
-                        <p className="pl-6 hidden md:block">Regresar</p>
-                        <ArrowLeftCircleIcon className="text-inherit absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-900 peer-focus:text-gray-900"> </ArrowLeftCircleIcon>
-                    </button>
-                </div>
-
-                {/* Right Column: Payment Methods */}
-                <div className="space-y-6">
-                    {/* Payment Method Input */}
-                    <div className="bg-gray-50 border-gray-300 border-2 p-6 rounded-lg shadow-sm">
-                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Métodos de Pago</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <label htmlFor="paymentType" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Métodos registrados
-                                </label>
-
-                                <select
-                                    id="paymentType"
-                                    disabled={!selectedClientId}
-                                    value={JSON.stringify(newPaymentMethodType)}
-                                    onChange={(e) => setNewPaymentMethodType(JSON.parse(e.target.value))}
-                                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
-                                >{selectablePaymentMethod.map((item:any) => (
-                                    <option value={JSON.stringify(item)} key={item.metodo_pago_id+item.tipo}
-                                    >
-                                        Tarjeta de {item.tipo} ************{item.numero.substring(12,16)}
-                                    </option>
-                                ))
-                                }
-                                    <option value={JSON.stringify({tipo:'efectivo'})} key={'cash'}
-                                    >
-                                        Efectivo
-                                    </option>
-                                    <option value={JSON.stringify({tipo:'cheque'})} key={'cheque'}
-                                    >
-                                        Cheque
-                                    </option>
-                                    <option value={JSON.stringify({tipo:'puntos'})} key={'points'}
-                                    >
-                                        Puntos
-                                    </option>
-                                </select>
-                                <div className='w-full mt-1'>
-                                    <button
-                                        disabled={!foundClientId}
-                                        className={clsx(
-                                            `flex relative float-right rounded-md mb-2 transition duration-200 p-1.5 font-bold ${!foundClientId ? 'bg-gray-300 text-blue-50 cursor-not-allowed' :
-                                                                       'hover:bg-sky-100 hover:text-blue-600'}` )}
-                                        onClick={() => {setRegistrando(true)}}>
-                                        <p className="pl-6 hidden md:block text-xs ">Registrar nueva tarjeta</p>
-                                        <PlusIcon className="text-inherit absolute left-2 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-900 peer-focus:text-gray-900"> </PlusIcon>
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
-                                { newPaymentMethodType!== undefined  && (newPaymentMethodType.tipo == 'cheque') && (
-
+                                <div className="space-y-4">
                                     <div>
-                                        <label htmlFor="chequeNumber" className="block text-sm font-medium text-gray-700">
-                                            Número de Cheque
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id="chequeNumber"
-                                            value={newPaymentMethodNumeroCheque}
-                                            maxLength={10}
-                                            onChange={(e) => {
-                                                // Only keep numbers and limit to 20 digits
-                                                const numbersOnly = e.target.value.replace(/\D/g, '');
-                                                setNewPaymentMethodNumeroCheque(numbersOnly.slice(0, 10));
-                                            }}
-                                            placeholder="e.j. 1234567890"
-                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        />
-                                        <label htmlFor="checkAccount" className="block text-sm font-medium text-gray-700">
-                                            Numero de cuenta
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id="checkAccount"
-                                            value={newPaymentMethodNumeroCuenta}
-                                            onChange={(e) => {
-                                                // Only keep numbers and limit to 20 digits
-                                                const numbersOnly = e.target.value.replace(/\D/g, '');
-                                                setNewPaymentMethodNumeroCuenta(numbersOnly.slice(0, 20));
-                                            }}
-                                            placeholder="e.j. 1234567890000000000"
-                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        />
-                                        <label htmlFor="checkBank" className="block text-sm font-medium text-gray-700">
-                                            Banco emisor
+                                        <label htmlFor="clientIdInput" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Cédula/RIF
                                         </label>
                                         <input
                                             type="text"
-                                            id="checkBank"
-                                            value={newPaymentMethodBanco}
-                                            onChange={(e) => setNewPaymentMethodBanco(e.target.value)}
-                                            placeholder="e.j. Banesco"
-                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            id="clientIdInput"
+                                            value={selectedClientId}
+                                            onChange={(e) => setSelectedClientId(e.target.value)}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="Ej: V123456789"
+                                            maxLength={12}
                                         />
                                     </div>
-                                )}
-                                <label htmlFor="paymentAmount" className="block text-sm mt-8 font-medium text-gray-700 mb-1">
-                                    Monto
-                                </label>
-                                <input
-                                    type="number"
-                                    id="paymentAmount"
-                                    value={newPaymentMethodAmount}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (newPaymentMethodType && newPaymentMethodType.tipo === 'puntos' && parseFloat(value) > foundClientId.totalpuntos) {
-                                            setNewPaymentMethodAmount(foundClientId.totalpuntos);
-                                        } else {
-                                            setNewPaymentMethodAmount(value);
-                                        }
-                                    }}
-                                    placeholder="e.j. 50.00"
-                                    min="0.01"
-                                    step="0.01"
-                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                />
 
+                                    {foundClientId && (
+                                        <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded">
+                                            <p className="text-green-800 font-medium">
+                                                Puntos disponibles: <span className="font-bold">{foundClientId.totalpuntos}pts</span>
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => buscarCliente(selectedClientId)}
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md shadow-sm transition duration-200 flex items-center justify-center"
+                                    >
+                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        Buscar Cliente
+                                    </button>
+                                </div>
                             </div>
+
+                            {/* Cart Section */}
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                    <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    Carrito
+                                </h2>
+
+                                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div className="bg-gray-50 grid grid-cols-4 gap-2 p-3 text-sm font-medium text-gray-600 border-b border-gray-200">
+                                        <span className="col-span-2">Producto</span>
+                                        <span className="text-center">Cantidad</span>
+                                        <span className="text-right">Precio</span>
+                                    </div>
+
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {cart.map((item: any) => (
+                                            <div key={item.id} className="grid grid-cols-4 gap-2 p-3 text-sm border-b border-gray-200 hover:bg-gray-50 transition duration-150">
+                                                <span className="col-span-2 text-gray-800 truncate">{item.name} {item.presentation}ml</span>
+                                                <span className="text-center text-gray-600">{item.quantity}</span>
+                                                <span className="text-right text-gray-800">${(item.price * 1).toFixed(2)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="p-3 bg-gray-50 border-t border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-lg font-bold text-gray-800">Total:</span>
+                                            <span className="text-xl font-extrabold text-blue-600">${cartTotal.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Back Button */}
                             <button
-                                onClick={handleAddPayment}
-                                disabled={!foundClientId}
-                                className={`w-full  font-semibold  py-2 px-4  rounded-md  focus:outline-none focus:ring-2  focus:ring-opacity-50 transition duration-200 shadow-sm 
-                                ${!foundClientId ? 'bg-gray-300 text-blue-50 cursor-not-allowed' :
-                                    'text-white bg-green-600 hover:bg-green-700 focus:ring-green-500'}`}
+                                onClick={() => setPagando(false)}
+                                className='flex relative w-fit mt-4 gap-2 rounded-md bg-gray-200 p-3 font-medium hover:bg-sky-100 hover:text-blue-600 '
                             >
-                                Añadir Método de Pago
+                                <ArrowLeftCircleIcon className="h-5 w-5 mr-1" />
+                                <span>Regresar</span>
+                            </button>
+                        </div>
+
+                        {/* Right Column - Payment Methods */}
+                        <div className="p-6 md:w-1/2">
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                Métodos de Pago
+                            </h2>
+
+                            {/* Payment Method Selection */}
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                                <label htmlFor="paymentType" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Seleccionar método de pago
+                                </label>
+
+                                <div className="flex items-center space-x-2 mb-3">
+                                    <select
+                                        id="paymentType"
+                                        disabled={!selectedClientId}
+                                        value={JSON.stringify(newPaymentMethodType)}
+                                        onChange={(e) => setNewPaymentMethodType(JSON.parse(e.target.value))}
+                                        className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                                    >
+                                        {selectablePaymentMethod.map((item: any) => (
+                                            <option value={JSON.stringify(item)} key={item.metodo_pago_id + item.tipo}>
+                                                Tarjeta de {item.tipo} ****{item.numero.substring(12, 16)}
+                                            </option>
+                                        ))}
+                                        <option value={JSON.stringify({ tipo: 'efectivo' })} key={'cash'}>
+                                            Efectivo
+                                        </option>
+                                        <option value={JSON.stringify({ tipo: 'cheque' })} key={'cheque'}>
+                                            Cheque
+                                        </option>
+                                        <option value={JSON.stringify({ tipo: 'puntos' })} key={'points'}>
+                                            Puntos
+                                        </option>
+                                    </select>
+
+                                    <button
+                                        disabled={!foundClientId}
+                                        onClick={() => setRegistrando(true)}
+                                        className={`p-2 rounded-md transition duration-200 ${!foundClientId
+                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                            : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                                        }`}
+                                        title="Registrar nueva tarjeta"
+                                    >
+                                        <PlusIcon className="h-5 w-5" />
+                                    </button>
+                                </div>
+
+                                {/* Payment Method Details */}
+                                {newPaymentMethodType !== undefined && newPaymentMethodType.tipo == 'cheque' && (
+                                    <div className="space-y-3 mt-3">
+                                        <div>
+                                            <label htmlFor="chequeNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Número de Cheque
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="chequeNumber"
+                                                value={newPaymentMethodNumeroCheque}
+                                                maxLength={10}
+                                                onChange={(e) => {
+                                                    const numbersOnly = e.target.value.replace(/\D/g, '');
+                                                    setNewPaymentMethodNumeroCheque(numbersOnly.slice(0, 10));
+                                                }}
+                                                placeholder="Ej: 1234567890"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="checkAccount" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Número de cuenta
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="checkAccount"
+                                                value={newPaymentMethodNumeroCuenta}
+                                                onChange={(e) => {
+                                                    const numbersOnly = e.target.value.replace(/\D/g, '');
+                                                    setNewPaymentMethodNumeroCuenta(numbersOnly.slice(0, 20));
+                                                }}
+                                                placeholder="Ej: 1234567890000000000"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="checkBank" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Banco emisor
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="checkBank"
+                                                value={newPaymentMethodBanco}
+                                                onChange={(e) => setNewPaymentMethodBanco(e.target.value)}
+                                                placeholder="Ej: Banesco"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="mt-4">
+                                    <label htmlFor="paymentAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Monto a pagar
+                                    </label>
+                                    <div className="relative rounded-md shadow-sm">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span className="text-gray-500">$</span>
+                                        </div>
+                                        <input
+                                            type="number"
+                                            id="paymentAmount"
+                                            value={newPaymentMethodAmount}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (newPaymentMethodType && newPaymentMethodType.tipo === 'puntos' && parseFloat(value) > foundClientId.totalpuntos) {
+                                                    setNewPaymentMethodAmount(foundClientId.totalpuntos);
+                                                } else {
+                                                    setNewPaymentMethodAmount(value);
+                                                }
+                                            }}
+                                            placeholder="0.00"
+                                            min="0.01"
+                                            step="0.01"
+                                            className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handleAddPayment}
+                                    disabled={!foundClientId}
+                                    className={`w-full mt-4 py-2 px-4 rounded-md font-medium transition duration-200 shadow-sm ${!foundClientId
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-green-600 hover:bg-green-700 text-white'
+                                    }`}
+                                >
+                                    Añadir método de pago
+                                </button>
+                            </div>
+
+                            {/* Current Payments */}
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                                <h3 className="text-lg font-medium text-gray-800 mb-3">Pagos registrados</h3>
+
+                                <div className="border border-gray-200 rounded-md overflow-hidden">
+                                    <div className="bg-gray-100 grid grid-cols-3 gap-2 p-2 text-sm font-medium text-gray-600">
+                                        <span>Tipo</span>
+                                        <span className="text-right">Monto</span>
+                                        <span className="text-center">Acción</span>
+                                    </div>
+
+                                    {paymentMethods.length === 0 ? (
+                                        <div className="p-4 text-center text-sm text-gray-500">
+                                            No se han añadido métodos de pago
+                                        </div>
+                                    ) : (
+                                        <div className="max-h-48 overflow-y-auto">
+                                            {paymentMethods.map((method: any, index) => (
+                                                <div key={index} className="grid grid-cols-3 gap-2 p-2 text-sm border-t border-gray-200 hover:bg-gray-50">
+                        <span className="text-gray-800 truncate">
+                          {method.tipo === 'efectivo' && 'Efectivo'}
+                            {method.tipo === 'cheque' && 'Cheque'}
+                            {method.tipo === 'puntos' && `Puntos (${method.cantidad})`}
+                            {method.tipo !== 'efectivo' && method.tipo !== 'cheque' && method.tipo !== 'puntos' &&
+                                `${method.tipo} ****${method.numero_tarjeta?.substring(12, 16) || ''}`
+                            }
+                        </span>
+                                                    <span className="text-right text-gray-800">${method.cantidad.toFixed(2)}</span>
+                                                    <span className="text-center">
+                          <button
+                              onClick={() => handleRemovePayment(index)}
+                              className="text-red-500 hover:text-red-700 transition duration-200"
+                          >
+                            Eliminar
+                          </button>
+                        </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-4 space-y-2">
+                                    <div className="flex justify-between text-gray-700">
+                                        <span>Total pagando:</span>
+                                        <span className="font-medium">${totalPaid.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Total faltante:</span>
+                                        <span className={`font-bold ${remainingBalance > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+                    ${remainingBalance.toFixed(2)}
+                  </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <button
+                                onClick={handleSubmit}
+                                disabled={!foundClientId}
+                                className={`w-full py-3 px-6 rounded-md text-lg font-semibold transition duration-200 shadow-md ${!foundClientId
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                }`}
+                            >
+                                Completar Pago
                             </button>
                         </div>
                     </div>
-
-                    {/* Current Payment Methods */}
-                    <div className="bg-gray-50 p-6 border-gray-300 border-2 rounded-lg shadow-sm">
-                        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Pago</h2>
-                        <div className="border border-gray-200 rounded-md overflow-hidden shadow-sm">
-                            <div className="bg-gray-100 p-3 grid grid-cols-3 gap-2 text-sm font-medium text-gray-600 border-b border-gray-200">
-                                <span>Tipo</span>
-                                <span className="text-right">Monto</span>
-                                <span className="text-center">Acción</span>
-                            </div>
-                            {paymentMethods.length === 0 ? (
-                                <div className="p-3 text-center text-gray-500 text-sm">No hay métodos de pago aún.</div>
-                            ) : (
-                                paymentMethods.map((method:any, index) => method.tipo !== 'efectivo' && method.tipo !== 'cheque' && method.tipo !== 'puntos' ? (
-                                    <div key={index} className="grid grid-cols-3 gap-2 p-3 text-sm border-b border-gray-200 last:border-b-0">
-                                        <span className="text-gray-800">{method.tipo} ****{method.numero_tarjeta.substring(12,16)}</span>
-                                        <span className="text-right text-gray-800">${method.cantidad.toFixed(2)}</span>
-                                        <span className="text-center">
-                      <button
-                          onClick={() => handleRemovePayment(index)}
-                          className="text-red-600 hover:text-red-800 font-medium text-sm transition duration-200"
-                      >
-                        Eliminar
-                      </button>
-                    </span>
-                                    </div>
-                                ):(<div key={index} className="grid grid-cols-3 gap-2 p-3 text-sm border-b border-gray-200 last:border-b-0">
-                                    <span className="text-gray-800">{method.tipo} {method.tipo == 'puntos' &&(`(${method.cantidad})`)} </span>
-                                    <span className="text-right text-gray-800">${method.cantidad.toFixed(2)}</span>
-                                    <span className="text-center">
-                      <button
-                          onClick={() => handleRemovePayment(index)}
-                          className="text-red-600 hover:text-red-800 font-medium text-sm transition duration-200"
-                      >
-                        Eliminar
-                      </button>
-                    </span>
-                                </div>))
-                            )}
-                        </div>
-                        <div className="mt-4 text-right text-xl font-bold text-gray-800">
-                            Total pagando: ${totalPaid.toFixed(2)}
-                        </div>
-                        <div className="mt-2 text-right text-xl font-bold" style={{ color: remainingBalance > 0.01 ? '#dc2626' : '#22c55e' }}>
-                            Total faltante: ${remainingBalance.toFixed(2)}
-                        </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    <button
-                        onClick={handleSubmit}
-                        className={`w-full  py-3 px-6 rounded-md text-lg font-semibold  focus:outline-none focus:ring-2  focus:ring-opacity-50 transition duration-200 shadow-md
-                        ${!foundClientId ? 'bg-gray-300 text-blue-50 cursor-not-allowed' :
-                            'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'}`}
-                        disabled={!foundClientId}
-                    >
-                        Completar Pago
-                    </button>
                 </div>
-                <Modal message={modalMessage} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-            </div>
+            ) : (
+                <RegistrarPago
+                    setRegistrando={setRegistrando}
+                    foundClientId={foundClientId}
+                    setFoundClientId={setFoundClientId}
+                    setSelectedClientId={setSelectedClientId}
+                    setSelectablePaymentMethod={setSelectablePaymentMethod}
+                    setPaymentMethods={setPaymentMethods}
+                />
+            )}
 
-                     ):(
-        <RegistrarPago setRegistrando={setRegistrando} foundClientId={foundClientId} setFoundClientId={setFoundClientId}
-                       setSelectedClientId={setSelectedClientId} setSelectablePaymentMethod={setSelectablePaymentMethod} setPaymentMethods={setPaymentMethods} />
-                )
-            }
+            {/* Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-sm w-full mx-4">
+                        <p className="text-lg mb-4">{modalMessage}</p>
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

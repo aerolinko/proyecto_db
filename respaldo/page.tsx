@@ -175,93 +175,91 @@ export default function Page (){
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4 font-sans">
-            {!pagando ? (
-                <div className="max-w-6xl mx-auto">
-                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-purple-200">
-                        {/* Header Section */}
-                        <div className="bg-purple-700 p-6 text-white">
-                            <h1 className="text-3xl font-bold text-center">Registro de Ventas</h1>
-                        </div>
-
-                        {/* Message Display */}
-                        {message && (
-                            <div className={`p-4 mx-4 mt-4 rounded-lg text-center font-semibold
-                                ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                {message.text}
-                            </div>
-                        )}
-
-                        {/* Search Bar */}
-                        <div className="px-6 pt-4">
-                            <input
-                                type="text"
-                                placeholder="Buscar productos..."
-                                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400 text-gray-700"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+        // Main container for the page, setting a minimum height, background gradient, and layout.
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex flex-col items-center p-6 font-sans">
+        {/* Inner container for the sales application, with styling for background, padding, shadow, and border. */}
+        { !pagando ? (
+        <div>
+            <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl mb-8 border border-purple-200">
+                {/* Main title of the application. */}
+                <h1 className="text-4xl font-extrabold text-purple-800 text-center mb-6 pb-4 border-b-2 border-purple-300">
+                    Registro de Ventas {/* Placeholder title. */}
+                </h1>
+                {/* Message display area, conditionally rendered based on the `message` state. */}
+                {message && (
+                    <div className={`p-4 rounded-lg mb-4 text-center text-lg font-semibold
+                           ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {message.text} {/* Displays the actual message text. */}
+                    </div>
+                )}
+                <div className="mb-6 w-full">
+                    <input
+                        type="text"
+                        placeholder="Buscar productos..."
+                        className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                    {/* Section title for available products. */}
+                    <h2 className="text-2xl font-bold text-purple-700 mb-4">Productos Disponibles</h2>
+                    {/* Grid container for displaying product cards. */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[400px] overflow-y-scroll">
+                    {filteredProducts.length === 0 ? ( // Use filteredProducts here
+                        // Message if no products are available after loading or after filtering.
+                        <p className="col-span-full text-center text-gray-600">No hay productos disponibles que coincidan con la búsqueda.</p>
+                    ) : (
+                        // Map through the `filteredProducts` array and render a `ProductCard` for each.
+                        filteredProducts.map(product => (
+                            <ProductCard
+                                key={product.id} // `key` prop for efficient list rendering in React.
+                                product={product} // Passes the entire product object as a prop.
+                                onAddToCart={handleAddToCart} // Passes the cart-handling function as a prop.
+                                initialQuantity={cart.find((item:any)=>item.id==product.id) ?.quantity || 0} // Passes the current quantity of this product in the cart.
                             />
-                        </div>
-
-                        {/* Products Section */}
-                        <div className="p-6">
-                            <h2 className="text-xl font-bold text-purple-800 mb-4">Productos Disponibles</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto p-2">
-                                {filteredProducts.length === 0 ? (
-                                    <p className="col-span-full text-center text-gray-600 py-8">
-                                        No hay productos disponibles que coincidan con la búsqueda.
-                                    </p>
-                                ) : (
-                                    filteredProducts.map(product => (
-                                        <ProductCard
-                                            key={product.id}
-                                            product={product}
-                                            onAddToCart={handleAddToCart}
-                                            initialQuantity={cart.find((item: any) => item.id == product.id)?.quantity || 0}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Cart Section */}
-                        <div className="p-6 border-t border-purple-200">
-                            <h2 className="text-xl font-bold text-purple-800 mb-4">Tu Carrito</h2>
-                            {cart.length === 0 ? (
-                                <p className="text-gray-600 text-center py-4">El carrito está vacío.</p>
-                            ) : (
-                                <>
-                                    <div className="bg-purple-50 rounded-lg shadow-inner max-h-[200px] overflow-y-auto">
-                                        {cart.map((item: any) => (
-                                            <CartItem key={item.id} item={item} />
-                                        ))}
-                                    </div>
-                                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-purple-300">
-                                        <span className="text-lg font-bold text-purple-800">Total:</span>
-                                        <span className="text-xl font-extrabold text-purple-900">${total.toFixed(2)}</span>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Checkout Button */}
-                        <div className="p-6 border-t border-purple-200">
-                            <button
-                                onClick={handleCheckout}
-                                className={`w-full py-3 rounded-lg text-lg font-bold text-white transition-all duration-200
-                                    ${cart.length > 0
-                                    ? 'bg-purple-600 hover:bg-purple-700 shadow-md hover:shadow-lg'
-                                    : 'bg-gray-400 cursor-not-allowed'}`}
-                                disabled={cart.length === 0}
-                            >
-                                Continuar al Pago
-                            </button>
+                        ))
+                    )}
+                </div>
+                {/* Section for the shopping cart. */}
+                <div className="mt-10 pt-6 border-t-2 border-purple-300">
+                    {/* Section title for the cart. */}
+                        <h2 className="text-2xl font-bold text-purple-700 mb-4">Tu Carrito</h2>
+                    {/* Conditionally renders content based on whether the cart is empty. */}
+                    {Object.keys(cart).length === 0 ? (
+                        <p className="text-gray-600 text-center text-lg">El carrito está vacío.</p> // Message if cart is empty.
+                    ) : (
+                    // Container for cart items if the cart is not empty.
+                    <div className="bg-purple-50 p-6 rounded-lg shadow-inner border border-purple-200">
+                        {/* Maps through the values (items) in the `cart` object to render `CartItem` components. */}
+                        {cart.map((item:any) => (
+                            <CartItem key={item.id} item={item} /> // Renders each `CartItem` with its unique key and item data.
+                        ))}
+                        {/* Displays the total price of the cart. */}
+                        <div className="flex justify-between items-center mt-6 pt-4 border-t-2 border-purple-300">
+                            <span className="text-xl font-bold text-purple-800">Total:</span>
+                            <span className="text-2xl font-extrabold text-purple-900">${total.toFixed(2)}</span> {/* Displays the calculated total formatted to two decimal places. */}
                         </div>
                     </div>
+                    )}
+                        {/* Checkout button. */}
+                        <button
+                            onClick={handleCheckout} // Triggers the checkout function on click.
+                            // Dynamic styling for the button based on whether the cart is empty.
+                            className={`mt-8 w-full py-4 rounded-xl text-xl font-bold text-white shadow-lg transition-all duration-200 ease-in-out
+                            ${Object.keys(cart).length > 0 ? 'bg-green-600 hover:bg-green-700 transform hover:-translate-y-1' : 'bg-gray-400 cursor-not-allowed'}`}
+                            // Button is disabled if the cart is empty.
+                            disabled={Object.keys(cart).length === 0}
+                        >
+                            Continuar al Pago{/* Button text. */}
+                        </button>
                 </div>
-            ) : (
-                <MetodoPago cart={cart} setPagando={setPagando} />
-            )}
+            </div>
         </div>
+        ):(
+            <div>
+                <MetodoPago cart={cart} setPagando={setPagando}/>
+            </div>
+        )}
+    </div>
     );
-}
+};
