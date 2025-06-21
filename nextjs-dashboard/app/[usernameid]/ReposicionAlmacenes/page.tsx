@@ -1,192 +1,190 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-// NOTA: Se ha eliminado el import de "next/link" para resolver los errores de compilación en este entorno.
-// Se usará una etiqueta <a> estándar para los enlaces.
 import clsx from "clsx";
 import { MagnifyingGlassIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import Cookies from "js-cookie";
-import {redirect} from "next/navigation";
 import Link from "next/link";
 
-// Define un tipo para tus datos de rol para una mejor seguridad de tipos
-interface Role {
-    rol_id: string;
-    nombre: string;
-    descripcion: string;
-}
-
-// Define un tipo para la dirección de ordenación
+// Define types
 type SortDirection = 'asc' | 'desc';
 
-export default function Roles({
-                                  params
-                              }:{
-    // Los params de ruta son directamente accesibles, no como una Promise
-    params: { usernameid: number }
-}) {
-    // @ts-ignore
-    const { usernameid } = React.use(params);
-    const [filter, setFilter] = useState(''); // Estado para la entrada de búsqueda
-    const [roles, setRoles] = useState<Role[]>([]); // Estado para almacenar los datos de los roles
-    const [currentPage, setCurrentPage] = useState(1); // Página actual para la paginación
-    const [itemsPerPage] = useState(5); // Número de elementos por página
-    const [error, setError] = useState<string | null>(null); // Estado para manejar errores de la API
-    const [mensaje, setMensaje] = useState<string | null>(null);
-    const [permissions, setPermissions] = useState([]);
-    // Estados para la ordenación
-    const [sortColumn, setSortColumn] = useState<keyof Role>('rol_id'); // Columna de ordenación por defecto
-    const [sortDirection, setSortDirection] = useState<SortDirection>('asc'); // Dirección de ordenación por defecto
+interface Order {
+    compra_reposicion_id: number;
+    denominacion_comercial: string;
+    productos: string;
+    estado?: string;
+}
 
-    // En una aplicación real, obtendrías los roles aquí de una API
+interface OrderStatus {
+    orderId: number;
+    status: string;
+}
+
+interface StatusOption {
+    value: string;
+    label: string;
+}
+
+export default function Orders({ params }: { params: { usernameid: number } }) {
+    const { usernameid } = React.use(params);
+    const [filter, setFilter] = useState('');
+    const [ordenes, setOrdenes] = useState<Order[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5);
+    const [error, setError] = useState<string | null>(null);
+    const [mensaje, setMensaje] = useState<string | null>(null);
+    const [sortColumn, setSortColumn] = useState<keyof Order>('compra_reposicion_id');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+    // Status management state
+    const [selectedStatuses, setSelectedStatuses] = useState<OrderStatus[]>([]);
+    const [statusOptions, setStatusOptions] = useState<StatusOption[]>([
+        { value: 'pending', label: 'Pending' },
+        { value: 'processing', label: 'Processing' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'cancelled', label: 'Cancelled' },
+    ]);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Fetch orders
     useEffect(() => {
-        async function fetchRoles() {
+        async function fetchOrders() {
             try {
-                const response = await fetch("/api/roles?roles=1", {
-                    method: "GET", // Especifica el metodo HTTP como GET.
-                    headers: { "Content-Type": "application/json" } // Establece el encabezado de la solicitud.
+                const response = await fetch("/api/ordenes?almacen=1", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
                 });
-                // Comprueba si la respuesta HTTP fue exitosa (código de estado 200-299).
+
                 if (!response.ok) {
-                    // Lanza un error si la respuesta HTTP indica un problema.
                     throw new Error(`¡Error HTTP! Estado: ${response.status}`);
                 }
+
                 const data = await response.json();
-                setRoles(data.result);
-                setError(null); // Limpiar errores si la carga fue exitosa
+                console.log(data.result);
+                setOrdenes(data.result);
+                setError(null);
+
+                // Initialize statuses from fetched orders if they have estado
+                const initialStatuses = data.result
+                    .filter((order: Order) => order.estado)
+                    .map((order: Order) => ({
+                        orderId: order.compra_reposicion_id,
+                        status: order.estado as string
+                    }));
+                setSelectedStatuses(initialStatuses);
             } catch (error: any) {
                 setError(error.message);
-                setRoles([]); // Si hay un error, limpiar los roles
+                setOrdenes([]);
             }
         }
-        fetchRoles();
-        const permissionsCookie = Cookies.get("permissions");
-        if (permissionsCookie != null) {
-            setPermissions(JSON.parse(permissionsCookie));
-        }
-
+        fetchOrders();
     }, []);
-    // Función para manejar la ordenación por columna
-    const handleSort = useCallback((column: keyof Role) => {
+
+    // Sorting handler
+    const handleSort = useCallback((column: keyof Order) => {
         if (sortColumn === column) {
-            // Si se hace clic en la misma columna, alternar la dirección
-            setSortDirection(prevDirection => (prevDirection === 'asc' ? 'desc' : 'asc'));
+            setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
         } else {
-            // Si se hace clic en una nueva columna, establecerla como columna de ordenación y ordenar ascendente
             setSortColumn(column);
             setSortDirection('asc');
         }
     }, [sortColumn]);
 
+    // Filter and sort orders
+    const sortedAndFilteredOrdenes = useMemo(() => {
+        let currentOrdenes = [...ordenes];
 
-    // Roles filtrados y ordenados
-    const sortedAndFilteredRoles = useMemo(() => {
-        let currentRoles = [...roles]; // Crear una copia para no mutar el estado original
-
-        // 1. Filtrar
+        // Filter
         if (filter) {
             const lowerCaseFilter = filter.toLowerCase();
-            currentRoles = currentRoles.filter(role =>
-                role.nombre.toLowerCase().includes(lowerCaseFilter) ||
-                role.descripcion.toLowerCase().includes(lowerCaseFilter) ||
-                role.rol_id.toString().toLowerCase().includes(lowerCaseFilter) // También permite filtrar por ID
+            currentOrdenes = currentOrdenes.filter(orden =>
+                orden.denominacion_comercial.toLowerCase().includes(lowerCaseFilter) ||
+                orden.productos.toLowerCase().includes(lowerCaseFilter) ||
+                orden.compra_reposicion_id.toString().toLowerCase().includes(lowerCaseFilter)
             );
         }
 
-        // 2. Ordenar
+        // Sort
         if (sortColumn) {
-            currentRoles.sort((a, b) => {
+            currentOrdenes.sort((a, b) => {
                 const aValue = a[sortColumn];
                 const bValue = b[sortColumn];
 
-                // Manejo básico de tipos para comparación (asume strings o números simples)
                 if (typeof aValue === 'string' && typeof bValue === 'string') {
                     return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
                 }
-                // Si son números (aunque rol_id sea string, si en un futuro hubieran números, esto serviría)
                 if (typeof aValue === 'number' && typeof bValue === 'number') {
                     return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
                 }
-                // Fallback para otros tipos o si no se pueden comparar directamente
                 return 0;
             });
         }
 
-        return currentRoles;
-    }, [roles, filter, sortColumn, sortDirection]);
+        return currentOrdenes;
+    }, [ordenes, filter, sortColumn, sortDirection]);
 
-    // Calcular el total de páginas para la paginación
+    // Pagination
     const totalPages = useMemo(() => {
-        return Math.ceil(sortedAndFilteredRoles.length / itemsPerPage);
-    }, [sortedAndFilteredRoles.length, itemsPerPage]);
+        return Math.ceil(sortedAndFilteredOrdenes.length / itemsPerPage);
+    }, [sortedAndFilteredOrdenes.length, itemsPerPage]);
 
-    // Obtener roles para la página actual
-    const paginatedRoles = useMemo(() => {
+    const paginatedOrdenes = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        return sortedAndFilteredRoles.slice(startIndex, endIndex);
-    }, [sortedAndFilteredRoles, currentPage, itemsPerPage]);
+        return sortedAndFilteredOrdenes.slice(startIndex, endIndex);
+    }, [sortedAndFilteredOrdenes, currentPage, itemsPerPage]);
 
-    // Manejar cambios de página
     const handlePageChange = useCallback((page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
     }, [totalPages]);
 
-    // Manejar el cambio de la entrada de filtro y reiniciar la página a 1
     const handleFilterChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setFilter(event.target.value);
-        setCurrentPage(1); // Reiniciar a la primera página al cambiar el filtro
+        setCurrentPage(1);
     }, []);
 
-    // Manejar la edición de un rol
-    const handleEdit = useCallback((role: Role) => {
-        // Usa window.location.href directamente para la navegación
-        // Codifica los parámetros para manejar caracteres especiales
-        const encodedNombre = encodeURIComponent(role.nombre);
-        const encodedDescripcion = encodeURIComponent(role.descripcion);
-        window.location.href = `/${usernameid}/Roles/${role.rol_id}?nombre=${encodedNombre}&descripcion=${encodedDescripcion}`;
-    }, [usernameid]);
+    // Status management
+    const handleStatusChange = useCallback((orderId: number, newStatus: string) => {
+        setSelectedStatuses(prev => {
+            const filtered = prev.filter(item => item.orderId !== orderId);
+            return newStatus ? [...filtered, { orderId, status: newStatus }] : filtered;
+        });
+    }, []);
 
-    // Manejar la eliminación de un rol
-    const handleDelete = useCallback(async (roleId: string) => {
-        // En una aplicación real, harías una llamada DELETE a tu API aquí
-        console.log(`Eliminando rol con ID: ${roleId}`);
+    const getCurrentStatus = useCallback((orderId: number) => {
+        const statusObj = selectedStatuses.find(item => item.orderId === orderId);
+        return statusObj ? statusObj.status : '';
+    }, [selectedStatuses]);
+
+    // Save status changes
+    const saveStatusChanges = useCallback(async () => {
+        if (selectedStatuses.length === 0) return;
+
+        setIsSaving(true);
         try {
-            const response = await fetch(`/api/roles?rol_id=${roleId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" }
+            const response = await fetch('/api/update-order-statuses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ statusUpdates: selectedStatuses })
             });
 
             if (!response.ok) {
-                throw new Error(`Error al eliminar el rol: ${response.statusText}`);
+                throw new Error(`Error saving statuses: ${response.statusText}`);
             }
 
-            // Si la eliminación es exitosa en el backend, actualiza el estado local
-            setRoles(prevRoles => {
-                const newRoles = prevRoles.filter(role => role.rol_id !== roleId);
-                // Ajustar la página actual si la última página queda vacía
-                const newTotalPages = Math.ceil(newRoles.length / itemsPerPage);
-                if (currentPage > newTotalPages && newTotalPages > 0) {
-                    setCurrentPage(newTotalPages);
-                } else if (newTotalPages === 0) {
-                    setCurrentPage(1); // Si no quedan roles, ir a la página 1
-                }
-                return newRoles;
-            });
-            setError(null)
-            setMensaje('Rol eliminado exitosamente');
-            setTimeout(()=> setMensaje(null),2000)// Limpiar errores si la eliminación fue exitosa
+            setMensaje('Status changes saved successfully');
+            setTimeout(() => setMensaje(null), 2000);
         } catch (error: any) {
-            console.error("Error eliminando rol:", error);
             setError(error.message);
+        } finally {
+            setIsSaving(false);
         }
-    }, [currentPage, itemsPerPage]);
+    }, [selectedStatuses]);
 
-
-    // Función auxiliar para renderizar el icono de ordenación
-    const renderSortArrow = (column: keyof Role) => {
+    // Render sort arrow
+    const renderSortArrow = (column: keyof Order) => {
         if (sortColumn === column) {
             return sortDirection === 'asc' ? ' ↑' : ' ↓';
         }
@@ -196,7 +194,7 @@ export default function Roles({
     return (
         <div className="flex flex-col items-center justify-center min-h-full bg-gradient-to-br from-purple-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-4xl bg-white p-6 sm:p-8 rounded-2xl shadow-xl border-2 transform transition-all duration-300">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Gestión de Roles</h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Historial de Ordenes</h1>
 
                 {/* Search Input */}
                 <div className="relative mb-6 rounded-md shadow-sm">
@@ -204,7 +202,7 @@ export default function Roles({
                     <input
                         id="search"
                         type="text"
-                        placeholder="Buscar roles por ID, nombre o descripción..."
+                        placeholder="Buscar por nombre, ID o productos..."
                         value={filter}
                         onChange={handleFilterChange}
                         className="block w-full rounded-md border border-gray-300 py-3 pl-12 pr-4 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:ring-indigo-500 text-base outline-none transition-colors"
@@ -225,7 +223,7 @@ export default function Roles({
                     </div>
                 )}
 
-                {/* Roles Table */}
+                {/* Orders Table */}
                 <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-md">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -233,62 +231,56 @@ export default function Roles({
                             <th
                                 scope="col"
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-                                onClick={() => handleSort('rol_id')}
+                                onClick={() => handleSort('compra_reposicion_id')}
                             >
-                                ID Rol {renderSortArrow('rol_id')}
+                                ID Orden {renderSortArrow('compra_reposicion_id')}
                             </th>
                             <th
                                 scope="col"
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-                                onClick={() => handleSort('nombre')}
+                                onClick={() => handleSort('denominacion_comercial')}
                             >
-                                Nombre del Rol {renderSortArrow('nombre')}
+                                Nombre del Proveedor {renderSortArrow('denominacion_comercial')}
                             </th>
                             <th
                                 scope="col"
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-                                onClick={() => handleSort('descripcion')}
+                                onClick={() => handleSort('productos')}
                             >
-                                Descripción {renderSortArrow('descripcion')}
+                                Productos {renderSortArrow('productos')}
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Acciones
+                                Estado
                             </th>
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {paginatedRoles.length > 0 ? (
-                            paginatedRoles.map((role) => (
-                                <tr key={role.rol_id} className="hover:bg-gray-50 transition-colors">
+                        {paginatedOrdenes.length > 0 ? (
+                            paginatedOrdenes.map((orden) => (
+                                <tr key={orden.compra_reposicion_id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {role.rol_id}
+                                        {orden.compra_reposicion_id}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {role.nombre}
+                                        {orden.denominacion_comercial}
                                     </td>
                                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-500">
-                                        {role.descripcion}
+                                        {orden.productos}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex items-center space-x-3">
-                                            {permissions.some((element:{descripcion:string})=>element.descripcion=='modificar ROL') ? (
-                                            <button
-                                                onClick={() => handleEdit(role)}
-                                                className="inline-flex items-center p-2 rounded-full text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                                                aria-label={`Editar ${role.nombre}`}
+                                        <div className="flex items-center rounded space-x-3">
+                                            <select
+                                                className='border border-gray-300 rounded-md shadow-sm'
+                                                value={getCurrentStatus(orden.compra_reposicion_id)}
+                                                onChange={(e) => handleStatusChange(orden.compra_reposicion_id, e.target.value)}
                                             >
-                                                <PencilIcon className="h-5 w-5" />
-                                            </button>
-                                            ) : null}
-                                            {permissions.some((element:{descripcion:string})=>element.descripcion=='eliminar ROL') ? (
-                                            <button
-                                                onClick={() => handleDelete(role.rol_id)}
-                                                className="inline-flex items-center p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-                                                aria-label={`Eliminar ${role.nombre}`}
-                                            >
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
-                                            ) : null}
+                                                <option value="">Select status...</option>
+                                                {statusOptions.map(option => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </td>
                                 </tr>
@@ -296,12 +288,26 @@ export default function Roles({
                         ) : (
                             <tr>
                                 <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
-                                    No se encontraron roles.
+                                    No se encontraron ordenes.
                                 </td>
                             </tr>
                         )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Save Status Changes Button */}
+                <div className="mt-4 flex justify-end">
+                    <button
+                        onClick={saveStatusChanges}
+                        disabled={selectedStatuses.length === 0 || isSaving}
+                        className={clsx(
+                            "bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors",
+                            { "opacity-50 cursor-not-allowed": selectedStatuses.length === 0 || isSaving }
+                        )}
+                    >
+                        {isSaving ? 'Guardando...' : 'Guardar Cambios de Estado'}
+                    </button>
                 </div>
 
                 {/* Pagination Controls */}
@@ -312,8 +318,8 @@ export default function Roles({
                     <div className="hidden sm:block">
                         <p className="text-sm text-gray-700">
                             Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a{' '}
-                            <span className="font-medium">{Math.min(currentPage * itemsPerPage, sortedAndFilteredRoles.length)}</span> de{' '}
-                            <span className="font-medium">{sortedAndFilteredRoles.length}</span> resultados
+                            <span className="font-medium">{Math.min(currentPage * itemsPerPage, sortedAndFilteredOrdenes.length)}</span> de{' '}
+                            <span className="font-medium">{sortedAndFilteredOrdenes.length}</span> resultados
                         </p>
                     </div>
                     <div className="flex flex-1 justify-between sm:justify-end">
@@ -339,33 +345,6 @@ export default function Roles({
                         </button>
                     </div>
                 </nav>
-                <div className='flex flex-row justify-center space-x-20 mt-6'>
-                    {permissions.some((element:{descripcion:string})=>element.descripcion.includes('ROL_PERMISO')) ? (
-                    <Link href={`/${usernameid}/Roles/asignarPermisos`}
-                       className={clsx(
-                           'flex place-self-center w-fit gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
-                       )}>
-                        <p className="hidden md:block">Asignar Permisos</p>
-                    </Link>
-                    ) : null}
-                    {permissions.some((element:{descripcion:string})=>element.descripcion=='crear ROL') ? (
-                    <Link href={`/${usernameid}/Roles/crearRol`}
-                       className={clsx(
-                           'flex place-self-center w-fit  gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
-                       )}>
-
-                        <p className="hidden md:block">Crear Rol</p>
-                    </Link>
-                    ) : null}
-                    {permissions.some((element:{descripcion:string})=>element.descripcion.includes('ROL_USUARIO')) ? (
-                        <Link href={`/${usernameid}/Roles/asignarUsuarios`}
-                              className={clsx(
-                                  'flex place-self-center w-fit gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
-                              )}>
-                            <p className="hidden md:block">Asignar Usuarios</p>
-                        </Link>
-                    ) : null}
-                </div>
             </div>
         </div>
     );
