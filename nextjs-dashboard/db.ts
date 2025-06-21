@@ -102,6 +102,10 @@ export async function saveVenta(montoTotal:number,id:number,tipo:string,detalle:
     return await sql`CALL insertarVentaTiendaConDetalle(${montoTotal},${id},${tipo},${sql.json(detalle)},${sql.json(metodos)})`;
 }
 
+export async function getOrdenesAlmacen() {
+  return await sql`SELECT * from obtenerordenesalmacen()`;
+}
+
 /*
 ///para usuarios
 export async function getAllUsuarios() {

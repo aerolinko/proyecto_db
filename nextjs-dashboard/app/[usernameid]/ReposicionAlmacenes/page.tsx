@@ -5,17 +5,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 // Se usará una etiqueta <a> estándar para los enlaces.
 import clsx from "clsx";
 import { MagnifyingGlassIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import Cookies from "js-cookie";
-import {redirect} from "next/navigation";
 import Link from "next/link";
 
 // Define un tipo para tus datos de rol para una mejor seguridad de tipos
-interface Role {
-    rol_id: string;
-    nombre: string;
-    descripcion: string;
-}
-
 // Define un tipo para la dirección de ordenación
 type SortDirection = 'asc' | 'desc';
 
@@ -28,7 +20,7 @@ export default function Roles({
     // @ts-ignore
     const { usernameid } = React.use(params);
     const [filter, setFilter] = useState(''); // Estado para la entrada de búsqueda
-    const [roles, setRoles] = useState<Role[]>([]); // Estado para almacenar los datos de los roles
+    const [ordenes, setOrdenes] = useState<any[]>([]); // Estado para almacenar los datos de los roles
     const [currentPage, setCurrentPage] = useState(1); // Página actual para la paginación
     const [itemsPerPage] = useState(5); // Número de elementos por página
     const [error, setError] = useState<string | null>(null); // Estado para manejar errores de la API
@@ -42,7 +34,7 @@ export default function Roles({
     useEffect(() => {
         async function fetchRoles() {
             try {
-                const response = await fetch("/api/roles?roles=1", {
+                const response = await fetch("/api/ordenes?almacen=1", {
                     method: "GET", // Especifica el metodo HTTP como GET.
                     headers: { "Content-Type": "application/json" } // Establece el encabezado de la solicitud.
                 });
@@ -52,7 +44,8 @@ export default function Roles({
                     throw new Error(`¡Error HTTP! Estado: ${response.status}`);
                 }
                 const data = await response.json();
-                setRoles(data.result);
+                console.log(data.result);
+                setOrdenes(data.result);
                 setError(null); // Limpiar errores si la carga fue exitosa
             } catch (error: any) {
                 setError(error.message);
@@ -60,10 +53,7 @@ export default function Roles({
             }
         }
         fetchRoles();
-        const permissionsCookie = Cookies.get("permissions");
-        if (permissionsCookie != null) {
-            setPermissions(JSON.parse(permissionsCookie));
-        }
+
 
     }, []);
     // Función para manejar la ordenación por columna
@@ -80,22 +70,22 @@ export default function Roles({
 
 
     // Roles filtrados y ordenados
-    const sortedAndFilteredRoles = useMemo(() => {
-        let currentRoles = [...roles]; // Crear una copia para no mutar el estado original
+    const sortedAndFilteredOrdenes = useMemo(() => {
+        let currentOrdenes = [...ordenes]; // Crear una copia para no mutar el estado original
 
         // 1. Filtrar
         if (filter) {
             const lowerCaseFilter = filter.toLowerCase();
-            currentRoles = currentRoles.filter(role =>
-                role.nombre.toLowerCase().includes(lowerCaseFilter) ||
-                role.descripcion.toLowerCase().includes(lowerCaseFilter) ||
-                role.rol_id.toString().toLowerCase().includes(lowerCaseFilter) // También permite filtrar por ID
+            currentOrdenes = currentOrdenes.filter(orden =>
+                orden.denominacion_comercial.toLowerCase().includes(lowerCaseFilter) ||
+                orden.productos.toLowerCase().includes(lowerCaseFilter) ||
+                orden.compra_reposicion_id.toString().toLowerCase().includes(lowerCaseFilter) // También permite filtrar por ID
             );
         }
 
         // 2. Ordenar
         if (sortColumn) {
-            currentRoles.sort((a, b) => {
+            currentOrdenes.sort((a, b) => {
                 const aValue = a[sortColumn];
                 const bValue = b[sortColumn];
 
@@ -112,20 +102,20 @@ export default function Roles({
             });
         }
 
-        return currentRoles;
-    }, [roles, filter, sortColumn, sortDirection]);
+        return currentOrdenes;
+    }, [ordenes, filter, sortColumn, sortDirection]);
 
     // Calcular el total de páginas para la paginación
     const totalPages = useMemo(() => {
-        return Math.ceil(sortedAndFilteredRoles.length / itemsPerPage);
-    }, [sortedAndFilteredRoles.length, itemsPerPage]);
+        return Math.ceil(sortedAndFilteredOrdenes.length / itemsPerPage);
+    }, [sortedAndFilteredOrdenes.length, itemsPerPage]);
 
     // Obtener roles para la página actual
-    const paginatedRoles = useMemo(() => {
+    const paginatedOrdenes = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        return sortedAndFilteredRoles.slice(startIndex, endIndex);
-    }, [sortedAndFilteredRoles, currentPage, itemsPerPage]);
+        return sortedAndFilteredOrdenes.slice(startIndex, endIndex);
+    }, [sortedAndFilteredOrdenes, currentPage, itemsPerPage]);
 
     // Manejar cambios de página
     const handlePageChange = useCallback((page: number) => {
@@ -196,7 +186,7 @@ export default function Roles({
     return (
         <div className="flex flex-col items-center justify-center min-h-full bg-gradient-to-br from-purple-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-4xl bg-white p-6 sm:p-8 rounded-2xl shadow-xl border-2 transform transition-all duration-300">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Gestión de Roles</h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Historial de Ordenes</h1>
 
                 {/* Search Input */}
                 <div className="relative mb-6 rounded-md shadow-sm">
@@ -204,7 +194,7 @@ export default function Roles({
                     <input
                         id="search"
                         type="text"
-                        placeholder="Buscar roles por ID, nombre o descripción..."
+                        placeholder="Buscar por nombre, ID o productos..."
                         value={filter}
                         onChange={handleFilterChange}
                         className="block w-full rounded-md border border-gray-300 py-3 pl-12 pr-4 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:ring-indigo-500 text-base outline-none transition-colors"
@@ -233,23 +223,23 @@ export default function Roles({
                             <th
                                 scope="col"
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-                                onClick={() => handleSort('rol_id')}
+                                onClick={() => handleSort('compra_reposicion_id')}
                             >
-                                ID Rol {renderSortArrow('rol_id')}
+                                ID Orden {renderSortArrow('compra_reposicion_id')}
                             </th>
                             <th
                                 scope="col"
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-                                onClick={() => handleSort('nombre')}
+                                onClick={() => handleSort('orden.denominacion_comercial')}
                             >
-                                Nombre del Rol {renderSortArrow('nombre')}
+                                Nombre del Proveedor {renderSortArrow('orden.denominacion_comercial')}
                             </th>
                             <th
                                 scope="col"
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
-                                onClick={() => handleSort('descripcion')}
+                                onClick={() => handleSort('productos')}
                             >
-                                Descripción {renderSortArrow('descripcion')}
+                                Productos {renderSortArrow('productos')}
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones
@@ -257,38 +247,34 @@ export default function Roles({
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {paginatedRoles.length > 0 ? (
-                            paginatedRoles.map((role) => (
-                                <tr key={role.rol_id} className="hover:bg-gray-50 transition-colors">
+                        {paginatedOrdenes.length > 0 ? (
+                            paginatedOrdenes.map((orden) => (
+                                <tr key={orden.compra_reposicion_id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {role.rol_id}
+                                        {orden.compra_reposicion_id}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {role.nombre}
+                                        {orden.denominacion_comercial}
                                     </td>
                                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-500">
-                                        {role.descripcion}
+                                        {orden.productos}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex items-center space-x-3">
-                                            {permissions.some((element:{descripcion:string})=>element.descripcion=='modificar ROL') ? (
-                                            <button
-                                                onClick={() => handleEdit(role)}
-                                                className="inline-flex items-center p-2 rounded-full text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                                                aria-label={`Editar ${role.nombre}`}
-                                            >
-                                                <PencilIcon className="h-5 w-5" />
-                                            </button>
-                                            ) : null}
-                                            {permissions.some((element:{descripcion:string})=>element.descripcion=='eliminar ROL') ? (
-                                            <button
-                                                onClick={() => handleDelete(role.rol_id)}
-                                                className="inline-flex items-center p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-                                                aria-label={`Eliminar ${role.nombre}`}
-                                            >
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
-                                            ) : null}
+                                        <div className="flex items-center rounded space-x-3">
+                                            <select className='border border-gray-300 rounded-md shadow-sm'>
+                                                <option>
+                                                    awadd
+                                                </option>
+                                                <option>
+                                                    aaa
+                                                </option>
+                                                <option>
+                                                    addd
+                                                </option>
+                                                <option>
+                                                    awff
+                                                </option>
+                                            </select>
                                         </div>
                                     </td>
                                 </tr>
@@ -312,8 +298,8 @@ export default function Roles({
                     <div className="hidden sm:block">
                         <p className="text-sm text-gray-700">
                             Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a{' '}
-                            <span className="font-medium">{Math.min(currentPage * itemsPerPage, sortedAndFilteredRoles.length)}</span> de{' '}
-                            <span className="font-medium">{sortedAndFilteredRoles.length}</span> resultados
+                            <span className="font-medium">{Math.min(currentPage * itemsPerPage, sortedAndFilteredOrdenes.length)}</span> de{' '}
+                            <span className="font-medium">{sortedAndFilteredOrdenes.length}</span> resultados
                         </p>
                     </div>
                     <div className="flex flex-1 justify-between sm:justify-end">
@@ -339,33 +325,6 @@ export default function Roles({
                         </button>
                     </div>
                 </nav>
-                <div className='flex flex-row justify-center space-x-20 mt-6'>
-                    {permissions.some((element:{descripcion:string})=>element.descripcion.includes('ROL_PERMISO')) ? (
-                    <Link href={`/${usernameid}/Roles/asignarPermisos`}
-                       className={clsx(
-                           'flex place-self-center w-fit gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
-                       )}>
-                        <p className="hidden md:block">Asignar Permisos</p>
-                    </Link>
-                    ) : null}
-                    {permissions.some((element:{descripcion:string})=>element.descripcion=='crear ROL') ? (
-                    <Link href={`/${usernameid}/Roles/crearRol`}
-                       className={clsx(
-                           'flex place-self-center w-fit  gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
-                       )}>
-
-                        <p className="hidden md:block">Crear Rol</p>
-                    </Link>
-                    ) : null}
-                    {permissions.some((element:{descripcion:string})=>element.descripcion.includes('ROL_USUARIO')) ? (
-                        <Link href={`/${usernameid}/Roles/asignarUsuarios`}
-                              className={clsx(
-                                  'flex place-self-center w-fit gap-2 rounded-md bg-gray-200 py-3 px-5 font-medium hover:bg-sky-100 hover:text-blue-600 transition-colors duration-200',
-                              )}>
-                            <p className="hidden md:block">Asignar Usuarios</p>
-                        </Link>
-                    ) : null}
-                </div>
             </div>
         </div>
     );
