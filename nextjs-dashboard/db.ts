@@ -12,8 +12,8 @@ const sql = postgres({
     password: 'root',
 });
 
-/*
 
+/*
 const sql = postgres({
     host: 'localhost',
     port: 5432,
@@ -24,7 +24,9 @@ const sql = postgres({
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
 });
+
 */
+
 
 export async function getAllLugares() {
     return await sql`SELECT * FROM LUGAR`;
@@ -84,7 +86,7 @@ export async function getUser(nombre:string,pass:string) {
     return await sql`SELECT * FROM obtenerUsuario(${nombre},${pass})`;
 }
 
-export async function saveNewCard(cliente_tipo:string,id:number,tipo:string,numero:number,fechaExp:date|null,banco:string) {
+export async function saveNewCard(cliente_tipo:string,id:number,tipo:string,numero:number,fechaExp:Date|null,banco:string) {
     return await sql`call insertarnuevatarjetacliente(${cliente_tipo},${id},${tipo},${numero},${fechaExp},${banco})`;
 }
 
@@ -504,6 +506,218 @@ export async function deleteUsuarioById(id: string) {
     throw error
   }
 }
+
+export async function getReportUsuarios(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    console.log("=== getReportUsuarios ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    let query
+    if (fechaInicio && fechaFin) {
+      query = sql`
+        SELECT 
+          u.usuario_id,
+          u.nombre_usuario,
+          u.fecha_creacion,
+          e.primer_nombre,
+          e.primer_apellido,
+          e.cedula,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo
+        FROM usuario u
+        LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+        WHERE u.fecha_creacion BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
+        ORDER BY u.fecha_creacion DESC
+      `
+    } else {
+      query = sql`
+        SELECT 
+          u.usuario_id,
+          u.nombre_usuario,
+          u.fecha_creacion,
+          e.primer_nombre,
+          e.primer_apellido,
+          e.cedula,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo
+        FROM usuario u
+        LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+        ORDER BY u.fecha_creacion DESC
+        LIMIT 1000
+      `
+    }
+
+    const result = await query
+    console.log(`Usuarios encontrados: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportUsuarios:", error)
+    throw error
+  }
+}
+
+export async function getReportEmpleados(lugarId?: number): Promise<any[]> {
+  try {
+    console.log("=== getReportEmpleados ===")
+    console.log("Parámetros:", { lugarId })
+
+    let query
+    if (lugarId) {
+      query = sql`
+        SELECT 
+          e.empleado_id,
+          e.cedula,
+          e.primer_nombre,
+          e.primer_apellido,
+          e.segundo_nombre,
+          e.segundo_apellido,
+          e.direccion,
+          e.fecha_contrato,
+          l.nombre as lugar_nombre
+        FROM empleado e
+        LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
+        WHERE e.fk_lugar = ${lugarId}
+        ORDER BY e.primer_nombre, e.primer_apellido
+      `
+    } else {
+      query = sql`
+        SELECT 
+          e.empleado_id,
+          e.cedula,
+          e.primer_nombre,
+          e.primer_apellido,
+          e.segundo_nombre,
+          e.segundo_apellido,
+          e.direccion,
+          e.fecha_contrato,
+          l.nombre as lugar_nombre
+        FROM empleado e
+        LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
+        ORDER BY e.primer_nombre, e.primer_apellido
+        LIMIT 1000
+      `
+    }
+
+    const result = await query
+    console.log(`Empleados encontrados: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportEmpleados:", error)
+    throw error
+  }
+}
+
+export async function getReportVentas(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    console.log("=== getReportVentas ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    let query
+    if (fechaInicio && fechaFin) {
+      query = sql`
+        SELECT 
+          v.venta_id,
+          v.fecha_venta,
+          v.monto_total,
+          v.tipo_cliente,
+          CASE 
+            WHEN v.tipo_cliente = 'natural' THEN CONCAT(cn.nombre, ' ', cn.apellido)
+            WHEN v.tipo_cliente = 'juridico' THEN cj.razon_social
+            ELSE 'Cliente no identificado'
+          END as cliente_nombre
+        FROM venta v
+        LEFT JOIN cliente_natural cn ON v.fk_cliente_natural = cn.cliente_natural_id
+        LEFT JOIN cliente_juridico cj ON v.fk_cliente_juridico = cj.cliente_juridico_id
+        WHERE v.fecha_venta BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
+        ORDER BY v.fecha_venta DESC
+      `
+    } else {
+      query = sql`
+        SELECT 
+          v.venta_id,
+          v.fecha_venta,
+          v.monto_total,
+          v.tipo_cliente,
+          CASE 
+            WHEN v.tipo_cliente = 'natural' THEN CONCAT(cn.nombre, ' ', cn.apellido)
+            WHEN v.tipo_cliente = 'juridico' THEN cj.razon_social
+            ELSE 'Cliente no identificado'
+          END as cliente_nombre
+        FROM venta v
+        LEFT JOIN cliente_natural cn ON v.fk_cliente_natural = cn.cliente_natural_id
+        LEFT JOIN cliente_juridico cj ON v.fk_cliente_juridico = cj.cliente_juridico_id
+        ORDER BY v.fecha_venta DESC
+        LIMIT 1000
+      `
+    }
+
+    const result = await query
+    console.log(`Ventas encontradas: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportVentas:", error)
+    throw error
+  }
+}
+
+export async function getReportRoles(): Promise<any[]> {
+  try {
+    console.log("=== getReportRoles ===")
+
+    const query = sql`
+      SELECT 
+        r.rol_id,
+        r.nombre_rol,
+        r.descripcion_rol,
+        COUNT(rp.fk_permiso) as total_permisos
+      FROM rol r
+      LEFT JOIN rol_permiso rp ON r.rol_id = rp.fk_rol
+      GROUP BY r.rol_id, r.nombre_rol, r.descripcion_rol
+      ORDER BY r.nombre_rol
+    `
+
+    const result = await query
+    console.log(`Roles encontrados: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportRoles:", error)
+    throw error
+  }
+}
+
+// Función auxiliar para probar la conexión
+export async function testConnection(): Promise<boolean> {
+  try {
+    console.log("=== Probando conexión a PostgreSQL ===")
+
+    const result = await sql`SELECT NOW() as current_time, version() as pg_version`
+    console.log("Conexión exitosa:", result[0])
+    return true
+  } catch (error) {
+    console.error("Error de conexión:", error)
+    return false
+  }
+}
+
+// Función para obtener información de las tablas disponibles
+export async function getAvailableTables(): Promise<any[]> {
+  try {
+    console.log("=== Obteniendo tablas disponibles ===")
+
+    const query = sql`
+      SELECT table_name, table_type
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      ORDER BY table_name
+    `
+
+    const result = await query
+    console.log("Tablas disponibles:", result)
+    return result
+  } catch (error) {
+    console.error("Error obteniendo tablas:", error)
+    return []
+  }
+}
+
 
 export default sql
 
