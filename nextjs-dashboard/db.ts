@@ -2,7 +2,7 @@ import postgres from 'postgres';
 
 
 
-/*
+
 
 const sql = postgres({
     host: 'localhost',
@@ -12,8 +12,8 @@ const sql = postgres({
     password: 'root',
 });
 
-*/
 
+/*
 const sql = postgres({
     host: 'localhost',
     port: 5432,
@@ -24,7 +24,7 @@ const sql = postgres({
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
 });
-
+*/
 
 
 
