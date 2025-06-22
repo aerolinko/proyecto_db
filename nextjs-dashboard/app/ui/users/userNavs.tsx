@@ -10,6 +10,7 @@ import {
 import Link from 'next/link'
 import clsx from 'clsx'
 
+// @ts-ignore
 export default function UserNavs({ permissions }) {
   const Links = [
     { path: `VentaTienda`, nombre: 'Manejo de caja', icon: ShoppingBagIcon, id: 'consultar VENTA_TIENDA' },
@@ -21,7 +22,7 @@ export default function UserNavs({ permissions }) {
   ];
 
   let filteredLinks = Links.filter(link =>
-      permissions.some(permission => permission.descripcion === link.id)
+      permissions.some((permission:any) => permission.descripcion === link.id)
   );
 
   return (
