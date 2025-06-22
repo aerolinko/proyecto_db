@@ -1422,7 +1422,7 @@ END;
 $$;
 
 CREATE TRIGGER triggerReposicionAnaquelEntregado
-    AFTER UPDATE on estado_reposicion_anaquel
+    AFTER INSERT on estado_reposicion_anaquel
     FOR EACH ROW EXECUTE FUNCTION reposicionAnaquelEntregado();
 
 CREATE OR REPLACE FUNCTION reducirStockAlmacen()
@@ -1445,7 +1445,7 @@ END;
 $$;
 
 CREATE TRIGGER triggerReducirStockAlmacen
-    AFTER UPDATE on estado_reposicion_anaquel
+    AFTER INSERT on estado_reposicion_anaquel
     FOR EACH ROW EXECUTE FUNCTION reducirStockAlmacen();
 
 create or replace function emitirCompraReposicion()
@@ -1522,7 +1522,7 @@ END;
 $$;
 
 CREATE TRIGGER triggerAumentarStockAlmacen
-    AFTER UPDATE on estado_compra_reposicion
+    AFTER insert on estado_compra_reposicion
     FOR EACH ROW EXECUTE FUNCTION aumentarStockAlmacen();
 
 
@@ -1541,7 +1541,7 @@ END;
 $$;
 
 CREATE TRIGGER triggerReposicionAlmacenEntregado
-    AFTER UPDATE on estado_compra_reposicion
+    AFTER insert on estado_compra_reposicion
     FOR EACH ROW EXECUTE FUNCTION reposicionAlmacenEntregado();
 
 create or replace function obtenerordenesalmacen()
@@ -1574,4 +1574,35 @@ as
         values (current_date,null,Nuevoestado_id,id);
     end;
     $$;
+
+create or replace function obtenerordenesanaquel()
+    returns TABLE(reposicion_anaquel_id integer, fecha varchar, productos varchar,estado varchar)
+    language sql
+as
+$$
+SELECT ra.reposicion_anaquel_id, to_char(ra.fecha,'DD-MM-YYYY') as productos, string_agg(c.nombre||' '||p.cap_volumen::varchar||'ml', ', ') as productos, e.nombre
+FROM reposicion_anaquel ra, estado_reposicion_anaquel era, anaquel_cerveza ac, cerveza_presentacion pc, cerveza c,
+     presentacion p, estado e, detalle_reposicion_anaquel dra
+where ra.reposicion_anaquel_id = era.fk_reposicion_anaquel and era.fk_estado = e.estado_id and dra.fk_reposicion_anaquel = ra.reposicion_anaquel_id
+    and dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id and pc.cerveza_presentacion_id = ac.fk_cerveza_presentacion and
+        p.presentacion_id = pc.fk_presentacion and pc.fk_cerveza = c.cerveza_id and era.fecha_fin is null
+    group by ra.reposicion_anaquel_id, ra.fecha, e.nombre
+
+$$;
+
+create or replace procedure cambiarEstadoRepAnaquel(cambio varchar, id integer)
+    language plpgsql
+as
+$$
+declare
+    Nuevoestado_id integer;
+begin
+    select into Nuevoestado_id e.estado_id from estado e
+    where e.nombre=cambio;
+    update estado_reposicion_anaquel set fecha_fin = current_date
+    where fk_reposicion_anaquel=id;
+    insert into estado_reposicion_anaquel (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel)
+    values (current_date,null,Nuevoestado_id,id);
+end;
+$$;
 
