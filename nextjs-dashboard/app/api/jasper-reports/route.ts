@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { jasperService } from "@/lib/jasperService"
 import {
   getReportProductosMayorDemanda,
   getReportReposicionAnaqueles,
@@ -12,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log("=== INICIO POST /api/jasper-reports ===")
 
-    const { reportType, parameters, format = 'pdf' } = await request.json()
+    const { reportType, parameters, format = 'csv' } = await request.json()
     console.log("Tipo de reporte:", reportType)
     console.log("Parámetros:", parameters)
     console.log("Formato:", format)
@@ -57,41 +56,49 @@ export async function POST(request: NextRequest) {
 
     console.log(`Datos obtenidos: ${data.length} registros`)
 
-    // Generar reporte con JasperReports
-    const jasperParams = {
-      reportType,
-      parameters: {
-        ...parameters,
-        data: JSON.stringify(data),
+    // Generar CSV directamente
+    if (data.length === 0) {
+      return NextResponse.json({
+        success: true,
         reportTitle,
+        columns: [],
+        data: [],
+        totalRecords: 0,
         generatedAt: new Date().toISOString(),
-        totalRecords: data.length
-      },
-      format
+        parameters
+      })
     }
 
-    const jasperResult = await jasperService.generateReport(jasperParams)
+    // Obtener las columnas del primer registro
+    const columns = Object.keys(data[0])
 
-    if (!jasperResult.success) {
-      throw new Error(jasperResult.error || 'Error generando reporte con JasperReports')
-    }
+    // Generar contenido CSV
+    const csvContent = [
+      columns.join(","),
+      ...data.map((row) =>
+        columns
+          .map((col) => {
+            const value = row[col] || ""
+            return `"${String(value).replace(/"/g, '""')}"`
+          })
+          .join(",")
+      ),
+    ].join("\n")
 
-    // Retornar el reporte generado
-    const response = new NextResponse(jasperResult.reportData, {
-      status: 200,
-      headers: {
-        'Content-Type': format === 'pdf' ? 'application/pdf' : 
-                       format === 'xlsx' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' :
-                       'text/csv',
-        'Content-Disposition': `attachment; filename="${reportTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.${format}"`,
-        'Cache-Control': 'no-cache'
-      }
+    // Retornar los datos en formato JSON para que el frontend los procese
+    return NextResponse.json({
+      success: true,
+      reportTitle,
+      columns,
+      data,
+      totalRecords: data.length,
+      generatedAt: new Date().toISOString(),
+      parameters,
+      csvContent
     })
 
-    return response
-
   } catch (error) {
-    console.error("Error generando reporte JasperReports:", error)
+    console.error("Error generando reporte:", error)
     return NextResponse.json(
       {
         success: false,
@@ -107,12 +114,9 @@ export async function GET() {
   try {
     console.log("=== GET /api/jasper-reports - Listando reportes disponibles ===")
     
-    const reports = await jasperService.listReports()
-    
     return NextResponse.json({
       success: true,
-      reports,
-      availableFormats: ['pdf', 'xlsx', 'csv'],
+      availableFormats: ['csv'],
       availableReportTypes: [
         {
           value: "productos-mayor-demanda",

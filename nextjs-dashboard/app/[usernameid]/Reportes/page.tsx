@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, FormEvent, ChangeEvent } from "react"
 
 interface ReportParameters {
   reportType: string
@@ -20,13 +20,20 @@ interface ReportData {
   success: boolean
   reportTitle: string
   columns: string[]
-  data: any[]
+  data: Record<string, any>[]
   totalRecords: number
   generatedAt: string
   parameters: any
 }
 
-const reportTypes = [
+interface ReportType {
+  value: string
+  label: string
+  description: string
+  parameters: string[]
+}
+
+const reportTypes: ReportType[] = [
   {
     value: "productos-mayor-demanda",
     label: "Productos con Mayor Demanda",
@@ -59,7 +66,11 @@ const reportTypes = [
   }
 ]
 
-export default function ReportesPage({ params }: { params: { username: string } }) {
+interface PageParams {
+  username: string
+}
+
+export default function ReportesPage({ params }: { params: PageParams }) {
   const [parameters, setParameters] = useState<ReportParameters>({
     reportType: "productos-mayor-demanda",
   })
@@ -171,9 +182,9 @@ export default function ReportesPage({ params }: { params: { username: string } 
 
     const csvContent = [
       reportData.columns.join(","),
-      ...reportData.data.map((row) =>
+      ...reportData.data.map((row: Record<string, any>) =>
         reportData.columns
-          .map((col) => {
+          .map((col: string) => {
             const value = row[col] || ""
             return `"${String(value).replace(/"/g, '""')}"`
           })
@@ -259,14 +270,14 @@ export default function ReportesPage({ params }: { params: { username: string } 
         {/* Formulario de selección de reporte y parámetros */}
         <form
           className="bg-white border rounded-lg p-6 mb-8 flex flex-col gap-4"
-          onSubmit={e => { e.preventDefault(); handleGenerateReport(); }}
+          onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); handleGenerateReport(); }}
         >
           <div className="flex flex-col md:flex-row gap-4 items-center">
             <label className="font-medium">Tipo de reporte:</label>
             <select
               className="border rounded px-3 py-2"
               value={parameters.reportType}
-              onChange={e => setParameters({ ...parameters, reportType: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => setParameters({ ...parameters, reportType: e.target.value })}
             >
               {reportTypes.map(rt => (
                 <option key={rt.value} value={rt.value}>{rt.label}</option>
@@ -283,14 +294,14 @@ export default function ReportesPage({ params }: { params: { username: string } 
                 type="date"
                 className="border rounded px-3 py-2"
                 value={parameters.fechaInicio || ""}
-                onChange={e => setParameters({ ...parameters, fechaInicio: e.target.value })}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setParameters({ ...parameters, fechaInicio: e.target.value })}
               />
               <label className="font-medium">Fecha fin:</label>
               <input
                 type="date"
                 className="border rounded px-3 py-2"
                 value={parameters.fechaFin || ""}
-                onChange={e => setParameters({ ...parameters, fechaFin: e.target.value })}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setParameters({ ...parameters, fechaFin: e.target.value })}
               />
             </div>
           )}
@@ -302,7 +313,7 @@ export default function ReportesPage({ params }: { params: { username: string } 
                 type="number"
                 className="border rounded px-3 py-2"
                 value={parameters.clienteId || ""}
-                onChange={e => setParameters({ ...parameters, clienteId: Number(e.target.value) })}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setParameters({ ...parameters, clienteId: Number(e.target.value) })}
                 min={1}
               />
               <span className="text-gray-500 text-xs">(ID numérico de la razón social)</span>
@@ -341,7 +352,7 @@ export default function ReportesPage({ params }: { params: { username: string } 
               <table className="w-full border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-50">
-                    {reportData.columns.map((column, index) => (
+                    {reportData.columns.map((column: string, index: number) => (
                       <th key={index} className="border border-gray-300 px-4 py-3 text-left font-medium text-gray-900">
                         {formatColumnName(column)}
                       </th>
@@ -349,9 +360,9 @@ export default function ReportesPage({ params }: { params: { username: string } 
                   </tr>
                 </thead>
                 <tbody>
-                  {reportData.data.slice(0, 20).map((row, rowIndex) => (
+                  {reportData.data.slice(0, 20).map((row: Record<string, any>, rowIndex: number) => (
                     <tr key={rowIndex} className="hover:bg-gray-50">
-                      {reportData.columns.map((column, colIndex) => (
+                      {reportData.columns.map((column: string, colIndex: number) => (
                         <td key={colIndex} className="border border-gray-300 px-4 py-3 text-gray-700">
                           {formatCellValue(row[column])}
                         </td>
