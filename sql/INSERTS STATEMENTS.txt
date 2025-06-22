@@ -2418,16 +2418,16 @@ INSERT INTO PREMIACION (nombre, fecha, hora_inicio, hora_fin) VALUES
                                                                   ('Premio Especial del Jurado', '2025-11-15', '19:00:00', '21:00:00');
 
 INSERT INTO ESTADO_REPOSICION_ANAQUEL (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel) VALUES
-                                                                                                      ('2025-05-28', '2025-06-01', 3, 1),
-                                                                                                      ('2025-06-02', '2025-06-05', 3, 2),
-                                                                                                      ('2025-06-07', '2025-06-10', 3, 3),
-                                                                                                      ('2025-06-12', '2025-06-15', 3, 4),
-                                                                                                      ('2025-06-17', '2025-06-20', 3, 5),
-                                                                                                      ('2025-06-28', '2025-07-01', 3, 6),
-                                                                                                      ('2025-07-02', '2025-07-05', 3, 7),
-                                                                                                      ('2025-07-07', '2025-07-10', 3, 8),
-                                                                                                      ('2025-07-12', '2025-07-15', 3, 9),
-                                                                                                      ('2025-07-17', '2025-07-20', 3, 10);
+                                                                                                      ('2025-05-28', null, 3, 1),
+                                                                                                      ('2025-06-02', null, 3, 2),
+                                                                                                      ('2025-06-07', null, 3, 3),
+                                                                                                      ('2025-06-12', null, 3, 4),
+                                                                                                      ('2025-06-17', null, 3, 5),
+                                                                                                      ('2025-06-28', null, 3, 6),
+                                                                                                      ('2025-07-02', null, 3, 7),
+                                                                                                      ('2025-07-07', null, 3, 8),
+                                                                                                      ('2025-07-12', null, 3, 9),
+                                                                                                      ('2025-07-17', null, 3, 10);
 
 INSERT INTO PASILLO (nombre, fk_acaucab) VALUES
                                              ('Pasillo A - Cervezas Lager', 1),
@@ -2702,28 +2702,28 @@ INSERT INTO COMPRA_REPOSICION (fecha_emision, fecha_entrega, fecha_pago_estimada
                                                                                                                                               ('2025-06-30', '2025-07-15', '2025-07-30', NULL, 9000, 10);
 
 INSERT INTO ESTADO_COMPRA_REPOSICION (fecha_inicio, fecha_fin, fk_estado, fk_compra_reposicion) VALUES
-                                                                                                    ('2025-05-20', '2025-05-28', 3, 1),
+                                                                                                    ('2025-05-20', NULL, 3, 1),
                                                                                                     ('2025-05-25', NULL, 2, 2),
-                                                                                                    ('2025-05-30', '2025-06-10', 3, 3),
+                                                                                                    ('2025-05-30', NULL, 3, 3),
                                                                                                     ('2025-06-01', NULL, 2, 4),
-                                                                                                    ('2025-06-05', '2025-06-20', 3, 5),
+                                                                                                    ('2025-06-05', NULL, 3, 5),
                                                                                                     ('2025-06-10', NULL, 2, 6),
-                                                                                                    ('2025-06-15', '2025-06-30', 3, 7),
+                                                                                                    ('2025-06-15', NULL, 3, 7),
                                                                                                     ('2025-06-20', NULL, 2, 8),
-                                                                                                    ('2025-06-25', '2025-07-10', 3, 9),
+                                                                                                    ('2025-06-25', NULL, 3, 9),
                                                                                                     ('2025-06-30', NULL, 2, 10);
 
 INSERT INTO DETALLE_COMPRA (fk_cerveza_presentacion, fk_compra_reposicion, precio_unitario, cantidad) VALUES
                                                                                                           (1, 1, 35, 100),
-                                                                                                          (2, 1, 40, 50),
-                                                                                                          (3, 2, 30, 80),
-                                                                                                          (4, 2, 45, 60),
-                                                                                                          (5, 3, 50, 40),
-                                                                                                          (6, 3, 32, 70),
-                                                                                                          (7, 4, 48, 90),
-                                                                                                          (8, 4, 55, 30),
-                                                                                                          (9, 5, 42, 110),
-                                                                                                          (10, 5, 60, 20);
+                                                                                                          (2, 2, 40, 50),
+                                                                                                          (3, 3, 30, 80),
+                                                                                                          (4, 4, 45, 60),
+                                                                                                          (5, 5, 50, 40),
+                                                                                                          (6, 6, 32, 70),
+                                                                                                          (7, 7, 48, 90),
+                                                                                                          (8, 8, 55, 30),
+                                                                                                          (9, 9, 42, 110),
+                                                                                                          (10, 10, 60, 20);
 
 INSERT INTO VENTA_EVENTO (total, fecha, fk_evento_cliente, fk_evento) VALUES
                                                                           (50, '2025-07-15', 1, 1),

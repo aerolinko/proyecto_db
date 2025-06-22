@@ -1302,7 +1302,7 @@ create trigger triggerajustarpuntos
     for each row
 execute procedure ajustarpuntos();
 
-create function emitirOrdenReposicionAnaquel()
+create or replace function emitirOrdenReposicionAnaquel()
     RETURNS TRIGGER
     language plpgsql
 as
@@ -1326,6 +1326,8 @@ begin
             INSERT INTO reposicion_anaquel (fecha)
             VALUES (CURRENT_DATE)
             RETURNING reposicion_anaquel_id INTO orderid;
+            insert into estado_reposicion_anaquel (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel)
+            values (current_date,null,1,orderid);
         ELSE
             select reposicion_anaquel_id into orderid from reposicion_anaquel where
                 fecha_entrega is null
@@ -1339,17 +1341,17 @@ begin
         ) into yapedido;
 
         IF NOT yapedido THEN
-        select almacen_cerveza_id into almacenid
-        from almacen_cerveza where fk_cerveza_presentacion = new.fk_cerveza_presentacion
-        order by almacen_cerveza_id
-        limit 1;
+            select almacen_cerveza_id into almacenid
+            from almacen_cerveza where fk_cerveza_presentacion = new.fk_cerveza_presentacion
+            order by almacen_cerveza_id
+            limit 1;
 
-        insert into detalle_reposicion_anaquel (cantidad, precio_unitario, fk_almacen_cerveza, fk_reposicion_anaquel, fk_anaquel_cerveza)
+            insert into detalle_reposicion_anaquel (cantidad, precio_unitario, fk_almacen_cerveza, fk_reposicion_anaquel, fk_anaquel_cerveza)
             values (200,new.precio_unitario,almacenid,orderid,new.anaquel_cerveza_id);
         end if;
 
     END IF;
-        return new;
+    return new;
 end;
 $$;
 
@@ -1391,21 +1393,6 @@ BEGIN
         END LOOP;
 END;
 $$;
-
-CREATE OR REPLACE FUNCTION estadoRepAnaquel()
-    RETURNS TRIGGER
-    LANGUAGE plpgsql
-AS $$
-BEGIN
-    INSERT INTO estado_reposicion_anaquel (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel)
-    VALUES (current_date, NULL, 1,new.reposicion_anaquel_id);
-    RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER triggerEstadoRepAnaquel
-    AFTER INSERT ON reposicion_anaquel
-    FOR EACH ROW EXECUTE FUNCTION estadoRepAnaquel();
 
 CREATE OR REPLACE FUNCTION reposicionAnaquelEntregado()
     RETURNS TRIGGER

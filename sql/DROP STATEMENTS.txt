@@ -160,20 +160,43 @@ drop function obtenerpermisosusuario(integer) cascade;
 
 drop procedure insertarrolpermisos(integer, text[]) cascade;
 
+drop function reducirstock() cascade;
+
+drop function aumentarstock() cascade;
+
 drop function obtenercervezas() cascade;
 
 drop procedure insertarnuevatarjetacliente(varchar, integer, varchar, bigint, date, varchar) cascade;
 
-drop function buscarcliente(varchar, integer) cascade;
+drop function buscarmetodosdepagocliente(varchar, integer) cascade;
 
 drop procedure insertarventatiendacondetalle(integer, integer, varchar, jsonb, jsonb) cascade;
 
 drop function ajustarpuntos() cascade;
 
-drop function buscarmetodosdepagocliente(varchar, integer) cascade;
+drop function obtenerrolusuario(integer) cascade;
 
-drop function reducirstock() cascade;
+drop procedure insertarusuariorol(integer, jsonb) cascade;
 
-drop function aumentarstock() cascade;
+drop function buscarcliente(varchar, varchar) cascade;
 
 drop function emitirordenreposicionanaquel() cascade;
+
+drop function reposicionanaquelentregado() cascade;
+
+drop function reducirstockalmacen() cascade;
+
+drop function emitircomprareposicion() cascade;
+
+drop function aumentarstockalmacen() cascade;
+
+drop function reposicionalmacenentregado() cascade;
+
+drop procedure cambiarestadocomprarep(varchar, integer) cascade;
+
+drop function obtenerordenesanaquel() cascade;
+
+drop procedure cambiarestadorepanaquel(varchar, integer) cascade;
+
+drop function obtenerordenesalmacen() cascade;
+
