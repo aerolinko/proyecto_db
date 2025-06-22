@@ -2340,17 +2340,7 @@ INSERT INTO Evento (nombre, capacidad, direccion, entrada_paga, fecha_inicio, fe
                                                                                                                                                                           ('Concierto Caracas Rock y Lúpulo', 3200, 'Esquina de Miraflores', 't', '2026-03-15', '2026-03-15', 't', 3000, 99, 6, 1487),
                                                                                                                                                                           ('Charla Impacto Cervecería Economía Local', 420, 'Avenida Guzmán Blanco', 'f', '2026-03-25', '2026-03-25', 'f', 390, NULL, 3, 1488);
 
-INSERT INTO REPOSICION_ANAQUEL (fecha_entrega, fecha) VALUES
-                                                          ('2025-06-01', '2025-05-28'),
-                                                          ('2025-06-05', '2025-06-02'),
-                                                          ('2025-06-10', '2025-06-07'),
-                                                          ('2025-06-15', '2025-06-12'),
-                                                          ('2025-06-20', '2025-06-17'),
-                                                          ('2025-07-01', '2025-06-28'),
-                                                          ('2025-07-05', '2025-07-02'),
-                                                          ('2025-07-10', '2025-07-07'),
-                                                          ('2025-07-15', '2025-07-12'),
-                                                          ('2025-07-20', '2025-07-17');
+
 
 INSERT INTO ESTADO (nombre, descripcion) VALUES
                                              ('Pendiente', 'La operación ha sido iniciada y está en espera.'),
@@ -2363,6 +2353,21 @@ INSERT INTO ESTADO (nombre, descripcion) VALUES
                                              ('Recibido', 'El artículo ha sido entregado.'),
                                              ('Aprobado', 'La solicitud ha sido confirmada y aceptada.'),
                                              ('Devuelto', 'El artículo ha sido regresado.');
+
+
+INSERT INTO REPOSICION_ANAQUEL (fecha_entrega, fecha) VALUES
+                                                          ('2025-06-01', '2025-05-28'),
+                                                          ('2025-06-05', '2025-06-02'),
+                                                          ('2025-06-10', '2025-06-07'),
+                                                          ('2025-06-15', '2025-06-12'),
+                                                          ('2025-06-20', '2025-06-17'),
+                                                          ('2025-07-01', '2025-06-28'),
+                                                          ('2025-07-05', '2025-07-02'),
+                                                          ('2025-07-10', '2025-07-07'),
+                                                          ('2025-07-15', '2025-07-12'),
+                                                          ('2025-07-20', '2025-07-17');
+
+
 
 INSERT INTO CARGO (nombre) VALUES
                                ('Director Ejecutivo'),
