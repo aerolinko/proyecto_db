@@ -22,6 +22,7 @@ interface Order {
     productos: string;
     estado: string;
     fecha_emision:string;
+    total: number;
 }
 
 
@@ -98,7 +99,8 @@ export default function Orders({
                 orden.denominacion_comercial.toLowerCase().includes(lowerCaseFilter) ||
                 orden.productos.toLowerCase().includes(lowerCaseFilter) ||
                 orden.compra_reposicion_id.toString().toLowerCase().includes(lowerCaseFilter) ||
-                orden.estado.toLowerCase().includes(lowerCaseFilter)
+                orden.estado.toLowerCase().includes(lowerCaseFilter)||
+                orden.total.toString().toLowerCase().includes(lowerCaseFilter)
             );
         }
 
@@ -232,6 +234,13 @@ export default function Orders({
                             >
                                 Productos {renderSortArrow('productos')}
                             </th>
+                            <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+                                onClick={() => handleSort('total')}
+                            >
+                                Total {renderSortArrow('total')}
+                            </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Estado
                             </th>
@@ -250,11 +259,14 @@ export default function Orders({
                                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                                         {orden.denominacion_comercial}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-900">
                                         {orden.fecha_emision}
                                     </td>
                                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-500">
                                         {orden.productos}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-normal font-semibold text-sm text-gray-900">
+                                        <span className={'truncate'}>{orden.total} Bs.</span>
                                     </td>
                                     <td className={`px-6 py-4 whitespace-normal text-sm font-bold flex flex-col items-center text-gray-900`}>
                                         <span className="truncate">{orden.estado}</span>
