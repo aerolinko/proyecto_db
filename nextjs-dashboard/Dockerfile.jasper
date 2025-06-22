@@ -1,0 +1,38 @@
+FROM ubuntu:20.04
+
+# Evitar prompts interactivos durante la instalación
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Instalar dependencias
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    unzip \
+    default-jdk \
+    tomcat9 \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear directorio para JasperReports
+RUN mkdir -p /opt/jasperserver
+
+# Descargar JasperReports Server Community Edition
+RUN wget -O /tmp/jasperserver-ce.zip \
+    https://sourceforge.net/projects/jasperserver/files/JasperServer/JasperReports%20Server%20Community%20Edition%207.8.0/jasperserver-ce-7.8.0-bin.zip/download
+
+# Extraer JasperReports
+RUN unzip /tmp/jasperserver-ce.zip -d /opt/ && \
+    mv /opt/jasperserver-ce-7.8.0/* /opt/jasperserver/ && \
+    rm -rf /opt/jasperserver-ce-7.8.0 /tmp/jasperserver-ce.zip
+
+# Configurar permisos
+RUN chmod +x /opt/jasperserver/apache-tomcat/bin/*.sh
+
+# Exponer puerto
+EXPOSE 8080
+
+# Script de inicio
+COPY start-jasper.sh /start-jasper.sh
+RUN chmod +x /start-jasper.sh
+
+CMD ["/start-jasper.sh"] 

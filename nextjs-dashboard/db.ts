@@ -1055,40 +1055,16 @@ export async function getStockCervezas(): Promise<any[]> {
       SELECT 
         c.cerveza_id,
         c.nombre as nombre_cerveza,
-        tc.nombre as tipo_cerveza,
-        ec.nombre as estilo_cerveza,
-        p.material as presentacion,
-        p.cap_volumen as volumen_ml,
-        COALESCE(stock_almacen.cantidad_almacen, 0) as stock_almacen,
-        COALESCE(stock_anaquel.cantidad_anaquel, 0) as stock_anaquel,
-        COALESCE(stock_almacen.cantidad_almacen, 0) + COALESCE(stock_anaquel.cantidad_anaquel, 0) as stock_total,
-        COALESCE(stock_almacen.precio_almacen, stock_anaquel.precio_anaquel) as precio_unitario
+        p.nombre as presentacion,
+        COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
       FROM cerveza c
-      JOIN tipo_cerveza tc ON c.fk_tipo_cerveza = tc.tipo_cerveza_id
-      JOIN estilo_cerveza ec ON c.fk_estilo_cerveza = ec.estilo_cerveza_id
-      JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      LEFT JOIN (
-        SELECT 
-          cp.fk_cerveza,
-          SUM(ac.cantidad) as cantidad_almacen,
-          ROUND(AVG(ac.precio_unitario), 2) as precio_almacen
-        FROM almacen_cerveza ac
-        JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        GROUP BY cp.fk_cerveza
-      ) stock_almacen ON c.cerveza_id = stock_almacen.fk_cerveza
-      LEFT JOIN (
-        SELECT 
-          cp.fk_cerveza,
-          SUM(anc.cantidad) as cantidad_anaquel,
-          ROUND(AVG(anc.precio_unitario), 2) as precio_anaquel
-        FROM anaquel_cerveza anc
-        JOIN cerveza_presentacion cp ON anc.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        GROUP BY cp.fk_cerveza
-      ) stock_anaquel ON c.cerveza_id = stock_anaquel.fk_cerveza
-      ORDER BY stock_total DESC, c.nombre
+      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+      GROUP BY c.cerveza_id, c.nombre, p.nombre
+      ORDER BY c.nombre, p.nombre
     `
-
     const result = await query
     console.log(`Stock de cervezas encontrado: ${result.length} registros`)
     return result
@@ -1105,25 +1081,20 @@ export async function getStockAlmacen(): Promise<any[]> {
 
     const query = sql`
       SELECT 
+        c.cerveza_id,
         c.nombre as nombre_cerveza,
-        a.almacen_id,
-        l.nombre as ubicacion_almacen,
-        a.direccion as direccion_almacen,
-        a.capacidad as capacidad_almacen,
-        ac.cantidad as stock_disponible,
-        ac.precio_unitario,
-        ac.fecha as fecha_actualizacion,
-        p.material as presentacion,
-        p.cap_volumen as volumen_ml
-      FROM almacen_cerveza ac
-      JOIN almacen a ON ac.fk_almacen = a.almacen_id
-      JOIN lugar l ON a.fk_lugar = l.lugar_id
-      JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-      JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
-      JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      ORDER BY c.nombre, a.almacen_id
+        p.nombre as presentacion,
+        a.nombre as nombre_almacen,
+        almc.cantidad_disponible,
+        almc.fecha_ultima_actualizacion
+      FROM cerveza c
+      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+      LEFT JOIN almacen a ON almc.fk_almacen = a.almacen_id
+      WHERE almc.cantidad_disponible > 0
+      ORDER BY c.nombre, p.nombre, a.nombre
     `
-
     const result = await query
     console.log(`Stock de almacén encontrado: ${result.length} registros`)
     return result
@@ -1140,25 +1111,21 @@ export async function getStockAnaquel(): Promise<any[]> {
 
     const query = sql`
       SELECT 
+        c.cerveza_id,
         c.nombre as nombre_cerveza,
-        anc.anaquel_id,
-        pas.nombre as pasillo,
-        anc.estantes as estantes_anaquel,
-        anc.capacidad as capacidad_anaquel,
-        anc.cantidad as stock_disponible,
-        anc.precio_unitario,
-        anc.fecha as fecha_actualizacion,
-        p.material as presentacion,
-        p.cap_volumen as volumen_ml
-      FROM anaquel_cerveza anc
-      JOIN anaquel an ON anc.fk_anaquel = an.anaquel_id
-      JOIN pasillo pas ON an.fk_pasillo = pas.pasillo_id
-      JOIN cerveza_presentacion cp ON anc.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-      JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
-      JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      ORDER BY c.nombre, pas.nombre, anc.anaquel_id
+        p.nombre as presentacion,
+        an.nombre as nombre_anaquel,
+        ac.cantidad_disponible,
+        ac.precio_venta,
+        ac.fecha_ultima_actualizacion
+      FROM cerveza c
+      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+      LEFT JOIN anaquel an ON ac.fk_anaquel = an.anaquel_id
+      WHERE ac.cantidad_disponible > 0
+      ORDER BY c.nombre, p.nombre, an.nombre
     `
-
     const result = await query
     console.log(`Stock de anaqueles encontrado: ${result.length} registros`)
     return result
@@ -1176,41 +1143,19 @@ export async function getCervezasStockBajo(limite: number = 10): Promise<any[]> 
 
     const query = sql`
       SELECT 
+        c.cerveza_id,
         c.nombre as nombre_cerveza,
-        tc.nombre as tipo_cerveza,
-        ec.nombre as estilo_cerveza,
-        COALESCE(stock_almacen.cantidad_almacen, 0) as stock_almacen,
-        COALESCE(stock_anaquel.cantidad_anaquel, 0) as stock_anaquel,
-        COALESCE(stock_almacen.cantidad_almacen, 0) + COALESCE(stock_anaquel.cantidad_anaquel, 0) as stock_total,
-        CASE 
-          WHEN COALESCE(stock_almacen.cantidad_almacen, 0) + COALESCE(stock_anaquel.cantidad_anaquel, 0) < 5 THEN 'CRÍTICO'
-          WHEN COALESCE(stock_almacen.cantidad_almacen, 0) + COALESCE(stock_anaquel.cantidad_anaquel, 0) < 10 THEN 'BAJO'
-          ELSE 'NORMAL'
-        END as estado_stock
+        p.nombre as presentacion,
+        COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
       FROM cerveza c
-      JOIN tipo_cerveza tc ON c.fk_tipo_cerveza = tc.tipo_cerveza_id
-      JOIN estilo_cerveza ec ON c.fk_estilo_cerveza = ec.estilo_cerveza_id
-      JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      LEFT JOIN (
-        SELECT 
-          cp.fk_cerveza,
-          SUM(ac.cantidad) as cantidad_almacen
-        FROM almacen_cerveza ac
-        JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        GROUP BY cp.fk_cerveza
-      ) stock_almacen ON c.cerveza_id = stock_almacen.fk_cerveza
-      LEFT JOIN (
-        SELECT 
-          cp.fk_cerveza,
-          SUM(anc.cantidad) as cantidad_anaquel
-        FROM anaquel_cerveza anc
-        JOIN cerveza_presentacion cp ON anc.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        GROUP BY cp.fk_cerveza
-      ) stock_anaquel ON c.cerveza_id = stock_anaquel.fk_cerveza
-      WHERE COALESCE(stock_almacen.cantidad_almacen, 0) + COALESCE(stock_anaquel.cantidad_anaquel, 0) < ${limite}
+      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+      GROUP BY c.cerveza_id, c.nombre, p.nombre
+      HAVING COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) <= ${limite}
       ORDER BY stock_total ASC, c.nombre
     `
-
     const result = await query
     console.log(`Cervezas con stock bajo encontradas: ${result.length} registros`)
     return result
@@ -1229,43 +1174,54 @@ export async function getCervezasSinStock(): Promise<any[]> {
       SELECT 
         c.cerveza_id,
         c.nombre as nombre_cerveza,
-        tc.nombre as tipo_cerveza,
-        ec.nombre as estilo_cerveza,
-        p.material as presentacion,
-        p.cap_volumen as volumen_ml,
-        COALESCE(stock_almacen.cantidad_almacen, 0) as stock_almacen,
-        COALESCE(stock_anaquel.cantidad_anaquel, 0) as stock_anaquel,
-        COALESCE(stock_almacen.cantidad_almacen, 0) + COALESCE(stock_anaquel.cantidad_anaquel, 0) as stock_total
+        p.nombre as presentacion,
+        COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
       FROM cerveza c
-      JOIN tipo_cerveza tc ON c.fk_tipo_cerveza = tc.tipo_cerveza_id
-      JOIN estilo_cerveza ec ON c.fk_estilo_cerveza = ec.estilo_cerveza_id
-      JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      LEFT JOIN (
-        SELECT 
-          cp.fk_cerveza,
-          SUM(ac.cantidad) as cantidad_almacen
-        FROM almacen_cerveza ac
-        JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        GROUP BY cp.fk_cerveza
-      ) stock_almacen ON c.cerveza_id = stock_almacen.fk_cerveza
-      LEFT JOIN (
-        SELECT 
-          cp.fk_cerveza,
-          SUM(anc.cantidad) as cantidad_anaquel
-        FROM anaquel_cerveza anc
-        JOIN cerveza_presentacion cp ON anc.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        GROUP BY cp.fk_cerveza
-      ) stock_anaquel ON c.cerveza_id = stock_anaquel.fk_cerveza
-      WHERE COALESCE(stock_almacen.cantidad_almacen, 0) + COALESCE(stock_anaquel.cantidad_anaquel, 0) = 0
-      ORDER BY c.nombre
+      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+      GROUP BY c.cerveza_id, c.nombre, p.nombre
+      HAVING COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) = 0
+      ORDER BY c.nombre, p.nombre
     `
-
     const result = await query
     console.log(`Cervezas sin stock encontradas: ${result.length} registros`)
     return result
   } catch (error) {
     console.error("Error en getCervezasSinStock:", error)
+    throw error
+  }
+}
+
+// 11. Stock de una Cerveza Específica
+export async function getStockCervezaEspecifica(nombreCerveza: string): Promise<any[]> {
+  try {
+    console.log("=== getStockCervezaEspecifica ===")
+    console.log("Parámetros:", { nombreCerveza })
+
+    const query = sql`
+      SELECT 
+        c.cerveza_id,
+        c.nombre as nombre_cerveza,
+        p.nombre as presentacion,
+        COALESCE(SUM(ac.cantidad_disponible), 0) as stock_anaqueles,
+        COALESCE(SUM(almc.cantidad_disponible), 0) as stock_almacen,
+        COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
+      FROM cerveza c
+      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+      WHERE LOWER(c.nombre) LIKE LOWER(${'%' + nombreCerveza + '%'})
+      GROUP BY c.cerveza_id, c.nombre, p.nombre
+      ORDER BY c.nombre, p.nombre
+    `
+    const result = await query
+    console.log(`Stock de cerveza específica encontrado: ${result.length} registros`)
+    return result
+  } catch (error) {
+    console.error("Error en getStockCervezaEspecifica:", error)
     throw error
   }
 }
