@@ -3,12 +3,17 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "jasper:start": "docker-compose up -d",
+    "jasper:stop": "docker-compose down",
+    "jasper:upload": "node scripts/upload-templates.js",
+    "jasper:setup": "npm run jasper:start && sleep 30 && npm run jasper:upload"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/forms": "^0.5.10",
     "autoprefixer": "10.4.20",
+    "axios": "^1.6.0",
     "bcrypt": "^5.1.1",
     "clsx": "^2.1.1",
     "js-cookie": "^3.0.5",

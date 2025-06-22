@@ -2,7 +2,7 @@ import postgres from 'postgres';
 
 
 
-
+/*
 
 const sql = postgres({
     host: 'localhost',
@@ -12,8 +12,8 @@ const sql = postgres({
     password: 'root',
 });
 
+*/
 
-/*
 const sql = postgres({
     host: 'localhost',
     port: 5432,
@@ -25,7 +25,7 @@ const sql = postgres({
     // await sql`SET search_path TO schema_name`;
 });
 
-*/
+
 
 
 export async function getAllLugares() {
@@ -724,5 +724,328 @@ export async function getAvailableTables(): Promise<any[]> {
 
 
 export default sql
+
+// ===== NUEVAS FUNCIONES DE REPORTES ESPECÍFICOS =====
+
+// 1. Productos con Mayor Demanda en Tienda Online
+export async function getReportProductosMayorDemanda(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    console.log("=== getReportProductosMayorDemanda ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    let query
+    if (fechaInicio && fechaFin) {
+      query = sql`
+        SELECT 
+          c.cerveza_id as producto_id,
+          c.nombre as producto_nombre,
+          ac.precio_unitario as precio,
+          ac.cantidad as stock_actual,
+          COUNT(dvt.fk_anaquel_cerveza) as total_ventas,
+          SUM(dvt.cantidad) as unidades_vendidas,
+          SUM(dvt.cantidad * dvt.precio_unitario) as ingresos_totales,
+          ROUND(AVG(dvt.precio_unitario), 2) as precio_promedio
+        FROM cerveza c
+        LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN detalle_venta_tienda dvt ON ac.anaquel_cerveza_id = dvt.fk_anaquel_cerveza
+        LEFT JOIN venta_tienda vt ON dvt.fk_venta_tienda = vt.venta_tienda_id
+        WHERE vt.fecha BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
+        GROUP BY c.cerveza_id, c.nombre, ac.precio_unitario, ac.cantidad
+        ORDER BY unidades_vendidas DESC, ingresos_totales DESC
+        LIMIT 50
+      `
+    } else {
+      query = sql`
+        SELECT 
+          c.cerveza_id as producto_id,
+          c.nombre as producto_nombre,
+          ac.precio_unitario as precio,
+          ac.cantidad as stock_actual,
+          COUNT(dvt.fk_anaquel_cerveza) as total_ventas,
+          SUM(dvt.cantidad) as unidades_vendidas,
+          SUM(dvt.cantidad * dvt.precio_unitario) as ingresos_totales,
+          ROUND(AVG(dvt.precio_unitario), 2) as precio_promedio
+        FROM cerveza c
+        LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN detalle_venta_tienda dvt ON ac.anaquel_cerveza_id = dvt.fk_anaquel_cerveza
+        LEFT JOIN venta_tienda vt ON dvt.fk_venta_tienda = vt.venta_tienda_id
+        GROUP BY c.cerveza_id, c.nombre, ac.precio_unitario, ac.cantidad
+        ORDER BY unidades_vendidas DESC, ingresos_totales DESC
+        LIMIT 50
+      `
+    }
+
+    const result = await query
+    console.log(`Productos con mayor demanda encontrados: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportProductosMayorDemanda:", error)
+    throw error
+  }
+}
+
+// 2. Reposición de Anaqueles Generadas
+export async function getReportReposicionAnaqueles(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    console.log("=== getReportReposicionAnaqueles ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    let query
+    if (fechaInicio && fechaFin) {
+      query = sql`
+        SELECT 
+          ra.reposicion_anaquel_id as reposicion_id,
+          ra.fecha as fecha_reposicion,
+          dra.cantidad as cantidad_solicitada,
+          es.nombre as estado,
+          c.nombre as producto_nombre,
+          ac.cantidad as stock_actual,
+          a.anaquel_id as numero_pasillo,
+          p.nombre as zona,
+          l.nombre as lugar_nombre,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_solicitante
+        FROM reposicion_anaquel ra
+        LEFT JOIN detalle_reposicion_anaquel dra ON ra.reposicion_anaquel_id = dra.fk_reposicion_anaquel
+        LEFT JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+        LEFT JOIN anaquel a ON ac.fk_anaquel = a.anaquel_id
+        LEFT JOIN pasillo p ON a.fk_pasillo = p.pasillo_id
+        LEFT JOIN lugar l ON p.fk_acaucab = l.lugar_id
+        LEFT JOIN estado_reposicion_anaquel era ON ra.reposicion_anaquel_id = era.fk_reposicion_anaquel
+        LEFT JOIN estado es ON era.fk_estado = es.estado_id
+        LEFT JOIN empleado e ON e.empleado_id = 1
+        WHERE ra.fecha BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
+        AND ac.cantidad <= 20
+        ORDER BY ra.fecha DESC, ac.cantidad ASC
+      `
+    } else {
+      query = sql`
+        SELECT 
+          ra.reposicion_anaquel_id as reposicion_id,
+          ra.fecha as fecha_reposicion,
+          dra.cantidad as cantidad_solicitada,
+          es.nombre as estado,
+          c.nombre as producto_nombre,
+          ac.cantidad as stock_actual,
+          a.anaquel_id as numero_pasillo,
+          p.nombre as zona,
+          l.nombre as lugar_nombre,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_solicitante
+        FROM reposicion_anaquel ra
+        LEFT JOIN detalle_reposicion_anaquel dra ON ra.reposicion_anaquel_id = dra.fk_reposicion_anaquel
+        LEFT JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+        LEFT JOIN anaquel a ON ac.fk_anaquel = a.anaquel_id
+        LEFT JOIN pasillo p ON a.fk_pasillo = p.pasillo_id
+        LEFT JOIN lugar l ON p.fk_acaucab = l.lugar_id
+        LEFT JOIN estado_reposicion_anaquel era ON ra.reposicion_anaquel_id = era.fk_reposicion_anaquel
+        LEFT JOIN estado es ON era.fk_estado = es.estado_id
+        LEFT JOIN empleado e ON e.empleado_id = 1
+        WHERE ac.cantidad <= 20
+        ORDER BY ra.fecha DESC, ac.cantidad ASC
+        LIMIT 100
+      `
+    }
+
+    const result = await query
+    console.log(`Reposiciones de anaqueles encontradas: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportReposicionAnaqueles:", error)
+    throw error
+  }
+}
+
+// 3. Cuotas de Afiliación Pendientes de Pago
+export async function getReportCuotasAfiliacionPendientes(): Promise<any[]> {
+  try {
+    console.log("=== getReportCuotasAfiliacionPendientes ===")
+
+    const query = sql`
+      SELECT 
+        cj.cliente_id as cliente_juridico_id,
+        cj.razon_social,
+        cj.rif,
+        cj.direccion,
+        cj.fecha_afiliacion,
+        1000 as cuota_mensual,
+        'activo' as estado_afiliacion,
+        COALESCE(MAX(p.fecha), 'Nunca') as ultimo_pago,
+        EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM cj.fecha_afiliacion) as meses_pendientes,
+        1000 * (EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM cj.fecha_afiliacion)) as monto_pendiente
+      FROM cliente_juridico cj
+      LEFT JOIN pago p ON cj.cliente_id = p.fk_venta_tienda
+      WHERE cj.cliente_id IS NOT NULL
+      AND (p.fecha IS NULL OR p.fecha < DATE_TRUNC('month', CURRENT_DATE))
+      GROUP BY cj.cliente_id, cj.razon_social, cj.rif, cj.direccion, 
+               cj.fecha_afiliacion
+      ORDER BY monto_pendiente DESC, cj.razon_social
+    `
+
+    const result = await query
+    console.log(`Cuotas de afiliación pendientes encontradas: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportCuotasAfiliacionPendientes:", error)
+    throw error
+  }
+}
+
+// 4. Costo Total de Nómina por Departamento/Cargo
+export async function getReportNominaDepartamento(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
+  try {
+    console.log("=== getReportNominaDepartamento ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    let query
+    if (fechaInicio && fechaFin) {
+      query = sql`
+        SELECT 
+          e.empleado_id,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo,
+          e.cedula,
+          e.fecha_contrato,
+          50000 as salario_base,
+          c.nombre as nombre_cargo,
+          'Departamento General' as nombre_departamento,
+          l.nombre as lugar_trabajo,
+          0 as beneficios,
+          50000 as costo_total,
+          EXTRACT(YEAR FROM AGE(CURRENT_DATE, e.fecha_contrato)) as anos_servicio
+        FROM empleado e
+        LEFT JOIN cargo c ON e.empleado_id = c.cargo_id
+        LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
+        WHERE e.fecha_contrato BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
+        ORDER BY nombre_departamento, nombre_cargo, e.primer_nombre
+      `
+    } else {
+      query = sql`
+        SELECT 
+          e.empleado_id,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo,
+          e.cedula,
+          e.fecha_contrato,
+          50000 as salario_base,
+          c.nombre as nombre_cargo,
+          'Departamento General' as nombre_departamento,
+          l.nombre as lugar_trabajo,
+          0 as beneficios,
+          50000 as costo_total,
+          EXTRACT(YEAR FROM AGE(CURRENT_DATE, e.fecha_contrato)) as anos_servicio
+        FROM empleado e
+        LEFT JOIN cargo c ON e.empleado_id = c.cargo_id
+        LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
+        ORDER BY nombre_departamento, nombre_cargo, e.primer_nombre
+      `
+    }
+
+    const result = await query
+    console.log(`Empleados encontrados: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportNominaDepartamento:", error)
+    throw error
+  }
+}
+
+// 5. Historial Consolidado de Compras Online por Cliente Jurídico
+export async function getReportHistorialComprasClienteJuridico(
+  clienteId?: number, 
+  fechaInicio?: string, 
+  fechaFin?: string
+): Promise<any[]> {
+  try {
+    console.log("=== getReportHistorialComprasClienteJuridico ===")
+    console.log("Parámetros:", { clienteId, fechaInicio, fechaFin })
+
+    let query
+    if (clienteId && fechaInicio && fechaFin) {
+      query = sql`
+        SELECT 
+          vt.venta_tienda_id as venta_id,
+          vt.fecha as fecha_venta,
+          vt.total as monto_total,
+          cj.razon_social,
+          cj.rif,
+          c.nombre as producto_nombre,
+          dvt.cantidad,
+          dvt.precio_unitario,
+          dvt.cantidad * dvt.precio_unitario as subtotal_producto,
+          'Efectivo' as metodo_pago,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
+        FROM venta_tienda vt
+        LEFT JOIN detalle_venta_tienda dvt ON vt.venta_tienda_id = dvt.fk_venta_tienda
+        LEFT JOIN anaquel_cerveza ac ON dvt.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+        LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
+        LEFT JOIN empleado e ON e.empleado_id = 1
+        WHERE vt.fk_cliente_juridico = ${clienteId}
+        AND vt.fecha BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
+        ORDER BY vt.fecha DESC, c.nombre
+      `
+    } else if (clienteId) {
+      query = sql`
+        SELECT 
+          vt.venta_tienda_id as venta_id,
+          vt.fecha as fecha_venta,
+          vt.total as monto_total,
+          cj.razon_social,
+          cj.rif,
+          c.nombre as producto_nombre,
+          dvt.cantidad,
+          dvt.precio_unitario,
+          dvt.cantidad * dvt.precio_unitario as subtotal_producto,
+          'Efectivo' as metodo_pago,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
+        FROM venta_tienda vt
+        LEFT JOIN detalle_venta_tienda dvt ON vt.venta_tienda_id = dvt.fk_venta_tienda
+        LEFT JOIN anaquel_cerveza ac ON dvt.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+        LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
+        LEFT JOIN empleado e ON e.empleado_id = 1
+        WHERE vt.fk_cliente_juridico = ${clienteId}
+        ORDER BY vt.fecha DESC, c.nombre
+      `
+    } else {
+      query = sql`
+        SELECT 
+          vt.venta_tienda_id as venta_id,
+          vt.fecha as fecha_venta,
+          vt.total as monto_total,
+          cj.razon_social,
+          cj.rif,
+          c.nombre as producto_nombre,
+          dvt.cantidad,
+          dvt.precio_unitario,
+          dvt.cantidad * dvt.precio_unitario as subtotal_producto,
+          'Efectivo' as metodo_pago,
+          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
+        FROM venta_tienda vt
+        LEFT JOIN detalle_venta_tienda dvt ON vt.venta_tienda_id = dvt.fk_venta_tienda
+        LEFT JOIN anaquel_cerveza ac ON dvt.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+        LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
+        LEFT JOIN empleado e ON e.empleado_id = 1
+        WHERE vt.fk_cliente_juridico IS NOT NULL
+        ORDER BY vt.fecha DESC, c.nombre
+        LIMIT 100
+      `
+    }
+
+    const result = await query
+    console.log(`Historial de compras encontrado: ${result.length} registros`)
+    return result
+  } catch (error) {
+    console.error("Error en getReportHistorialComprasClienteJuridico:", error)
+    throw error
+  }
+}
 
 

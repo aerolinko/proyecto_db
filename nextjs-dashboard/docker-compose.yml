@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  jasperserver:
+    image: retriever/jasperserver:latest
+    container_name: jasperserver
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=jasperdb
+      - DB_USER=jasper
+      - DB_PASSWORD=jasper123
+      - JASPER_USERNAME=jasperadmin
+      - JASPER_PASSWORD=jasperadmin
+    volumes:
+      - jasperserver_data:/opt/jasperserver
+      - ./jasper-reports:/opt/jasperserver/apache-tomcat/webapps/jasperserver/WEB-INF/reports
+    depends_on:
+      - postgres
+    networks:
+      - jasper-network
+
+  postgres:
+    image: postgres:13
+    container_name: jasper_postgres
+    environment:
+      - POSTGRES_DB=jasperdb
+      - POSTGRES_USER=jasper
+      - POSTGRES_PASSWORD=jasper123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jasper-network
+
+volumes:
+  jasperserver_data:
+  postgres_data:
+
+networks:
+  jasper-network:
+    driver: bridge 
