@@ -20,12 +20,18 @@ interface Order {
     compra_reposicion_id: number;
     denominacion_comercial: string;
     productos: string;
-    estado?: string;
+    estado: string;
+    fecha_emision:string;
+    total: number;
 }
 
 
 
-export default function Orders({ params }: { params: { usernameid: number } }) {
+export default function Orders({
+                                   params,
+                               }: {
+    params: Promise<{ usernameid: number }>
+}) {
     const { usernameid } = React.use(params);
     const [filter, setFilter] = useState('');
     const [ordenes, setOrdenes] = useState<Order[]>([]);
@@ -37,37 +43,38 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
     // Status management state
+    async function fetchOrders() {
+        try {
+            const response = await fetch("/api/ordenes?almacen=1", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            if (!response.ok) {
+                throw new Error(`¡Error HTTP! Estado: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log(data);
+            if(!data.result){
+                setOrdenes([]);
+            }
+            else{
+                setOrdenes(data.result);
+                setError(null);
+            }
+            // Initialize statuses from fetched orders if they have estado
 
 
-
-
+        } catch (error: any) {
+            setError(error.message);
+            setOrdenes([]);
+        }
+    }
 
     // Fetch orders
     useEffect(() => {
-        async function fetchOrders() {
-            try {
-                const response = await fetch("/api/ordenes?almacen=1", {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" }
-                });
 
-                if (!response.ok) {
-                    throw new Error(`¡Error HTTP! Estado: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log(data.result);
-                setOrdenes(data.result);
-                setError(null);
-
-                // Initialize statuses from fetched orders if they have estado
-
-
-            } catch (error: any) {
-                setError(error.message);
-                setOrdenes([]);
-            }
-        }
         fetchOrders();
     }, []);
 
@@ -92,7 +99,8 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                 orden.denominacion_comercial.toLowerCase().includes(lowerCaseFilter) ||
                 orden.productos.toLowerCase().includes(lowerCaseFilter) ||
                 orden.compra_reposicion_id.toString().toLowerCase().includes(lowerCaseFilter) ||
-                orden.estado.toLowerCase().includes(lowerCaseFilter)
+                orden.estado.toLowerCase().includes(lowerCaseFilter)||
+                orden.total.toString().toLowerCase().includes(lowerCaseFilter)
             );
         }
 
@@ -137,9 +145,22 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
         setCurrentPage(1);
     }, []);
 
+    const handleSubmit = async (id:number, cambio:string) => {
+        try {
+            const response = await fetch("/api/ordenes?almacen=1", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({id, cambio}),
+            });
 
-
-
+            if (!response.ok) {
+                throw new Error(`¡Error HTTP! Estado: ${response.status}`);
+            }
+            fetchOrders();
+        } catch (error: any) {
+            setError(error.message);
+        }
+    };
 
     // Render sort arrow
     const renderSortArrow = (column: keyof Order) => {
@@ -213,6 +234,13 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                             >
                                 Productos {renderSortArrow('productos')}
                             </th>
+                            <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+                                onClick={() => handleSort('total')}
+                            >
+                                Total {renderSortArrow('total')}
+                            </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Estado
                             </th>
@@ -231,11 +259,14 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                                         {orden.denominacion_comercial}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-900">
                                         {orden.fecha_emision}
                                     </td>
                                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-500">
                                         {orden.productos}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-normal font-semibold text-sm text-gray-900">
+                                        <span className={'truncate'}>{orden.total} Bs.</span>
                                     </td>
                                     <td className={`px-6 py-4 whitespace-normal text-sm font-bold flex flex-col items-center text-gray-900`}>
                                         <span className="truncate">{orden.estado}</span>
@@ -261,7 +292,7 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                                             {(orden.estado == 'En Proceso' || orden.estado == 'Pendiente') && (
                                                 <div className={`flex`}>
                                                     <button
-
+                                                        onClick={() => handleSubmit(orden.compra_reposicion_id,'Recibido')}
                                                         className="inline-flex items-center p-2 flex-col rounded-full text-purple-600 hover:text-purple-900 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
 
                                                     >
@@ -270,7 +301,7 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
 
                                                     </button>
                                                     <button
-
+                                                        onClick={() => handleSubmit(orden.compra_reposicion_id,'Cancelado')}
                                                         className=" items-center flex-col flex  p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
 
                                                     >
@@ -284,7 +315,7 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                                             {orden.estado == 'En Revisión' && (
                                                 <div className={`flex`}>
                                                 <button
-
+                                                    onClick={() => handleSubmit(orden.compra_reposicion_id,'Pendiente')}
                                                     className=" p-2 items-center flex-col flex  rounded-full text-green-600 hover:text-green-900 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
 
                                                 >
@@ -293,7 +324,7 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
 
                                                 </button>
                                                 <button
-
+                                                    onClick={() => handleSubmit(orden.compra_reposicion_id,'Rechazado')}
                                                 className=" items-center flex-col flex  p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
 
                                                 >

@@ -18,6 +18,7 @@ export default function Roles({
     const [roles, setRoles] = useState<any[]>([]);
     const [selectedRole, setSelectedRole] = useState<any>();
     const [error, setError] = useState("");
+    const [mensaje, setMensaje] = useState("");
     const [selectedChecks, setSelectedChecks] = useState<string[]>([]);
     const [filteredPermissions, setFilteredPermissions] = useState<Permiso[]>([])
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -125,7 +126,8 @@ interface Permiso{
         });
 
         if (response.ok) {
-            setError("yippe");
+            setMensaje("Asignación realizada correctamente");
+            setTimeout(() => { setMensaje(""); }, 2000);
         } else {
             setError("Credenciales Inválidas. Intente nuevamente.");
         }
@@ -172,6 +174,7 @@ interface Permiso{
                 {/* /////////// */}
                 <h1 className="text-2xl font-bold ">Permisos</h1>
                 {error && <p className="text-red-500">{error}</p>}
+                {mensaje && <p className="text-green-500">{mensaje}</p>}
                 <button disabled={selectedChecks.length == 0}  onClick={handleSubmit} className={`bg-gray-200  hover:text-blue-600 font-medium  p-3 rounded 
                 ${((selectedChecks.length !== 0) && 'hover:bg-sky-100') || 
                 ((selectedChecks.length == 0) && 'text-gray-50 hover:text-gray-50 hover:bg-gray-200 cursor-not-allowed')}`}>

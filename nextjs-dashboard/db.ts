@@ -2,7 +2,7 @@ import postgres from 'postgres';
 
 
 
-/*
+
 
 const sql = postgres({
     host: 'localhost',
@@ -12,8 +12,8 @@ const sql = postgres({
     password: 'root',
 });
 
-*/
 
+/*
 const sql = postgres({
     host: 'localhost',
     port: 5432,
@@ -23,7 +23,7 @@ const sql = postgres({
     connection: { options: '-c search_path=schema_name' }
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
-});
+});*/
 
 
 
@@ -106,6 +106,17 @@ export async function getOrdenesAlmacen() {
   return await sql`SELECT * from obtenerordenesalmacen()`;
 }
 
+export async function updateOrdenesAlmacen(id:number,cambio:string) {
+  return await sql`call cambiarEstadoCompraRep(${cambio},${id})`;
+}
+
+export async function getOrdenesAnaquel() {
+  return await sql`SELECT * from obtenerordenesanaquel()`;
+}
+
+export async function updateOrdenesAnaquel(id:number,cambio:string) {
+  return await sql`call cambiarEstadoRepAnaquel(${cambio},${id})`;
+}
 /*
 ///para usuarios
 export async function getAllUsuarios() {
