@@ -1,13 +1,13 @@
 'use client'
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import clsx from "clsx";
+import React, { useState, useEffect } from 'react';
 import {ArrowLeftCircleIcon, PlusIcon} from "@heroicons/react/24/outline";
 import RegistrarPago from "@/app/ui/venta/RegistrarPago";
+import {redirect} from "next/navigation";
+import {red} from "next/dist/lib/picocolors";
 
 
 // @ts-ignore
-export default function MetodoPago({ cart, setPagando }) {
-    const [quantity, setQuantity] = useState();
+export default function MetodoPago({ cart, setPagando, setProducts, usernameid, setCart }) {
 
     // Update internal quantity state if initialQuantity prop changes (e.g., cart is cleared)
     useEffect(() => {
@@ -16,7 +16,7 @@ export default function MetodoPago({ cart, setPagando }) {
 
     // State for client selection
     const [selectedClientId, setSelectedClientId] = useState('');
-    const [foundClientId, setFoundClientId] = useState('');
+    const [foundClientId, setFoundClientId] = useState<any>('');
 
     // State for payment methods
     const [paymentMethods, setPaymentMethods] = useState([]);
@@ -41,6 +41,7 @@ export default function MetodoPago({ cart, setPagando }) {
     const handleAddPayment = () => {
         let filteredpayments = paymentMethods;
 
+        // @ts-ignore
         if(filteredpayments.some((element)=>element.tipo=='puntos') && newPaymentMethodType.tipo=='puntos'){
             filteredpayments = filteredpayments.filter((element:any)=>element.tipo!=='puntos');
         }
@@ -109,10 +110,59 @@ export default function MetodoPago({ cart, setPagando }) {
         })
 
         if (response.ok) {
-            console.log('MANDAR UN MENSAJE DE EXITO Y REDIRECCIONAR CON UN setTimeout');
+            setFoundClientId('');
+            setIsModalOpen(true)
+            setModalMessage('Compra realizada con éxito!')
+            setTimeout(() => {setIsModalOpen(false);
+                setTimeout(async () => {
+                    setPagando(false);
+                    setCart([]);
+                    await fetchProducts();
+                    redirect( `/${usernameid}/VentaTienda`)}, 300);
+                },1000);
+
         }
 
     };
+
+    async function fetchProducts() {
+        try {
+            // Makes a GET request to the `/api/products` endpoint.
+            const response = await fetch("/api/products", {
+                method: "GET", // Specifies the HTTP method as GET.
+                headers: { "Content-Type": "application/json" } // Sets the request header.
+            });
+            // Checks if the HTTP response was successful (status code 200-299).
+            if (!response.ok) {
+                // Throws an error if the HTTP response indicates a problem.
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Parses the JSON body of the response.
+            const data = await response.json();
+
+            // Transforms the fetched data (`data.result`) into a format suitable for the application.
+            // It maps each item to an object with `id`, `name`, and randomly generated `price` and `stock`.
+            const transformedProducts = data.result.map((item: any) => ({
+                id: item.anaquel_cerveza_id, // Uses `cerveza_presentacion_id` as the product ID.
+                name: item.nombre, // Uses `nombre` as the product name.
+                // IMPORTANT: Adding placeholder price and stock as your API only returns 'nombre' and 'cerveza_presentacion_id'.
+                // In a real application, these should come from your backend.
+                price: parseFloat(item.precio_unitario.toFixed(2)), // Generates a random price between 1 and 10.
+                stock: item.cantidad, // Generates a random stock quantity between 10 and 60.
+                presentation: item.cap_volumen,
+                quantity: 0
+            }));
+            setProducts(transformedProducts); // Updates the `products` state with the transformed data, triggering a re-render.
+        } catch (err: any) {
+            // Catches any errors that occur during the fetch operation.
+            console.error("Error fetching products:", err); // Logs the error to the console for debugging.
+            // Set error message // This line is an incomplete comment, likely intended to set an error state.
+        }
+    }
+
+
+
 
     const buscarCliente = async (cliente:string) => {
         setPaymentMethods([]);

@@ -9,7 +9,15 @@ import CartItem from "@/app/ui/venta/CartItem";
 import MetodoPago from "@/app/ui/venta/MetodoPago";
 
 // Defines the main functional component for the sales page.
-export default function Page (){
+export default function Page ({
+                                  params
+                              }:{
+    // Los params de ruta son directamente accesibles, no como una Promise
+    params: { usernameid: number }
+}){
+    // @ts-ignore
+    const { usernameid } = React.use(params);
+    console.log(usernameid);
     // Declares a local variable `allProducts` initialized as an empty array.
     // This variable is not used after initialization, as `products` state directly receives API data.
     let allProducts:any[]=[];
@@ -149,26 +157,6 @@ export default function Page (){
     // Defines the `handleCheckout` function, which simulates the checkout process.
     const handleCheckout = () => {
         setPagando(true);
-        // If the cart is empty, displays an error message and stops the checkout process.
-        if (Object.keys(cart).length === 0) {
-            showMessage('error', 'El carrito está vacío. Agrega algunos productos.');
-            return;
-        }
-        // Displays a success message for the completed purchase, including the total.
-        // Simulates reducing product stock on the client-side.
-        // IMPORTANT: In a real application, stock updates should be handled on the backend.
-        products.forEach((product) => {
-            const existingItem = Object.keys(cart); // Gets an array of product IDs currently in the cart.
-            // Checks if the current product is in the cart.
-            if(existingItem.includes(product.id.toString())){
-                // Reduces the product's stock by the quantity in the cart.
-                // NOTE: This directly mutates the `product` object within the `products` array.
-                // In React, it's generally better to create a new array/object for state updates.
-                product.stock = product.stock - cart[product.id].quantity;
-            };
-        })
-
-        /*setCart([])*/
         setSearchTerm(''); // Clears the cart after checkout.
         // In a real app, you'd send this data to a backend, update stock, etc. // Comment indicating next steps for a production app.
     };
@@ -260,7 +248,7 @@ export default function Page (){
                     </div>
                 </div>
             ) : (
-                <MetodoPago cart={cart} setPagando={setPagando} />
+                <MetodoPago cart={cart} setPagando={setPagando} usernameid={usernameid} setProducts={setProducts} setCart={setCart} />
             )}
         </div>
     );
