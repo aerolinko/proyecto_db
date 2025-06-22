@@ -591,7 +591,6 @@ CREATE TABLE COMPRA_REPOSICION(
                                   fecha_entrega DATE,
                                   fecha_pago_estimada DATE,
                                   fecha_pago_real DATE,
-                                  aprobacion boolean default 'f',
                                   total integer NOT NULL,
                                   fk_miembro_acaucab integer NOT NULL,
                                   constraint pk_compra_reposicion_id primary key (compra_reposicion_id),
