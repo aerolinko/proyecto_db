@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/ui/button'
+import { Button } from '@/app/ui/button'
 
 interface JasperReportGeneratorProps {
   reportType: string

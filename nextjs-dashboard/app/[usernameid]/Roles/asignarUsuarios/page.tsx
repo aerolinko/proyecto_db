@@ -20,12 +20,13 @@ export default function Roles({
     const [selectedRole, setSelectedRole] = useState<any[]>([]);
     const [selectedUser, setSelectedUser] = useState<any>();
     const [error, setError] = useState("");
-    const [filteredRole, setFilteredRole] = useState<Permiso[]>([])
+    const [mensaje, setMensaje] = useState("");
+    const [filteredRole, setFilteredRole] = useState<Rol[]>([])
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
-interface Permiso{
+interface Rol{
     descripcion: string;
-    permiso_id: number;
+    rol_id: number;
 }
         useEffect(() => {
             async function fetchUsuarios() {
@@ -78,7 +79,8 @@ interface Permiso{
 
     useEffect(() => {
         if(selectedUser){
-        async function fetchRolesUsuario(selectedUser) {
+        // @ts-ignore
+            async function fetchRolesUsuario(selectedUser) {
             try {
                 const response = await fetch("/api/usuarios?roles="+selectedUser.id, {
                     method: "GET", // Specifies the HTTP method as GET.
@@ -110,9 +112,10 @@ interface Permiso{
             body: JSON.stringify({ selectedUser, selectedRole }),
         });
         if (response.ok) {
-            setError("yippe");
+            setMensaje("Asignación realizada correctamente");
+            setTimeout(() => { setMensaje(""); }, 2000);
         } else {
-            setError("bro what it worked");
+            setError("Error en la asignación");
         }
     }
 
@@ -120,6 +123,7 @@ interface Permiso{
         console.log(filteredRole);
         if(filter){
             setFilteredRole(roles.filter(role => (role.nombre.toUpperCase()).includes(filter.toUpperCase())));
+            console.log(filteredRole);
         }
         else setFilteredRole(roles);
 
@@ -163,6 +167,7 @@ interface Permiso{
                 {/* /////////// */}
                 <h1 className="text-2xl font-bold ">Roles</h1>
                 {error && <p className="text-red-500">{error}</p>}
+                {mensaje && <p className="text-green-500">{mensaje}</p>}
                 <button disabled={usuarios.length === 0}  onClick={handleSubmit} className={`bg-gray-200  hover:text-blue-600 font-medium  p-3 rounded 
                 ${((usuarios.length !== 0) && 'hover:bg-sky-100') || 
                 ((usuarios.length == 0) && 'text-gray-50 hover:text-gray-50 hover:bg-gray-200 cursor-not-allowed')}`}>
