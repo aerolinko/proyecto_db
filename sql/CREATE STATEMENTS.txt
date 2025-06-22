@@ -1544,3 +1544,34 @@ CREATE TRIGGER triggerReposicionAlmacenEntregado
     AFTER UPDATE on estado_compra_reposicion
     FOR EACH ROW EXECUTE FUNCTION reposicionAlmacenEntregado();
 
+create or replace function obtenerordenesalmacen()
+    returns TABLE(compra_reposicion_id integer, productos varchar, fecha_emision varchar, denominacion_comercial character varying, estado varchar)
+    language sql
+as
+$$
+SELECT  cr.compra_reposicion_id, string_agg(c.nombre||' '||p.cap_volumen::varchar||'ml', ', ') as productos, to_char(cr.fecha_emision,'DD-MM-YYYY'), ma.denominacion_comercial, e.nombre as estado
+    from compra_reposicion cr, cerveza_presentacion pc, miembro_acaucab ma, estado_compra_reposicion ecr, estado e,
+         cerveza c, presentacion p, detalle_compra dc
+    where cr.fk_miembro_acaucab = ma.miembro_id and dc.fk_compra_reposicion = cr.compra_reposicion_id and
+          dc.fk_cerveza_presentacion = pc.cerveza_presentacion_id and c.cerveza_id = pc.fk_cerveza and
+          p.presentacion_id = pc.fk_presentacion and ecr.fk_compra_reposicion = cr.compra_reposicion_id and ecr.fk_estado = e.estado_id
+          and ecr.fecha_fin IS NULL
+    group by cr.compra_reposicion_id, ma.denominacion_comercial, e.nombre, cr.fecha_emision
+$$;
+
+create or replace procedure cambiarEstadoCompraRep(cambio varchar, id integer)
+language plpgsql
+as
+    $$
+    declare
+        Nuevoestado_id integer;
+    begin
+        select into Nuevoestado_id e.estado_id from estado e
+        where e.nombre=cambio;
+        update estado_compra_reposicion set fecha_fin = current_date
+        where fk_compra_reposicion=id;
+        insert into estado_compra_reposicion (fecha_inicio, fecha_fin, fk_estado, fk_compra_reposicion)
+        values (current_date,null,Nuevoestado_id,id);
+    end;
+    $$;
+

@@ -5,7 +5,7 @@ import {
   DocumentDuplicateIcon,
   ShoppingBagIcon,
   Cog6ToothIcon,
-  TruckIcon, BuildingStorefrontIcon,
+  TruckIcon, BuildingStorefrontIcon, CubeIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -17,7 +17,7 @@ export default function UserNavs({ permissions }) {
     { path: `GestionUsuarios`, nombre: 'Manejo de usuarios', icon: UserGroupIcon, id: 'consultar USUARIO' },
     { path: `Reportes`, nombre: 'Manejo de reportes', icon: DocumentDuplicateIcon, id: 'consultar REPORTES' },
     { path: `ReposicionAlmacenes`, nombre: 'Manejo de estados de las órdenes a proveedores', icon: TruckIcon, id: 'consultar ESTADO_COMPRA_REPOSICION' },
-    { path: `ReposicionAnaqueles`, nombre: 'Manejo de estados de las ordenes de anaqueles', icon: BuildingStorefrontIcon, id: 'consultar ESTADO_REPOSICION_ANAQUEL' }
+    { path: `ReposicionAnaqueles`, nombre: 'Manejo de estados de las ordenes de anaqueles', icon: CubeIcon, id: 'consultar ESTADO_REPOSICION_ANAQUEL' }
   ];
 
   let filteredLinks = Links.filter(link =>

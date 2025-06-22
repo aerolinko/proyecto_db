@@ -2,7 +2,15 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import clsx from "clsx";
-import { MagnifyingGlassIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+    CheckCircleIcon,
+    CheckIcon, ClockIcon, Cog6ToothIcon, CubeIcon, DocumentCheckIcon, DocumentDuplicateIcon, LinkIcon,
+    MagnifyingGlassIcon,
+    PencilIcon, PencilSquareIcon,
+    ShoppingBagIcon,
+    TrashIcon,
+    TruckIcon, UserGroupIcon, XCircleIcon, XMarkIcon
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
 
 // Define types
@@ -15,15 +23,7 @@ interface Order {
     estado?: string;
 }
 
-interface OrderStatus {
-    orderId: number;
-    status: string;
-}
 
-interface StatusOption {
-    value: string;
-    label: string;
-}
 
 export default function Orders({ params }: { params: { usernameid: number } }) {
     const { usernameid } = React.use(params);
@@ -37,14 +37,10 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
     // Status management state
-    const [selectedStatuses, setSelectedStatuses] = useState<OrderStatus[]>([]);
-    const [statusOptions, setStatusOptions] = useState<StatusOption[]>([
-        { value: 'pending', label: 'Pending' },
-        { value: 'processing', label: 'Processing' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'cancelled', label: 'Cancelled' },
-    ]);
-    const [isSaving, setIsSaving] = useState(false);
+
+
+
+
 
     // Fetch orders
     useEffect(() => {
@@ -65,13 +61,8 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                 setError(null);
 
                 // Initialize statuses from fetched orders if they have estado
-                const initialStatuses = data.result
-                    .filter((order: Order) => order.estado)
-                    .map((order: Order) => ({
-                        orderId: order.compra_reposicion_id,
-                        status: order.estado as string
-                    }));
-                setSelectedStatuses(initialStatuses);
+
+
             } catch (error: any) {
                 setError(error.message);
                 setOrdenes([]);
@@ -100,7 +91,8 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
             currentOrdenes = currentOrdenes.filter(orden =>
                 orden.denominacion_comercial.toLowerCase().includes(lowerCaseFilter) ||
                 orden.productos.toLowerCase().includes(lowerCaseFilter) ||
-                orden.compra_reposicion_id.toString().toLowerCase().includes(lowerCaseFilter)
+                orden.compra_reposicion_id.toString().toLowerCase().includes(lowerCaseFilter) ||
+                orden.estado.toLowerCase().includes(lowerCaseFilter)
             );
         }
 
@@ -114,7 +106,7 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                     return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
                 }
                 if (typeof aValue === 'number' && typeof bValue === 'number') {
-                    return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+                    return sortDirection === 'desc' ? aValue - bValue : bValue - aValue;
                 }
                 return 0;
             });
@@ -145,43 +137,9 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
         setCurrentPage(1);
     }, []);
 
-    // Status management
-    const handleStatusChange = useCallback((orderId: number, newStatus: string) => {
-        setSelectedStatuses(prev => {
-            const filtered = prev.filter(item => item.orderId !== orderId);
-            return newStatus ? [...filtered, { orderId, status: newStatus }] : filtered;
-        });
-    }, []);
 
-    const getCurrentStatus = useCallback((orderId: number) => {
-        const statusObj = selectedStatuses.find(item => item.orderId === orderId);
-        return statusObj ? statusObj.status : '';
-    }, [selectedStatuses]);
 
-    // Save status changes
-    const saveStatusChanges = useCallback(async () => {
-        if (selectedStatuses.length === 0) return;
 
-        setIsSaving(true);
-        try {
-            const response = await fetch('/api/update-order-statuses', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ statusUpdates: selectedStatuses })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error saving statuses: ${response.statusText}`);
-            }
-
-            setMensaje('Status changes saved successfully');
-            setTimeout(() => setMensaje(null), 2000);
-        } catch (error: any) {
-            setError(error.message);
-        } finally {
-            setIsSaving(false);
-        }
-    }, [selectedStatuses]);
 
     // Render sort arrow
     const renderSortArrow = (column: keyof Order) => {
@@ -202,7 +160,7 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                     <input
                         id="search"
                         type="text"
-                        placeholder="Buscar por nombre, ID o productos..."
+                        placeholder="Buscar por nombre, ID, estado o productos..."
                         value={filter}
                         onChange={handleFilterChange}
                         className="block w-full rounded-md border border-gray-300 py-3 pl-12 pr-4 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:ring-indigo-500 text-base outline-none transition-colors"
@@ -245,12 +203,21 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                             <th
                                 scope="col"
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+                            >
+                                Fecha de emisión
+                            </th>
+                            <th
+                                scope="col"
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
                                 onClick={() => handleSort('productos')}
                             >
                                 Productos {renderSortArrow('productos')}
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Estado
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Accion
                             </th>
                         </tr>
                         </thead>
@@ -261,26 +228,84 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {orden.compra_reposicion_id}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
                                         {orden.denominacion_comercial}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {orden.fecha_emision}
                                     </td>
                                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-500">
                                         {orden.productos}
                                     </td>
+                                    <td className={`px-6 py-4 whitespace-normal text-sm font-bold flex flex-col items-center text-gray-900`}>
+                                        <span className="truncate">{orden.estado}</span>
+                                        {(orden.estado == 'Completado' || orden.estado == 'Recibido') && (
+                                         <CheckCircleIcon className="w-5 h-5 text-green-400"></CheckCircleIcon>
+                                        )}
+                                        {(orden.estado == 'En Proceso' || orden.estado == 'Pendiente') && (
+                                            <ClockIcon className="w-5 h-5 text-amber-500"></ClockIcon>
+                                        )}
+                                        {orden.estado == 'En Revisión' && (
+                                            <PencilSquareIcon className="w-5 h-5 text-indigo-500 "></PencilSquareIcon>
+                                        )}
+                                        {(orden.estado == 'Cancelado' || orden.estado == 'Rechazado') && (
+                                            <XCircleIcon className="w-5 h-5 text-red-500"></XCircleIcon>
+                                        )}
+
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center rounded space-x-3">
-                                            <select
-                                                className='border border-gray-300 rounded-md shadow-sm'
-                                                value={getCurrentStatus(orden.compra_reposicion_id)}
-                                                onChange={(e) => handleStatusChange(orden.compra_reposicion_id, e.target.value)}
-                                            >
-                                                <option value="">Select status...</option>
-                                                {statusOptions.map(option => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            {(orden.estado == 'Completado' || orden.estado == 'Recibido') && (
+                                                <></>
+                                            )}
+                                            {(orden.estado == 'En Proceso' || orden.estado == 'Pendiente') && (
+                                                <div className={`flex`}>
+                                                    <button
+
+                                                        className="inline-flex items-center p-2 flex-col rounded-full text-purple-600 hover:text-purple-900 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
+
+                                                    >
+                                                        <TruckIcon className="h-5 w-5" />
+                                                        <span className='text-xs font-semibold'>Entregado</span>
+
+                                                    </button>
+                                                    <button
+
+                                                        className=" items-center flex-col flex  p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
+
+                                                    >
+                                                        <XMarkIcon className="h-5 w-5" />
+                                                        <span className='text-xs font-semibold'>Cancelar</span>
+
+                                                    </button>
+                                                </div>
+
+                                            )}
+                                            {orden.estado == 'En Revisión' && (
+                                                <div className={`flex`}>
+                                                <button
+
+                                                    className=" p-2 items-center flex-col flex  rounded-full text-green-600 hover:text-green-900 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
+
+                                                >
+                                                    <CheckIcon className="h-5 w-5" />
+                                                    <span className='text-xs font-semibold'>Aprobar</span>
+
+                                                </button>
+                                                <button
+
+                                                className=" items-center flex-col flex  p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
+
+                                                >
+                                                <XMarkIcon className="h-5 w-5" />
+                                                <span className='text-xs font-semibold'>Rechazar</span>
+
+                                                </button>
+                                                </div>
+                                            )}
+                                            {(orden.estado == 'Cancelado' || orden.estado == 'Rechazado') && (
+                                                <div></div>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -295,21 +320,6 @@ export default function Orders({ params }: { params: { usernameid: number } }) {
                         </tbody>
                     </table>
                 </div>
-
-                {/* Save Status Changes Button */}
-                <div className="mt-4 flex justify-end">
-                    <button
-                        onClick={saveStatusChanges}
-                        disabled={selectedStatuses.length === 0 || isSaving}
-                        className={clsx(
-                            "bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors",
-                            { "opacity-50 cursor-not-allowed": selectedStatuses.length === 0 || isSaving }
-                        )}
-                    >
-                        {isSaving ? 'Guardando...' : 'Guardar Cambios de Estado'}
-                    </button>
-                </div>
-
                 {/* Pagination Controls */}
                 <nav
                     className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6 rounded-b-lg"
