@@ -3,7 +3,7 @@ import postgres from 'postgres';
 
 
 
-
+/*
 const sql = postgres({
     host: 'localhost',
     port: 5432,
@@ -12,8 +12,8 @@ const sql = postgres({
     password: 'root',
 });
 
+*/
 
-/*
 const sql = postgres({
     host: 'localhost',
     port: 5432,
@@ -23,7 +23,7 @@ const sql = postgres({
     connection: { options: '-c search_path=schema_name' }
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
-});*/
+});
 
 
 
@@ -750,39 +750,47 @@ export async function getReportProductosMayorDemanda(fechaInicio?: string, fecha
         SELECT 
           c.cerveza_id as producto_id,
           c.nombre as producto_nombre,
-          ROUND(AVG(dvt.precio_unitario), 2) as precio_promedio,
-          COALESCE(SUM(ac.cantidad), 0) as stock_actual,
-          COUNT(DISTINCT vt.venta_tienda_id) as total_ventas,
-          SUM(dvt.cantidad) as unidades_vendidas,
-          SUM(dvt.cantidad * dvt.precio_unitario) as ingresos_totales
+          ROUND(AVG(dvo.precio_unitario), 2) as precio_promedio,
+          COALESCE(SUM(ac.cantidad), 0) + COALESCE(SUM(almc.cantidad), 0) as stock_actual,
+          COUNT(DISTINCT vo.venta_online_id) as total_ventas,
+          SUM(dvo.cantidad) as unidades_vendidas,
+          SUM(dvo.cantidad * dvo.precio_unitario) as ingresos_totales
         FROM cerveza c
         JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-        JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
-        JOIN detalle_venta_tienda dvt ON ac.anaquel_cerveza_id = dvt.fk_anaquel_cerveza
-        JOIN venta_tienda vt ON dvt.fk_venta_tienda = vt.venta_tienda_id
-        WHERE vt.fecha BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+        JOIN detalle_venta_online dvo ON almc.almacen_cerveza_id = dvo.fk_almacen_cerveza
+        JOIN venta_online vo ON dvo.fk_venta_online = vo.venta_online_id
+        JOIN estado_venta_online evo ON vo.venta_online_id = evo.fk_venta_online
+        WHERE vo.fecha_emision BETWEEN ${fechaInicio} AND ${fechaFin}
+        AND evo.fk_estado = 3  -- SOLO VENTAS COMPLETADAS
+        AND evo.fecha_fin IS NULL  -- Estado actual
         GROUP BY c.cerveza_id, c.nombre
         ORDER BY unidades_vendidas DESC, ingresos_totales DESC
-        LIMIT 50
+        LIMIT 50;
       `
     } else {
       query = sql`
         SELECT 
           c.cerveza_id as producto_id,
           c.nombre as producto_nombre,
-          ROUND(AVG(dvt.precio_unitario), 2) as precio_promedio,
-          COALESCE(SUM(ac.cantidad), 0) as stock_actual,
-          COUNT(DISTINCT vt.venta_tienda_id) as total_ventas,
-          SUM(dvt.cantidad) as unidades_vendidas,
-          SUM(dvt.cantidad * dvt.precio_unitario) as ingresos_totales
+          ROUND(AVG(dvo.precio_unitario), 2) as precio_promedio,
+          COALESCE(SUM(ac.cantidad), 0) + COALESCE(SUM(almc.cantidad), 0) as stock_actual,
+          COUNT(DISTINCT vo.venta_online_id) as total_ventas,
+          SUM(dvo.cantidad) as unidades_vendidas,
+          SUM(dvo.cantidad * dvo.precio_unitario) as ingresos_totales
         FROM cerveza c
         JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-        JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
-        JOIN detalle_venta_tienda dvt ON ac.anaquel_cerveza_id = dvt.fk_anaquel_cerveza
-        JOIN venta_tienda vt ON dvt.fk_venta_tienda = vt.venta_tienda_id
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+        JOIN detalle_venta_online dvo ON almc.almacen_cerveza_id = dvo.fk_almacen_cerveza
+        JOIN venta_online vo ON dvo.fk_venta_online = vo.venta_online_id
+        JOIN estado_venta_online evo ON vo.venta_online_id = evo.fk_venta_online
+        WHERE evo.fk_estado = 3  -- SOLO VENTAS COMPLETADAS
+        AND evo.fecha_fin IS NULL  -- Estado actual
         GROUP BY c.cerveza_id, c.nombre
         ORDER BY unidades_vendidas DESC, ingresos_totales DESC
-        LIMIT 50
+        LIMIT 50;
       `
     }
 
@@ -803,61 +811,9 @@ export async function getReportReposicionAnaqueles(fechaInicio?: string, fechaFi
 
     let query
     if (fechaInicio && fechaFin) {
-      query = sql`
-        SELECT 
-          ra.reposicion_anaquel_id as reposicion_id,
-          ra.fecha as fecha_reposicion,
-          dra.cantidad as cantidad_solicitada,
-          es.nombre as estado,
-          c.nombre as producto_nombre,
-          ac.cantidad as stock_actual,
-          a.anaquel_id as numero_pasillo,
-          p.nombre as zona,
-          l.nombre as lugar_nombre,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_solicitante
-        FROM reposicion_anaquel ra
-        LEFT JOIN detalle_reposicion_anaquel dra ON ra.reposicion_anaquel_id = dra.fk_reposicion_anaquel
-        LEFT JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
-        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
-        LEFT JOIN anaquel a ON ac.fk_anaquel = a.anaquel_id
-        LEFT JOIN pasillo p ON a.fk_pasillo = p.pasillo_id
-        LEFT JOIN lugar l ON p.fk_acaucab = l.lugar_id
-        LEFT JOIN estado_reposicion_anaquel era ON ra.reposicion_anaquel_id = era.fk_reposicion_anaquel
-        LEFT JOIN estado es ON era.fk_estado = es.estado_id
-        LEFT JOIN empleado e ON e.empleado_id = 1
-        WHERE ra.fecha BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
-        AND ac.cantidad <= 20
-        ORDER BY ra.fecha DESC, ac.cantidad ASC
-      `
+      query = sql`SELECT * FROM get_report_reposicion_anaqueles(${fechaInicio}, ${fechaFin})`
     } else {
-      query = sql`
-        SELECT 
-          ra.reposicion_anaquel_id as reposicion_id,
-          ra.fecha as fecha_reposicion,
-          dra.cantidad as cantidad_solicitada,
-          es.nombre as estado,
-          c.nombre as producto_nombre,
-          ac.cantidad as stock_actual,
-          a.anaquel_id as numero_pasillo,
-          p.nombre as zona,
-          l.nombre as lugar_nombre,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_solicitante
-        FROM reposicion_anaquel ra
-        LEFT JOIN detalle_reposicion_anaquel dra ON ra.reposicion_anaquel_id = dra.fk_reposicion_anaquel
-        LEFT JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
-        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
-        LEFT JOIN anaquel a ON ac.fk_anaquel = a.anaquel_id
-        LEFT JOIN pasillo p ON a.fk_pasillo = p.pasillo_id
-        LEFT JOIN lugar l ON p.fk_acaucab = l.lugar_id
-        LEFT JOIN estado_reposicion_anaquel era ON ra.reposicion_anaquel_id = era.fk_reposicion_anaquel
-        LEFT JOIN estado es ON era.fk_estado = es.estado_id
-        LEFT JOIN empleado e ON e.empleado_id = 1
-        WHERE ac.cantidad <= 20
-        ORDER BY ra.fecha DESC, ac.cantidad ASC
-        LIMIT 100
-      `
+      query = sql`SELECT * FROM get_report_reposicion_anaqueles(NULL, NULL)`
     }
 
     const result = await query
@@ -874,27 +830,7 @@ export async function getReportCuotasAfiliacionPendientes(): Promise<any[]> {
   try {
     console.log("=== getReportCuotasAfiliacionPendientes ===")
 
-    const query = sql`
-      SELECT 
-        cj.cliente_id as cliente_juridico_id,
-        cj.razon_social,
-        cj.rif,
-        cj.direccion,
-        cj.fecha_afiliacion,
-        1000 as cuota_mensual,
-        'activo' as estado_afiliacion,
-        COALESCE(MAX(p.fecha), 'Nunca') as ultimo_pago,
-        EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM cj.fecha_afiliacion) as meses_pendientes,
-        1000 * (EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM cj.fecha_afiliacion)) as monto_pendiente
-      FROM cliente_juridico cj
-      LEFT JOIN pago p ON cj.cliente_id = p.fk_venta_tienda
-      WHERE cj.cliente_id IS NOT NULL
-      AND (p.fecha IS NULL OR p.fecha < DATE_TRUNC('month', CURRENT_DATE))
-      GROUP BY cj.cliente_id, cj.razon_social, cj.rif, cj.direccion, 
-               cj.fecha_afiliacion
-      ORDER BY monto_pendiente DESC, cj.razon_social
-    `
-
+    const query = sql`SELECT * FROM get_report_cuotas_afiliacion_pendientes()`
     const result = await query
     console.log(`Cuotas de afiliación pendientes encontradas: ${result.length}`)
     return result
@@ -912,44 +848,9 @@ export async function getReportNominaDepartamento(fechaInicio?: string, fechaFin
 
     let query
     if (fechaInicio && fechaFin) {
-      query = sql`
-        SELECT 
-          e.empleado_id,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo,
-          e.cedula,
-          e.fecha_contrato,
-          50000 as salario_base,
-          c.nombre as nombre_cargo,
-          'Departamento General' as nombre_departamento,
-          l.nombre as lugar_trabajo,
-          0 as beneficios,
-          50000 as costo_total,
-          EXTRACT(YEAR FROM AGE(CURRENT_DATE, e.fecha_contrato)) as anos_servicio
-        FROM empleado e
-        LEFT JOIN cargo c ON e.empleado_id = c.cargo_id
-        LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
-        WHERE e.fecha_contrato BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
-        ORDER BY nombre_departamento, nombre_cargo, e.primer_nombre
-      `
+      query = sql`SELECT * FROM get_report_nomina_departamento(${fechaInicio}, ${fechaFin})`
     } else {
-      query = sql`
-        SELECT 
-          e.empleado_id,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo,
-          e.cedula,
-          e.fecha_contrato,
-          50000 as salario_base,
-          c.nombre as nombre_cargo,
-          'Departamento General' as nombre_departamento,
-          l.nombre as lugar_trabajo,
-          0 as beneficios,
-          50000 as costo_total,
-          EXTRACT(YEAR FROM AGE(CURRENT_DATE, e.fecha_contrato)) as anos_servicio
-        FROM empleado e
-        LEFT JOIN cargo c ON e.empleado_id = c.cargo_id
-        LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
-        ORDER BY nombre_departamento, nombre_cargo, e.primer_nombre
-      `
+      query = sql`SELECT * FROM get_report_nomina_departamento(NULL, NULL)`
     }
 
     const result = await query
@@ -973,79 +874,11 @@ export async function getReportHistorialComprasClienteJuridico(
 
     let query
     if (clienteId && fechaInicio && fechaFin) {
-      query = sql`
-        SELECT 
-          vt.venta_tienda_id as venta_id,
-          vt.fecha as fecha_venta,
-          vt.total as monto_total,
-          cj.razon_social,
-          cj.rif,
-          c.nombre as producto_nombre,
-          dvt.cantidad,
-          dvt.precio_unitario,
-          dvt.cantidad * dvt.precio_unitario as subtotal_producto,
-          'Efectivo' as metodo_pago,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
-        FROM venta_tienda vt
-        LEFT JOIN detalle_venta_tienda dvt ON vt.venta_tienda_id = dvt.fk_venta_tienda
-        LEFT JOIN anaquel_cerveza ac ON dvt.fk_anaquel_cerveza = ac.anaquel_cerveza_id
-        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
-        LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
-        LEFT JOIN empleado e ON e.empleado_id = 1
-        WHERE vt.fk_cliente_juridico = ${clienteId}
-        AND vt.fecha BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
-        ORDER BY vt.fecha DESC, c.nombre
-      `
+      query = sql`SELECT * FROM get_report_historial_compras_cliente_juridico(${clienteId}, ${fechaInicio}, ${fechaFin})`
     } else if (clienteId) {
-      query = sql`
-        SELECT 
-          vt.venta_tienda_id as venta_id,
-          vt.fecha as fecha_venta,
-          vt.total as monto_total,
-          cj.razon_social,
-          cj.rif,
-          c.nombre as producto_nombre,
-          dvt.cantidad,
-          dvt.precio_unitario,
-          dvt.cantidad * dvt.precio_unitario as subtotal_producto,
-          'Efectivo' as metodo_pago,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
-        FROM venta_tienda vt
-        LEFT JOIN detalle_venta_tienda dvt ON vt.venta_tienda_id = dvt.fk_venta_tienda
-        LEFT JOIN anaquel_cerveza ac ON dvt.fk_anaquel_cerveza = ac.anaquel_cerveza_id
-        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
-        LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
-        LEFT JOIN empleado e ON e.empleado_id = 1
-        WHERE vt.fk_cliente_juridico = ${clienteId}
-        ORDER BY vt.fecha DESC, c.nombre
-      `
+      query = sql`SELECT * FROM get_report_historial_compras_cliente_juridico(${clienteId}, NULL, NULL)`
     } else {
-      query = sql`
-        SELECT 
-          vt.venta_tienda_id as venta_id,
-          vt.fecha as fecha_venta,
-          vt.total as monto_total,
-          cj.razon_social,
-          cj.rif,
-          c.nombre as producto_nombre,
-          dvt.cantidad,
-          dvt.precio_unitario,
-          dvt.cantidad * dvt.precio_unitario as subtotal_producto,
-          'Efectivo' as metodo_pago,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
-        FROM venta_tienda vt
-        LEFT JOIN detalle_venta_tienda dvt ON vt.venta_tienda_id = dvt.fk_venta_tienda
-        LEFT JOIN anaquel_cerveza ac ON dvt.fk_anaquel_cerveza = ac.anaquel_cerveza_id
-        LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
-        LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
-        LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
-        LEFT JOIN empleado e ON e.empleado_id = 1
-        WHERE vt.fk_cliente_juridico IS NOT NULL
-        ORDER BY vt.fecha DESC, c.nombre
-        LIMIT 100
-      `
+      query = sql`SELECT * FROM get_report_historial_compras_cliente_juridico(NULL, NULL, NULL)`
     }
 
     const result = await query
@@ -1062,20 +895,7 @@ export async function getStockCervezas(): Promise<any[]> {
   try {
     console.log("=== getStockCervezas ===")
 
-    const query = sql`
-      SELECT 
-        c.cerveza_id,
-        c.nombre as nombre_cerveza,
-        p.nombre as presentacion,
-        COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
-      FROM cerveza c
-      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
-      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
-      GROUP BY c.cerveza_id, c.nombre, p.nombre
-      ORDER BY c.nombre, p.nombre
-    `
+    const query = sql`SELECT * FROM get_stock_cervezas()`
     const result = await query
     console.log(`Stock de cervezas encontrado: ${result.length} registros`)
     return result
@@ -1090,22 +910,7 @@ export async function getStockAlmacen(): Promise<any[]> {
   try {
     console.log("=== getStockAlmacen ===")
 
-    const query = sql`
-      SELECT 
-        c.cerveza_id,
-        c.nombre as nombre_cerveza,
-        p.nombre as presentacion,
-        a.nombre as nombre_almacen,
-        almc.cantidad_disponible,
-        almc.fecha_ultima_actualizacion
-      FROM cerveza c
-      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
-      LEFT JOIN almacen a ON almc.fk_almacen = a.almacen_id
-      WHERE almc.cantidad_disponible > 0
-      ORDER BY c.nombre, p.nombre, a.nombre
-    `
+    const query = sql`SELECT * FROM get_stock_almacen()`
     const result = await query
     console.log(`Stock de almacén encontrado: ${result.length} registros`)
     return result
@@ -1120,23 +925,7 @@ export async function getStockAnaquel(): Promise<any[]> {
   try {
     console.log("=== getStockAnaquel ===")
 
-    const query = sql`
-      SELECT 
-        c.cerveza_id,
-        c.nombre as nombre_cerveza,
-        p.nombre as presentacion,
-        an.nombre as nombre_anaquel,
-        ac.cantidad_disponible,
-        ac.precio_venta,
-        ac.fecha_ultima_actualizacion
-      FROM cerveza c
-      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
-      LEFT JOIN anaquel an ON ac.fk_anaquel = an.anaquel_id
-      WHERE ac.cantidad_disponible > 0
-      ORDER BY c.nombre, p.nombre, an.nombre
-    `
+    const query = sql`SELECT * FROM get_stock_anaquel()`
     const result = await query
     console.log(`Stock de anaqueles encontrado: ${result.length} registros`)
     return result
@@ -1152,21 +941,7 @@ export async function getCervezasStockBajo(limite: number = 10): Promise<any[]> 
     console.log("=== getCervezasStockBajo ===")
     console.log("Parámetros:", { limite })
 
-    const query = sql`
-      SELECT 
-        c.cerveza_id,
-        c.nombre as nombre_cerveza,
-        p.nombre as presentacion,
-        COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
-      FROM cerveza c
-      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
-      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
-      GROUP BY c.cerveza_id, c.nombre, p.nombre
-      HAVING COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) <= ${limite}
-      ORDER BY stock_total ASC, c.nombre
-    `
+    const query = sql`SELECT * FROM get_cervezas_stock_bajo(${limite})`
     const result = await query
     console.log(`Cervezas con stock bajo encontradas: ${result.length} registros`)
     return result
@@ -1181,21 +956,7 @@ export async function getCervezasSinStock(): Promise<any[]> {
   try {
     console.log("=== getCervezasSinStock ===")
 
-    const query = sql`
-      SELECT 
-        c.cerveza_id,
-        c.nombre as nombre_cerveza,
-        p.nombre as presentacion,
-        COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
-      FROM cerveza c
-      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
-      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
-      GROUP BY c.cerveza_id, c.nombre, p.nombre
-      HAVING COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) = 0
-      ORDER BY c.nombre, p.nombre
-    `
+    const query = sql`SELECT * FROM get_cervezas_sin_stock()`
     const result = await query
     console.log(`Cervezas sin stock encontradas: ${result.length} registros`)
     return result
@@ -1211,28 +972,563 @@ export async function getStockCervezaEspecifica(nombreCerveza: string): Promise<
     console.log("=== getStockCervezaEspecifica ===")
     console.log("Parámetros:", { nombreCerveza })
 
-    const query = sql`
-      SELECT 
-        c.cerveza_id,
-        c.nombre as nombre_cerveza,
-        p.nombre as presentacion,
-        COALESCE(SUM(ac.cantidad_disponible), 0) as stock_anaqueles,
-        COALESCE(SUM(almc.cantidad_disponible), 0) as stock_almacen,
-        COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
-      FROM cerveza c
-      LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
-      LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
-      LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
-      LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
-      WHERE LOWER(c.nombre) LIKE LOWER(${'%' + nombreCerveza + '%'})
-      GROUP BY c.cerveza_id, c.nombre, p.nombre
-      ORDER BY c.nombre, p.nombre
-    `
+    const query = sql`SELECT * FROM get_stock_cerveza_especifica(${nombreCerveza})`
     const result = await query
     console.log(`Stock de cerveza específica encontrado: ${result.length} registros`)
     return result
   } catch (error) {
     console.error("Error en getStockCervezaEspecifica:", error)
+    throw error
+  }
+}
+
+// ===== STORED PROCEDURES SQL =====
+
+// Función para crear todos los stored procedures
+export async function createReportStoredProcedures(): Promise<void> {
+  try {
+    console.log("=== Creando Funciones de Reportes ===")
+
+    // 1. Función para Productos con Mayor Demanda en Tienda Online
+    await sql`
+      CREATE OR REPLACE FUNCTION get_report_productos_mayor_demanda(
+        p_fecha_inicio DATE DEFAULT NULL,
+        p_fecha_fin DATE DEFAULT NULL
+      )
+      RETURNS TABLE (
+        producto_id INTEGER,
+        producto_nombre VARCHAR,
+        precio_promedio NUMERIC,
+        stock_actual BIGINT,
+        total_ventas BIGINT,
+        unidades_vendidas BIGINT,
+        ingresos_totales BIGINT
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        IF p_fecha_inicio IS NOT NULL AND p_fecha_fin IS NOT NULL THEN
+          RETURN QUERY
+          SELECT 
+            c.cerveza_id as producto_id,
+            c.nombre as producto_nombre,
+            ROUND(AVG(dvo.precio_unitario), 2) as precio_promedio,
+            COALESCE(SUM(ac.cantidad), 0) + COALESCE(SUM(almc.cantidad), 0) as stock_actual,
+            COUNT(DISTINCT vo.venta_online_id) as total_ventas,
+            SUM(dvo.cantidad) as unidades_vendidas,
+            SUM(dvo.cantidad * dvo.precio_unitario) as ingresos_totales
+          FROM cerveza c
+          JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+          LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+          LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+          JOIN detalle_venta_online dvo ON almc.almacen_cerveza_id = dvo.fk_almacen_cerveza
+          JOIN venta_online vo ON dvo.fk_venta_online = vo.venta_online_id
+          WHERE vo.fecha_emision BETWEEN p_fecha_inicio AND p_fecha_fin
+          GROUP BY c.cerveza_id, c.nombre
+          ORDER BY unidades_vendidas DESC, ingresos_totales DESC
+          LIMIT 50;
+        ELSE
+          RETURN QUERY
+          SELECT 
+            c.cerveza_id as producto_id,
+            c.nombre as producto_nombre,
+            ROUND(AVG(dvo.precio_unitario), 2) as precio_promedio,
+            COALESCE(SUM(ac.cantidad), 0) + COALESCE(SUM(almc.cantidad), 0) as stock_actual,
+            COUNT(DISTINCT vo.venta_online_id) as total_ventas,
+            SUM(dvo.cantidad) as unidades_vendidas,
+            SUM(dvo.cantidad * dvo.precio_unitario) as ingresos_totales
+          FROM cerveza c
+          JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+          LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+          LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+          JOIN detalle_venta_online dvo ON almc.almacen_cerveza_id = dvo.fk_almacen_cerveza
+          JOIN venta_online vo ON dvo.fk_venta_online = vo.venta_online_id
+          GROUP BY c.cerveza_id, c.nombre
+          ORDER BY unidades_vendidas DESC, ingresos_totales DESC
+          LIMIT 50;
+        END IF;
+      END;
+      $$;
+    `
+
+    // 2. Función para Reposición de Anaqueles
+    await sql`
+      CREATE OR REPLACE FUNCTION get_report_reposicion_anaqueles(
+        p_fecha_inicio DATE DEFAULT NULL,
+        p_fecha_fin DATE DEFAULT NULL
+      )
+      RETURNS TABLE (
+        reposicion_id INTEGER,
+        fecha_reposicion DATE,
+        cantidad_solicitada INTEGER,
+        estado VARCHAR,
+        producto_nombre VARCHAR,
+        stock_actual INTEGER,
+        numero_pasillo INTEGER,
+        zona VARCHAR,
+        lugar_nombre VARCHAR,
+        empleado_solicitante VARCHAR
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        IF p_fecha_inicio IS NOT NULL AND p_fecha_fin IS NOT NULL THEN
+          RETURN QUERY
+          SELECT 
+            ra.reposicion_anaquel_id as reposicion_id,
+            ra.fecha as fecha_reposicion,
+            dra.cantidad as cantidad_solicitada,
+            es.nombre as estado,
+            c.nombre as producto_nombre,
+            ac.cantidad as stock_actual,
+            a.anaquel_id as numero_pasillo,
+            p.nombre as zona,
+            l.nombre as lugar_nombre,
+            CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_solicitante
+          FROM reposicion_anaquel ra
+          LEFT JOIN detalle_reposicion_anaquel dra ON ra.reposicion_anaquel_id = dra.fk_reposicion_anaquel
+          LEFT JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+          LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+          LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+          LEFT JOIN anaquel a ON ac.fk_anaquel = a.anaquel_id
+          LEFT JOIN pasillo p ON a.fk_pasillo = p.pasillo_id
+          LEFT JOIN lugar l ON p.fk_acaucab = l.lugar_id
+          LEFT JOIN estado_reposicion_anaquel era ON ra.reposicion_anaquel_id = era.fk_reposicion_anaquel
+          LEFT JOIN estado es ON era.fk_estado = es.estado_id
+          LEFT JOIN empleado e ON e.empleado_id = 1
+          WHERE ra.fecha BETWEEN p_fecha_inicio AND p_fecha_fin
+          AND ac.cantidad <= 20
+          ORDER BY ra.fecha DESC, ac.cantidad ASC;
+        ELSE
+          RETURN QUERY
+          SELECT 
+            ra.reposicion_anaquel_id as reposicion_id,
+            ra.fecha as fecha_reposicion,
+            dra.cantidad as cantidad_solicitada,
+            es.nombre as estado,
+            c.nombre as producto_nombre,
+            ac.cantidad as stock_actual,
+            a.anaquel_id as numero_pasillo,
+            p.nombre as zona,
+            l.nombre as lugar_nombre,
+            CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_solicitante
+          FROM reposicion_anaquel ra
+          LEFT JOIN detalle_reposicion_anaquel dra ON ra.reposicion_anaquel_id = dra.fk_reposicion_anaquel
+          LEFT JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+          LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+          LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+          LEFT JOIN anaquel a ON ac.fk_anaquel = a.anaquel_id
+          LEFT JOIN pasillo p ON a.fk_pasillo = p.pasillo_id
+          LEFT JOIN lugar l ON p.fk_acaucab = l.lugar_id
+          LEFT JOIN estado_reposicion_anaquel era ON ra.reposicion_anaquel_id = era.fk_reposicion_anaquel
+          LEFT JOIN estado es ON era.fk_estado = es.estado_id
+          LEFT JOIN empleado e ON e.empleado_id = 1
+          WHERE ac.cantidad <= 20
+          ORDER BY ra.fecha DESC, ac.cantidad ASC
+          LIMIT 100;
+        END IF;
+      END;
+      $$;
+    `
+
+    // 3. Función para Cuotas de Afiliación Pendientes
+    await sql`
+      CREATE OR REPLACE FUNCTION get_report_cuotas_afiliacion_pendientes()
+      RETURNS TABLE (
+        cliente_juridico_id INTEGER,
+        razon_social VARCHAR,
+        rif VARCHAR,
+        direccion VARCHAR,
+        fecha_afiliacion DATE,
+        cuota_mensual INTEGER,
+        estado_afiliacion VARCHAR,
+        ultimo_pago VARCHAR,
+        meses_pendientes INTEGER,
+        monto_pendiente INTEGER
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        RETURN QUERY
+        SELECT 
+          cj.cliente_id as cliente_juridico_id,
+          cj.razon_social,
+          cj.rif,
+          cj.direccion,
+          cj.fecha_afiliacion,
+          1000 as cuota_mensual,
+          'activo' as estado_afiliacion,
+          COALESCE(MAX(p.fecha)::VARCHAR, 'Nunca') as ultimo_pago,
+          EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM cj.fecha_afiliacion) as meses_pendientes,
+          1000 * (EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM cj.fecha_afiliacion)) as monto_pendiente
+        FROM cliente_juridico cj
+        LEFT JOIN pago p ON cj.cliente_id = p.fk_venta_tienda
+        WHERE cj.cliente_id IS NOT NULL
+        AND (p.fecha IS NULL OR p.fecha < DATE_TRUNC('month', CURRENT_DATE))
+        GROUP BY cj.cliente_id, cj.razon_social, cj.rif, cj.direccion, 
+                 cj.fecha_afiliacion
+        ORDER BY monto_pendiente DESC, cj.razon_social;
+      END;
+      $$;
+    `
+
+    // 4. Función para Nómina por Departamento
+    await sql`
+      CREATE OR REPLACE FUNCTION get_report_nomina_departamento(
+        p_fecha_inicio DATE DEFAULT NULL,
+        p_fecha_fin DATE DEFAULT NULL
+      )
+      RETURNS TABLE (
+        empleado_id INTEGER,
+        nombre_completo VARCHAR,
+        cedula VARCHAR,
+        fecha_contrato DATE,
+        salario_base INTEGER,
+        nombre_cargo VARCHAR,
+        nombre_departamento VARCHAR,
+        lugar_trabajo VARCHAR,
+        beneficios INTEGER,
+        costo_total INTEGER,
+        anos_servicio INTEGER
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        IF p_fecha_inicio IS NOT NULL AND p_fecha_fin IS NOT NULL THEN
+          RETURN QUERY
+          SELECT 
+            e.empleado_id,
+            CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo,
+            e.cedula,
+            e.fecha_contrato,
+            50000 as salario_base,
+            c.nombre as nombre_cargo,
+            'Departamento General' as nombre_departamento,
+            l.nombre as lugar_trabajo,
+            0 as beneficios,
+            50000 as costo_total,
+            EXTRACT(YEAR FROM AGE(CURRENT_DATE, e.fecha_contrato)) as anos_servicio
+          FROM empleado e
+          LEFT JOIN cargo c ON e.empleado_id = c.cargo_id
+          LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
+          WHERE e.fecha_contrato BETWEEN p_fecha_inicio AND p_fecha_fin
+          ORDER BY nombre_departamento, nombre_cargo, e.primer_nombre;
+        ELSE
+          RETURN QUERY
+          SELECT 
+            e.empleado_id,
+            CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo,
+            e.cedula,
+            e.fecha_contrato,
+            50000 as salario_base,
+            c.nombre as nombre_cargo,
+            'Departamento General' as nombre_departamento,
+            l.nombre as lugar_trabajo,
+            0 as beneficios,
+            50000 as costo_total,
+            EXTRACT(YEAR FROM AGE(CURRENT_DATE, e.fecha_contrato)) as anos_servicio
+          FROM empleado e
+          LEFT JOIN cargo c ON e.empleado_id = c.cargo_id
+          LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
+          ORDER BY nombre_departamento, nombre_cargo, e.primer_nombre;
+        END IF;
+      END;
+      $$;
+    `
+
+    // 5. Función para Historial de Compras Cliente Jurídico
+    await sql`
+      CREATE OR REPLACE FUNCTION get_report_historial_compras_cliente_juridico(
+        p_cliente_id INTEGER DEFAULT NULL,
+        p_fecha_inicio DATE DEFAULT NULL,
+        p_fecha_fin DATE DEFAULT NULL
+      )
+      RETURNS TABLE (
+        venta_id INTEGER,
+        fecha_venta DATE,
+        monto_total NUMERIC,
+        razon_social VARCHAR,
+        rif VARCHAR,
+        producto_nombre VARCHAR,
+        cantidad INTEGER,
+        precio_unitario NUMERIC,
+        subtotal_producto NUMERIC,
+        metodo_pago VARCHAR,
+        empleado_atendio VARCHAR
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        IF p_cliente_id IS NOT NULL AND p_fecha_inicio IS NOT NULL AND p_fecha_fin IS NOT NULL THEN
+          RETURN QUERY
+          SELECT 
+            vt.venta_online_id as venta_id,
+            vt.fecha as fecha_venta,
+            vt.total as monto_total,
+            cj.razon_social,
+            cj.rif,
+            c.nombre as producto_nombre,
+            dvo.cantidad,
+            dvo.precio_unitario,
+            dvo.cantidad * dvo.precio_unitario as subtotal_producto,
+            'Efectivo' as metodo_pago,
+            CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
+          FROM venta_online vt
+          LEFT JOIN detalle_venta_online dvo ON vt.venta_online_id = dvo.fk_venta_online
+          LEFT JOIN anaquel_cerveza ac ON dvo.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+          LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+          LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+          LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
+          LEFT JOIN empleado e ON e.empleado_id = 1
+          WHERE vt.fk_cliente_juridico = p_cliente_id
+          AND vt.fecha BETWEEN p_fecha_inicio AND p_fecha_fin
+          ORDER BY vt.fecha DESC, c.nombre;
+        ELSIF p_cliente_id IS NOT NULL THEN
+          RETURN QUERY
+          SELECT 
+            vt.venta_online_id as venta_id,
+            vt.fecha as fecha_venta,
+            vt.total as monto_total,
+            cj.razon_social,
+            cj.rif,
+            c.nombre as producto_nombre,
+            dvo.cantidad,
+            dvo.precio_unitario,
+            dvo.cantidad * dvo.precio_unitario as subtotal_producto,
+            'Efectivo' as metodo_pago,
+            CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
+          FROM venta_online vt
+          LEFT JOIN detalle_venta_online dvo ON vt.venta_online_id = dvo.fk_venta_online
+          LEFT JOIN anaquel_cerveza ac ON dvo.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+          LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+          LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+          LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
+          LEFT JOIN empleado e ON e.empleado_id = 1
+          WHERE vt.fk_cliente_juridico = p_cliente_id
+          ORDER BY vt.fecha DESC, c.nombre;
+        ELSE
+          RETURN QUERY
+          SELECT 
+            vt.venta_online_id as venta_id,
+            vt.fecha as fecha_venta,
+            vt.total as monto_total,
+            cj.razon_social,
+            cj.rif,
+            c.nombre as producto_nombre,
+            dvo.cantidad,
+            dvo.precio_unitario,
+            dvo.cantidad * dvo.precio_unitario as subtotal_producto,
+            'Efectivo' as metodo_pago,
+            CONCAT(e.primer_nombre, ' ', e.primer_apellido) as empleado_atendio
+          FROM venta_online vt
+          LEFT JOIN detalle_venta_online dvo ON vt.venta_online_id = dvo.fk_venta_online
+          LEFT JOIN anaquel_cerveza ac ON dvo.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+          LEFT JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+          LEFT JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+          LEFT JOIN cliente_juridico cj ON vt.fk_cliente_juridico = cj.cliente_id
+          LEFT JOIN empleado e ON e.empleado_id = 1
+          WHERE vt.fk_cliente_juridico IS NOT NULL
+          ORDER BY vt.fecha DESC, c.nombre
+          LIMIT 100;
+        END IF;
+      END;
+      $$;
+    `
+
+    // 6. Función para Stock Total de Cervezas
+    await sql`
+      CREATE OR REPLACE FUNCTION get_stock_cervezas()
+      RETURNS TABLE (
+        cerveza_id INTEGER,
+        nombre_cerveza VARCHAR,
+        presentacion VARCHAR,
+        stock_total BIGINT
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        RETURN QUERY
+        SELECT 
+          c.cerveza_id,
+          c.nombre as nombre_cerveza,
+          p.nombre as presentacion,
+          COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
+        FROM cerveza c
+        LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+        LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+        GROUP BY c.cerveza_id, c.nombre, p.nombre
+        ORDER BY c.nombre, p.nombre;
+      END;
+      $$;
+    `
+
+    // 7. Función para Stock por Almacén
+    await sql`
+      CREATE OR REPLACE FUNCTION get_stock_almacen()
+      RETURNS TABLE (
+        cerveza_id INTEGER,
+        nombre_cerveza VARCHAR,
+        presentacion VARCHAR,
+        nombre_almacen VARCHAR,
+        cantidad_disponible INTEGER,
+        fecha_ultima_actualizacion TIMESTAMP
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        RETURN QUERY
+        SELECT 
+          c.cerveza_id,
+          c.nombre as nombre_cerveza,
+          p.nombre as presentacion,
+          a.nombre as nombre_almacen,
+          almc.cantidad_disponible,
+          almc.fecha_ultima_actualizacion
+        FROM cerveza c
+        LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+        LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+        LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+        LEFT JOIN almacen a ON almc.fk_almacen = a.almacen_id
+        WHERE almc.cantidad_disponible > 0
+        ORDER BY c.nombre, p.nombre, a.nombre;
+      END;
+      $$;
+    `
+
+    // 8. Función para Stock por Anaquel
+    await sql`
+      CREATE OR REPLACE FUNCTION get_stock_anaquel()
+      RETURNS TABLE (
+        cerveza_id INTEGER,
+        nombre_cerveza VARCHAR,
+        presentacion VARCHAR,
+        nombre_anaquel VARCHAR,
+        cantidad_disponible INTEGER,
+        precio_venta NUMERIC,
+        fecha_ultima_actualizacion TIMESTAMP
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        RETURN QUERY
+        SELECT 
+          c.cerveza_id,
+          c.nombre as nombre_cerveza,
+          p.nombre as presentacion,
+          an.nombre as nombre_anaquel,
+          ac.cantidad_disponible,
+          ac.precio_venta,
+          ac.fecha_ultima_actualizacion
+        FROM cerveza c
+        LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+        LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN anaquel an ON ac.fk_anaquel = an.anaquel_id
+        WHERE ac.cantidad_disponible > 0
+        ORDER BY c.nombre, p.nombre, an.nombre;
+      END;
+      $$;
+    `
+
+    // 9. Función para Cervezas con Stock Bajo
+    await sql`
+      CREATE OR REPLACE FUNCTION get_cervezas_stock_bajo(p_limite INTEGER DEFAULT 10)
+      RETURNS TABLE (
+        cerveza_id INTEGER,
+        nombre_cerveza VARCHAR,
+        presentacion VARCHAR,
+        stock_total BIGINT
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        RETURN QUERY
+        SELECT 
+          c.cerveza_id,
+          c.nombre as nombre_cerveza,
+          p.nombre as presentacion,
+          COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
+        FROM cerveza c
+        LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+        LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+        GROUP BY c.cerveza_id, c.nombre, p.nombre
+        HAVING COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) <= p_limite
+        ORDER BY stock_total ASC, c.nombre;
+      END;
+      $$;
+    `
+
+    // 10. Función para Cervezas Sin Stock
+    await sql`
+      CREATE OR REPLACE FUNCTION get_cervezas_sin_stock()
+      RETURNS TABLE (
+        cerveza_id INTEGER,
+        nombre_cerveza VARCHAR,
+        presentacion VARCHAR,
+        stock_total BIGINT
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        RETURN QUERY
+        SELECT 
+          c.cerveza_id,
+          c.nombre as nombre_cerveza,
+          p.nombre as presentacion,
+          COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
+        FROM cerveza c
+        LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+        LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+        GROUP BY c.cerveza_id, c.nombre, p.nombre
+        HAVING COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) = 0
+        ORDER BY c.nombre, p.nombre;
+      END;
+      $$;
+    `
+
+    // 11. Función para Stock de Cerveza Específica
+    await sql`
+      CREATE OR REPLACE FUNCTION get_stock_cerveza_especifica(p_nombre_cerveza VARCHAR)
+      RETURNS TABLE (
+        cerveza_id INTEGER,
+        nombre_cerveza VARCHAR,
+        presentacion VARCHAR,
+        stock_anaqueles BIGINT,
+        stock_almacen BIGINT,
+        stock_total BIGINT
+      )
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        RETURN QUERY
+        SELECT 
+          c.cerveza_id,
+          c.nombre as nombre_cerveza,
+          p.nombre as presentacion,
+          COALESCE(SUM(ac.cantidad_disponible), 0) as stock_anaqueles,
+          COALESCE(SUM(almc.cantidad_disponible), 0) as stock_almacen,
+          COALESCE(SUM(ac.cantidad_disponible), 0) + COALESCE(SUM(almc.cantidad_disponible), 0) as stock_total
+        FROM cerveza c
+        LEFT JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+        LEFT JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+        LEFT JOIN anaquel_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+        LEFT JOIN almacen_cerveza almc ON cp.cerveza_presentacion_id = almc.fk_cerveza_presentacion
+        WHERE LOWER(c.nombre) LIKE LOWER('%' || p_nombre_cerveza || '%')
+        GROUP BY c.cerveza_id, c.nombre, p.nombre
+        ORDER BY c.nombre, p.nombre;
+      END;
+      $$;
+    `
+
+    console.log("✅ Todas las funciones de reportes han sido creadas exitosamente")
+  } catch (error) {
+    console.error("❌ Error creando funciones:", error)
     throw error
   }
 }

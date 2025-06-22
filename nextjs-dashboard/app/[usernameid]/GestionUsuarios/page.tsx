@@ -38,7 +38,6 @@ export default function GestionUsuarios() {
   const [searchTerm, setSearchTerm] = useState("")
   const [editingUser, setEditingUser] = useState<Usuario | null>(null)
   const [newUser, setNewUser] = useState({ email: "", password: "", empleadoId: "" })
-  const [debugInfo, setDebugInfo] = useState<any>(null)
 
   // Cargar usuarios y empleados al montar el componente
   useEffect(() => {
@@ -49,7 +48,6 @@ export default function GestionUsuarios() {
   const fetchEmpleados = async () => {
     try {
       setLoadingEmpleados(true)
-      console.log("Cargando empleados...")
 
       const response = await fetch("/api/empleados", {
         method: "GET",
@@ -60,15 +58,12 @@ export default function GestionUsuarios() {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error("Error response empleados:", errorText)
         throw new Error(`Error ${response.status}: ${response.statusText}`)
       }
 
       const data = await response.json()
-      console.log("Empleados cargados:", data.empleados?.length || 0)
       setEmpleados(data.empleados || [])
     } catch (error) {
-      console.error("Error cargando empleados:", error)
       // No bloquear la UI si no se pueden cargar empleados
       setEmpleados([])
     } finally {
@@ -80,7 +75,6 @@ export default function GestionUsuarios() {
     try {
       setLoading(true)
       setError(null)
-      console.log("Iniciando fetch de usuarios...")
 
       const response = await fetch("/api/usuarios", {
         method: "GET",
@@ -89,12 +83,8 @@ export default function GestionUsuarios() {
         },
       })
 
-      console.log("Response status:", response.status)
-      console.log("Response ok:", response.ok)
-
       if (!response.ok) {
         const errorText = await response.text()
-        console.error("Error response:", errorText)
 
         try {
           const errorJson = JSON.parse(errorText)
@@ -105,16 +95,12 @@ export default function GestionUsuarios() {
       }
 
       const data = await response.json()
-      console.log("API Response completa:", data)
-      setDebugInfo(data)
 
       // Asegurar que siempre tenemos un array
       const usuariosArray = data.users || data.usuarios || []
-      console.log("Usuarios array:", usuariosArray)
 
       setUsuarios(Array.isArray(usuariosArray) ? usuariosArray : [])
     } catch (error) {
-      console.error("Error completo en fetchUsuarios:", error)
       setError(error instanceof Error ? error.message : "Error desconocido")
       setUsuarios([])
     } finally {
@@ -145,7 +131,6 @@ export default function GestionUsuarios() {
       setNewUser({ email: "", password: "", empleadoId: "" })
       alert("Usuario creado exitosamente")
     } catch (error) {
-      console.error("Error creating user:", error)
       alert(error instanceof Error ? error.message : "Error al crear usuario")
     }
   }
@@ -174,7 +159,6 @@ export default function GestionUsuarios() {
       setEditingUser(null)
       alert("Usuario actualizado exitosamente")
     } catch (error) {
-      console.error("Error updating user:", error)
       alert(error instanceof Error ? error.message : "Error al actualizar usuario")
     }
   }
@@ -197,7 +181,6 @@ export default function GestionUsuarios() {
       setUsuarios((prev) => (prev || []).filter((user) => user.id !== id))
       alert("Usuario eliminado exitosamente")
     } catch (error) {
-      console.error("Error deleting user:", error)
       alert(error instanceof Error ? error.message : "Error al eliminar usuario")
     }
   }
@@ -248,19 +231,6 @@ export default function GestionUsuarios() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Gestión de Usuarios</h1>
-
-        {/* Información de debug expandida */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p className="text-blue-800">
-            <strong>Debug:</strong> Total usuarios: {usuarios?.length || 0} | Empleados: {empleados?.length || 0}
-          </p>
-          <p className="text-blue-600 text-sm">
-            Estado: {loading ? "Cargando..." : error ? `Error: ${error}` : "Cargado correctamente"}
-          </p>
-          <p className="text-blue-600 text-sm">
-            Empleados: {loadingEmpleados ? "Cargando..." : `${empleados.length} disponibles`}
-          </p>
-        </div>
 
         {/* Formulario para crear nuevo usuario */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
