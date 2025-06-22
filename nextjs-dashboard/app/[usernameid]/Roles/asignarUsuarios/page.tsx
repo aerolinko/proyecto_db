@@ -48,7 +48,7 @@ interface Rol{
             }
                 catch (error) {
                     // @ts-ignore
-                    setError('1',error.message);
+                    setError(error.message);
                 }
             }
 
@@ -70,7 +70,7 @@ interface Rol{
                 }
                 catch (error) {
                     // @ts-ignore
-                    setError('2',error.message);
+                    setError(error.message);
                 }
             }
             fetchRoles();

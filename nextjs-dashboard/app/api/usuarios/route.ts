@@ -35,9 +35,7 @@ export async function GET(request: NextRequest) {
       console.log("Buscando usuario roles de usurio:", role)
       const rolesU = await getAllRolesUsuario(role)
 
-      if (rolesU.length === 0) {
-        return Response.json({ error: "Usuario no encontrado" }, { status: 404 })
-      }
+
 
       return Response.json({
         message: "Usuario encontrado",
