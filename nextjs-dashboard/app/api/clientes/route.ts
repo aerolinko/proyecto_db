@@ -23,7 +23,7 @@ export async function GET(request: Request) {
             }
         }
         else{
-            if (id) {
+            if (id && tipo) {
                 result = await getClientPaymentMethods(parseInt(id),tipo);
                 if (!result) {
                     return NextResponse.json({ error: "No hay Cliente" }, { status: 404 });
