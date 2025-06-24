@@ -3,11 +3,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbopack",
-    "start": "next start",
-    "jasper:start": "docker-compose up -d",
-    "jasper:stop": "docker-compose down",
-    "jasper:upload": "node scripts/upload-templates.js",
-    "jasper:setup": "npm run jasper:start && sleep 30 && npm run jasper:upload"
+    "start": "next start"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

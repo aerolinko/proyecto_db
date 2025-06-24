@@ -11,7 +11,7 @@ const sql = postgres({
 
 export async function POST(request: NextRequest) {
     try {
-        console.log('🔄 Iniciando recreación de funciones de reportes...')
+        console.log('🔄 Iniciando recreación de funciones de base de datos...')
 
         // Eliminar funciones existentes
         const dropQueries = [
@@ -284,7 +284,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: 'Funciones de reportes recreadas exitosamente',
+            message: 'Funciones recreadas exitosamente',
             functionsCreated: createQueries.length
         })
     } catch (error) {

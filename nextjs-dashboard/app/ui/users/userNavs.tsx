@@ -2,10 +2,10 @@
 
 import {
   UserGroupIcon,
-  DocumentDuplicateIcon,
   ShoppingBagIcon,
   Cog6ToothIcon,
   TruckIcon, BuildingStorefrontIcon, CubeIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -16,14 +16,21 @@ export default function UserNavs({ permissions }) {
     { path: `VentaTienda`, nombre: 'Manejo de caja', icon: ShoppingBagIcon, id: 'consultar VENTA_TIENDA' },
     { path: `Roles`, nombre: 'Manejo de roles', icon: Cog6ToothIcon, id: 'consultar ROL' },
     { path: `GestionUsuarios`, nombre: 'Manejo de usuarios', icon: UserGroupIcon, id: 'consultar USUARIO' },
-    { path: `Reportes`, nombre: 'Manejo de reportes', icon: DocumentDuplicateIcon, id: 'consultar REPORTES' },
     { path: `ReposicionAlmacenes`, nombre: 'Manejo de estados de las órdenes a proveedores', icon: TruckIcon, id: 'consultar ESTADO_COMPRA_REPOSICION' },
-    { path: `ReposicionAnaqueles`, nombre: 'Manejo de estados de las ordenes de anaqueles', icon: CubeIcon, id: 'consultar ESTADO_REPOSICION_ANAQUEL' }
+    { path: `ReposicionAnaqueles`, nombre: 'Manejo de estados de las ordenes de anaqueles', icon: CubeIcon, id: 'consultar ESTADO_REPOSICION_ANAQUEL' },
+    { path: `Reportes`, nombre: 'Sistema de Reportes', icon: ChartBarIcon, id: 'consultar DETALLE_VENTA_ONLINE' }
   ];
 
-  let filteredLinks = Links.filter(link =>
-      permissions.some((permission:any) => permission.descripcion === link.id)
-  );
+  // Versión temporal: siempre mostrar todos los enlaces para debugging
+  let filteredLinks = Links;
+  
+  // Comentar la línea de arriba y descomentar la de abajo cuando quieras volver a usar permisos
+  // let filteredLinks = Links.filter(link =>
+  //     permissions.some((permission:any) => permission.descripcion === link.id)
+  // );
+
+  console.log('Permisos del usuario:', permissions);
+  console.log('Enlaces filtrados:', filteredLinks);
 
   return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -48,18 +55,20 @@ export default function UserNavs({ permissions }) {
                     'transition-opacity duration-300'
                 )} />
 
-                <div className="flex flex-col items-center justify-center gap-3">
-                  <div className={clsx(
-                      'p-3 rounded-full bg-blue-100 text-blue-600',
-                      'group-hover:bg-blue-600 group-hover:text-white',
-                      'transition-colors duration-300'
-                  )}>
-                    <LinkIcon className="w-6 h-6" />
-                  </div>
+                <div className="flex flex-col items-center justify-between gap-3">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className={clsx(
+                        'p-3 rounded-full bg-blue-100 text-blue-600',
+                        'group-hover:bg-blue-600 group-hover:text-white',
+                        'transition-colors duration-300'
+                    )}>
+                      <LinkIcon className="w-6 h-6" />
+                    </div>
 
-                  <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
-                    {link.nombre}
-                  </h3>
+                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                      {link.nombre}
+                    </h3>
+                  </div>
 
                   <p className="text-sm text-gray-500 group-hover:text-blue-500 transition-colors">
                     Click para acceder
