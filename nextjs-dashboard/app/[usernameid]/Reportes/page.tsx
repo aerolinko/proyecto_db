@@ -44,13 +44,6 @@ export default function Reportes() {
     }
   }, [reporteSeleccionado]);
 
-  // Nuevo useEffect: seleccionar automáticamente el reporte de productos más vendidos al cargar
-  useEffect(() => {
-    if (!reporteSeleccionado) {
-      setReporteSeleccionado(reportesDisponibles[0]);
-    }
-  }, []);
-
   // Solo un reporte: Productos más vendidos
   const reportesDisponibles: Reporte[] = [
     {

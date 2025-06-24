@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getReposicionAnaqueles, getReposicionAnaquelesSP } from '@/db'
+import { getReposicionAnaquelesSP } from '@/db'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,10 +12,10 @@ export async function GET(request: NextRequest) {
     console.log('Parámetros:', { fechaInicio, fechaFin, limite })
 
     // Opción 1: Usar función directa de db.ts
-    const reporte = await getReposicionAnaqueles(fechaInicio, fechaFin, limite)
+    // const reporte = await getReposicionAnaqueles(fechaInicio, fechaFin, limite)
     
     // Opción 2: Usar Stored Procedure (descomenta la línea de abajo y comenta la de arriba)
-    // const reporte = await getReposicionAnaquelesSP(fechaInicio, fechaFin, limite)
+    const reporte = await getReposicionAnaquelesSP(fechaInicio, fechaFin, limite)
 
     return NextResponse.json({
       success: true,

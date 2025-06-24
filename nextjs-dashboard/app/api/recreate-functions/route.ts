@@ -13,10 +13,14 @@ export async function POST(request: NextRequest) {
     try {
         console.log('🔄 Iniciando recreación de funciones de base de datos...')
 
+        // Seleccionar el esquema correcto antes de crear funciones
+        await sql.unsafe('SET search_path TO schema_name;')
+
         // Eliminar funciones existentes
         const dropQueries = [
             'DROP FUNCTION IF EXISTS get_report_productos_mayor_demanda(DATE, DATE)',
             'DROP FUNCTION IF EXISTS get_report_reposicion_anaqueles(DATE, DATE)',
+            'DROP FUNCTION IF EXISTS get_reposicion_anaqueles(DATE, DATE, INTEGER)',
             'DROP FUNCTION IF EXISTS get_report_cuotas_afiliacion_pendientes()',
             'DROP FUNCTION IF EXISTS get_report_nomina_departamento(DATE, DATE)',
             'DROP FUNCTION IF EXISTS get_report_historial_compras_cliente_juridico(INTEGER, DATE, DATE)',
@@ -272,6 +276,78 @@ export async function POST(request: NextRequest) {
               GROUP BY c.cerveza_id, c.nombre, p.nombre
               ORDER BY c.nombre, p.nombre;
             END;
+            $$;`,
+
+            // 8. Función para Reposición de Anaqueles Generadas
+            `CREATE OR REPLACE FUNCTION get_reposicion_anaqueles(
+              p_fecha_inicio DATE DEFAULT NULL,
+              p_fecha_fin DATE DEFAULT NULL,
+              p_limite INTEGER DEFAULT 100
+            )
+            RETURNS TABLE (
+              reposicion_anaquel_id INTEGER,
+              fecha DATE,
+              producto_nombre VARCHAR,
+              presentacion TEXT,
+              cantidad INTEGER,
+              pasillo VARCHAR,
+              anaquel TEXT,
+              estado VARCHAR
+            )
+            LANGUAGE plpgsql
+            AS $$
+            BEGIN
+              IF p_fecha_inicio IS NOT NULL AND p_fecha_fin IS NOT NULL THEN
+                RETURN QUERY
+                SELECT
+                  ra.reposicion_anaquel_id,
+                  ra.fecha,
+                  c.nombre AS producto_nombre,
+                  pr.material || ' ' || pr.cap_volumen || 'ml' AS presentacion,
+                  dra.cantidad,
+                  pas.nombre AS pasillo,
+                  anq.anaquel_id::text AS anaquel,
+                  e.nombre AS estado
+                FROM reposicion_anaquel ra
+                JOIN detalle_reposicion_anaquel dra ON dra.fk_reposicion_anaquel = ra.reposicion_anaquel_id
+                JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+                JOIN anaquel anq ON ac.fk_anaquel = anq.anaquel_id
+                JOIN pasillo pas ON anq.fk_pasillo = pas.pasillo_id
+                JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+                JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+                JOIN presentacion pr ON cp.fk_presentacion = pr.presentacion_id
+                JOIN estado_reposicion_anaquel era ON era.fk_reposicion_anaquel = ra.reposicion_anaquel_id AND era.fecha_fin IS NULL
+                JOIN estado e ON era.fk_estado = e.estado_id
+                WHERE ra.fecha BETWEEN p_fecha_inicio AND p_fecha_fin
+                  AND dra.cantidad <= 20
+                ORDER BY ra.fecha DESC
+                LIMIT p_limite;
+              ELSE
+                RETURN QUERY
+                SELECT
+                  ra.reposicion_anaquel_id,
+                  ra.fecha,
+                  c.nombre AS producto_nombre,
+                  pr.material || ' ' || pr.cap_volumen || 'ml' AS presentacion,
+                  dra.cantidad,
+                  pas.nombre AS pasillo,
+                  anq.anaquel_id::text AS anaquel,
+                  e.nombre AS estado
+                FROM reposicion_anaquel ra
+                JOIN detalle_reposicion_anaquel dra ON dra.fk_reposicion_anaquel = ra.reposicion_anaquel_id
+                JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+                JOIN anaquel anq ON ac.fk_anaquel = anq.anaquel_id
+                JOIN pasillo pas ON anq.fk_pasillo = pas.pasillo_id
+                JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+                JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+                JOIN presentacion pr ON cp.fk_presentacion = pr.presentacion_id
+                JOIN estado_reposicion_anaquel era ON era.fk_reposicion_anaquel = ra.reposicion_anaquel_id AND era.fecha_fin IS NULL
+                JOIN estado e ON era.fk_estado = e.estado_id
+                WHERE dra.cantidad <= 20
+                ORDER BY ra.fecha DESC
+                LIMIT p_limite;
+              END IF;
+            END;
             $$;`
         ]
 
@@ -295,4 +371,4 @@ export async function POST(request: NextRequest) {
             error: error instanceof Error ? error.message : 'Error desconocido'
         }, { status: 500 })
     }
-} 
+}

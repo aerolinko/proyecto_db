@@ -1620,4 +1620,21 @@ export async function getStockGeneral() {
   return await sql`SELECT * FROM get_stock_general()`;
 }
 
+// ===== FUNCIÓN QUE USA STORED PROCEDURE PARA REPOSICIÓN DE ANAQUELES =====
+export async function getReposicionAnaquelesSP(fechaInicio?: string, fechaFin?: string, limite: number = 100) {
+  try {
+    console.log("=== getReposicionAnaquelesSP ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin, limite })
+
+    const query = sql`SELECT * FROM get_reposicion_anaqueles(${fechaInicio || null}, ${fechaFin || null}, ${limite})`
+    const result = await query
+
+    console.log(`Reposiciones de anaqueles encontradas: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getReposicionAnaquelesSP:", error)
+    throw error
+  }
+}
+
 
