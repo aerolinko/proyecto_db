@@ -4,7 +4,7 @@ import { useState } from "react";
 import { KeyIcon, UserIcon} from "@heroicons/react/24/outline";
 import {ArrowRightIcon} from "@heroicons/react/20/solid";
 import {Button} from "@/app/ui/button";
-import Search from "@/app/ui/search";
+
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
