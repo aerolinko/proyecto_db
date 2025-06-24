@@ -1482,7 +1482,6 @@ begin
     return new;
 end;
 $$;
-$$;
 
 create trigger triggerCompraReposicion
     after update on almacen_cerveza
@@ -1594,3 +1593,299 @@ begin
 end;
 $$;
 
+
+CREATE OR REPLACE FUNCTION get_stock_almacen()
+RETURNS TABLE(
+  cerveza_presentacion_id INT,
+  nombre_cerveza TEXT,
+  material TEXT,
+  cap_volumen INT,
+  cantidad INT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    cp.cerveza_presentacion_id::INT,
+    c.nombre::TEXT,
+    p.material::TEXT,
+    p.cap_volumen::INT,
+    COALESCE(SUM(ac.cantidad), 0)::INT
+  FROM almacen_cerveza ac
+  JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+  JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+  JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+  GROUP BY cp.cerveza_presentacion_id, c.nombre, p.material, p.cap_volumen;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+DROP FUNCTION IF EXISTS get_stock_anaquel();
+
+CREATE OR REPLACE FUNCTION get_stock_anaquel()
+RETURNS TABLE(
+  cerveza_presentacion_id INT,
+  nombre_cerveza TEXT,
+  material TEXT,
+  cap_volumen INT,
+  cantidad INT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    cp.cerveza_presentacion_id::INT,
+    c.nombre::TEXT,
+    p.material::TEXT,
+    p.cap_volumen::INT,
+    COALESCE(SUM(anac.cantidad), 0)::INT
+  FROM anaquel_cerveza anac
+  JOIN cerveza_presentacion cp ON anac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+  JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+  JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+  GROUP BY cp.cerveza_presentacion_id, c.nombre, p.material, p.cap_volumen;
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS get_stock_general();
+
+CREATE OR REPLACE FUNCTION get_stock_general()
+RETURNS TABLE(
+  cerveza_presentacion_id INT,
+  nombre_cerveza TEXT,
+  material TEXT,
+  cap_volumen INT,
+  cantidad_total INT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    cp.cerveza_presentacion_id::INT,
+    c.nombre::TEXT,
+    p.material::TEXT,
+    p.cap_volumen::INT,
+    (COALESCE(SUM(ac.cantidad), 0) + COALESCE(SUM(anac.cantidad), 0))::INT AS cantidad_total
+  FROM cerveza_presentacion cp
+  LEFT JOIN almacen_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+  LEFT JOIN anaquel_cerveza anac ON cp.cerveza_presentacion_id = anac.fk_cerveza_presentacion
+  JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+  JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+  GROUP BY cp.cerveza_presentacion_id, c.nombre, p.material, p.cap_volumen;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE FUNCTION get_productos_mas_vendidos(
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    limite INTEGER
+)
+RETURNS TABLE (
+    producto_id INT,
+    nombre_producto TEXT,
+    presentacion_ml INT,
+    tipo_presentacion TEXT,
+    total_ventas INT,
+    unidades_vendidas INT,
+    precio_promedio NUMERIC,
+    ingresos_totales NUMERIC,
+    precio_promedio_ponderado NUMERIC,
+    clientes_unicos INT,
+    primera_venta DATE,
+    ultima_venta DATE
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        c.cerveza_id,
+        c.nombre,
+        p.cap_volumen,
+        p.material,
+        COUNT(DISTINCT vo.venta_online_id),
+        SUM(dvo.cantidad),
+        ROUND(AVG(dvo.precio_unitario), 2),
+        SUM(dvo.cantidad * dvo.precio_unitario),
+        ROUND(SUM(dvo.cantidad * dvo.precio_unitario) / NULLIF(SUM(dvo.cantidad),0), 2),
+        COUNT(DISTINCT vo.fk_usuario),
+        MIN(vo.fecha_emision),
+        MAX(vo.fecha_emision)
+    FROM cerveza c
+    JOIN cerveza_presentacion cp ON c.cerveza_id = cp.fk_cerveza
+    JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+    JOIN almacen_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+    JOIN detalle_venta_online dvo ON ac.almacen_cerveza_id = dvo.fk_almacen_cerveza
+    JOIN venta_online vo ON dvo.fk_venta_online = vo.venta_online_id
+    WHERE 
+        (
+            (fecha_inicio IS NULL AND fecha_fin IS NULL)
+            OR
+            (vo.fecha_emision BETWEEN fecha_inicio AND fecha_fin)
+        )
+    GROUP BY c.cerveza_id, c.nombre, p.cap_volumen, p.material
+    ORDER BY unidades_vendidas DESC, ingresos_totales DESC
+    LIMIT limite;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- FUNCIÓN GET_REPOSICION_ANAQUELES MEJORADA - EXCLUIR COMPLETADAS
+-- =====================================================
+
+-- Eliminar la función si existe
+DROP FUNCTION IF EXISTS get_reposicion_anaqueles(DATE, DATE, INTEGER);
+
+-- Crear la función get_reposicion_anaqueles mejorada
+CREATE OR REPLACE FUNCTION get_reposicion_anaqueles(
+  p_fecha_inicio DATE DEFAULT NULL,
+  p_fecha_fin DATE DEFAULT NULL,
+  p_limite INTEGER DEFAULT 100
+)
+RETURNS TABLE (
+  reposicion_anaquel_id INTEGER,
+  fecha DATE,
+  producto_nombre VARCHAR,
+  presentacion VARCHAR,
+  CANTIDAD_SOLICITADA INTEGER,
+  pasillo VARCHAR,
+  anaquel VARCHAR,
+  estado VARCHAR,
+  stock_actual INTEGER,
+  prioridad VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF p_fecha_inicio IS NOT NULL AND p_fecha_fin IS NOT NULL THEN
+    RETURN QUERY
+    SELECT
+      ra.reposicion_anaquel_id,
+      ra.fecha,
+      c.nombre AS producto_nombre,
+      (pr.material || ' ' || pr.cap_volumen || 'ml')::VARCHAR AS presentacion,
+      dra.cantidad AS CANTIDAD_SOLICITADA,
+      pas.nombre AS pasillo,
+      anq.anaquel_id::VARCHAR AS anaquel,
+      e.nombre AS estado,
+      ac.cantidad AS stock_actual,
+      CASE 
+        WHEN ac.cantidad < 10 THEN 'CRÍTICA'
+        WHEN ac.cantidad < 20 THEN 'ALTA'
+        WHEN ac.cantidad < 50 THEN 'MEDIA'
+        ELSE 'BAJA'
+      END::VARCHAR AS prioridad
+    FROM reposicion_anaquel ra
+    JOIN detalle_reposicion_anaquel dra ON dra.fk_reposicion_anaquel = ra.reposicion_anaquel_id
+    JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+    JOIN anaquel anq ON ac.fk_anaquel = anq.anaquel_id
+    JOIN pasillo pas ON anq.fk_pasillo = pas.pasillo_id
+    JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+    JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+    JOIN presentacion pr ON cp.fk_presentacion = pr.presentacion_id
+    JOIN estado_reposicion_anaquel era ON era.fk_reposicion_anaquel = ra.reposicion_anaquel_id AND era.fecha_fin IS NULL
+    JOIN estado e ON era.fk_estado = e.estado_id
+    WHERE ra.fecha BETWEEN p_fecha_inicio AND p_fecha_fin
+      AND e.nombre != 'Completado'  -- Excluir órdenes completadas
+    ORDER BY 
+      CASE 
+        WHEN e.nombre IN ('Pendiente', 'En Proceso') THEN 1
+        WHEN e.nombre = 'Recibido' THEN 2
+        ELSE 3
+      END,
+      ra.fecha DESC,
+      ac.cantidad ASC
+    LIMIT p_limite;
+  ELSE
+    RETURN QUERY
+    SELECT
+      ra.reposicion_anaquel_id,
+      ra.fecha,
+      c.nombre AS producto_nombre,
+      (pr.material || ' ' || pr.cap_volumen || 'ml')::VARCHAR AS presentacion,
+      dra.cantidad AS CANTIDAD_SOLICITADA,
+      pas.nombre AS pasillo,
+      anq.anaquel_id::VARCHAR AS anaquel,
+      e.nombre AS estado,
+      ac.cantidad AS stock_actual,
+      CASE 
+        WHEN ac.cantidad < 10 THEN 'CRÍTICA'
+        WHEN ac.cantidad < 20 THEN 'ALTA'
+        WHEN ac.cantidad < 50 THEN 'MEDIA'
+        ELSE 'BAJA'
+      END::VARCHAR AS prioridad
+    FROM reposicion_anaquel ra
+    JOIN detalle_reposicion_anaquel dra ON dra.fk_reposicion_anaquel = ra.reposicion_anaquel_id
+    JOIN anaquel_cerveza ac ON dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id
+    JOIN anaquel anq ON ac.fk_anaquel = anq.anaquel_id
+    JOIN pasillo pas ON anq.fk_pasillo = pas.pasillo_id
+    JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+    JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+    JOIN presentacion pr ON cp.fk_presentacion = pr.presentacion_id
+    JOIN estado_reposicion_anaquel era ON era.fk_reposicion_anaquel = ra.reposicion_anaquel_id AND era.fecha_fin IS NULL
+    JOIN estado e ON era.fk_estado = e.estado_id
+    WHERE e.nombre != 'Completado'  -- Excluir órdenes completadas
+    ORDER BY 
+      CASE 
+        WHEN e.nombre IN ('Pendiente', 'En Proceso') THEN 1
+        WHEN e.nombre = 'Recibido' THEN 2
+        ELSE 3
+      END,
+      ra.fecha DESC,
+      ac.cantidad ASC
+    LIMIT p_limite;
+  END IF;
+END;
+$$;
+
+-- ===== VERIFICACIÓN =====
+
+-- Verificar que la función se creó correctamente
+SELECT 
+    routine_name, 
+    routine_type, 
+    data_type 
+FROM information_schema.routines 
+WHERE routine_name = 'get_reposicion_anaqueles';
+
+-- Probar la función sin parámetros (mostrará todas las órdenes excepto completadas)
+SELECT * FROM get_reposicion_anaqueles() LIMIT 10;
+
+-- Probar la función con parámetros de fecha
+SELECT * FROM get_reposicion_anaqueles('2025-06-01', '2025-06-30', 10);
+
+-- Mostrar órdenes por estado (excluyendo completadas)
+SELECT 
+    estado,
+    COUNT(*) as cantidad
+FROM get_reposicion_anaqueles()
+GROUP BY estado
+ORDER BY 
+    CASE 
+        WHEN estado IN ('Pendiente', 'En Proceso') THEN 1
+        WHEN estado = 'Recibido' THEN 2
+        ELSE 3
+    END;
+
+-- Mostrar solo órdenes activas (Pendiente y En Proceso)
+SELECT 'Órdenes activas (Pendiente y En Proceso):' as info;
+SELECT * FROM get_reposicion_anaqueles() 
+WHERE estado IN ('Pendiente', 'En Proceso')
+ORDER BY stock_actual ASC;
+
+-- Mostrar historial de órdenes (excluyendo completadas)
+SELECT 'Historial de órdenes (sin completadas):' as info;
+SELECT 
+    reposicion_anaquel_id,
+    fecha,
+    producto_nombre,
+    CANTIDAD_SOLICITADA,
+    estado,
+    stock_actual,
+    prioridad
+FROM get_reposicion_anaqueles()
+ORDER BY fecha DESC;
+
+-- Verificar que no hay órdenes completadas en el resultado
+SELECT 'Verificación: No debería haber órdenes completadas:' as info;
+SELECT COUNT(*) as ordenes_completadas_en_resultado
+FROM get_reposicion_anaqueles()
+WHERE estado = 'Completado'; 

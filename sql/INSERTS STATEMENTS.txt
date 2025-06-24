@@ -2668,6 +2668,7 @@ INSERT INTO USUARIO (fecha_creacion, nombre_usuario, hash_contrasena, fk_emplead
                                                                                        ('2023-03-10', 'pedro.lopez@acaucab.com', 'hash789supervisor', 3),
                                                                                        ('2023-04-05', 'ana.garcia@acaucab.com', 'hash012vendedor', 4),
                                                                                        ('2023-05-12', 'luis.martin@acaucab.com', 'hash345almacen', 5);
+                                                                                       
 
 INSERT INTO USUARIO (fecha_creacion, nombre_usuario, hash_contrasena, fk_cliente_natural) VALUES
                                                                                               ('2023-09-01', 'ana.garcia@email.com', 'hashclient001', 1),
@@ -2676,18 +2677,50 @@ INSERT INTO USUARIO (fecha_creacion, nombre_usuario, hash_contrasena, fk_cliente
                                                                                               ('2023-10-15', 'diego.hernandez@email.com', 'hashclient004', 4),
                                                                                               ('2023-11-01', 'valeria.torres@email.com', 'hashclient005', 5);
 
+-- INSERT de usuarios para cada miembro de ACAUCAB
+INSERT INTO USUARIO (fecha_creacion, nombre_usuario, hash_contrasena, fk_cliente_natural, fk_cliente_juridico, fk_miembro_acaucab, fk_empleado) VALUES
+('2025-01-15', 'laespumadorada', 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', NULL, NULL, 1, NULL),
+('2025-01-16', 'maltaysabor', 'b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2', NULL, NULL, 2, NULL),
+('2025-01-17', 'friacerveza', 'c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4', NULL, NULL, 3, NULL),
+('2025-01-18', 'barrildorado', 'd4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5', NULL, NULL, 4, NULL),
+('2025-01-19', 'andinabrew', 'e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6', NULL, NULL, 5, NULL),
+('2025-01-20', 'cavamarinabebidas', 'f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7', NULL, NULL, 6, NULL),
+('2025-01-21', 'granodeoro', 'g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8', NULL, NULL, 7, NULL),
+('2025-01-22', 'cervezareal', 'h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9', NULL, NULL, 8, NULL),
+('2025-01-23', 'almacenfrio', 'i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0', NULL, NULL, 9, NULL),
+('2025-01-24', 'logisticarefrescante', 'j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1', NULL, NULL, 10, NULL),
+('2025-01-25', 'cervezanacional', 'k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2', NULL, NULL, 11, NULL),
+('2025-01-26', 'lagerfuerte', 'l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3', NULL, NULL, 12, NULL),
+('2025-01-27', 'stoutpremium', 'm3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4', NULL, NULL, 13, NULL),
+('2025-01-28', 'delvallebebidas', 'n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5', NULL, NULL, 14, NULL),
+('2025-01-29', 'larensebeerprov', 'o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6', NULL, NULL, 15, NULL),
+('2025-01-30', 'paramofrio', 'p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7', NULL, NULL, 16, NULL),
+('2025-01-31', 'costerabeerimports', 'q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8', NULL, NULL, 17, NULL),
+('2025-02-01', 'integralbeersolutions', 'r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9', NULL, NULL, 18, NULL),
+('2025-02-02', 'bebidasdecalidad', 's9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0', NULL, NULL, 19, NULL),
+('2025-02-03', 'polarnorte', 't0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1', NULL, NULL, 20, NULL);
 
 INSERT INTO MEMBRESIA (fecha_adquisicion, fecha_vencimiento, monto, fk_usuario) VALUES
-                                                                                    ('2025-01-01', '2026-01-01', 100, 1),
-                                                                                    ('2025-02-01', '2026-02-01', 120, 2),
-                                                                                    ('2025-03-01', '2026-03-01', 80, 3),
-                                                                                    ('2025-04-01', '2026-04-01', 150, 4),
-                                                                                    ('2025-05-01', '2026-05-01', 90, 5),
-                                                                                    ('2025-06-01', '2026-06-01', 110, 6),
-                                                                                    ('2025-07-01', '2026-07-01', 130, 7),
-                                                                                    ('2025-08-01', '2026-08-01', 75, 8),
-                                                                                    ('2025-09-01', '2026-09-01', 140, 9),
-                                                                                    ('2025-10-01', '2026-10-01', 105, 10);
+                                                                                    ('2025-01-01', '2026-01-01', 100, 11),
+                                                                                    ('2025-02-01', '2026-02-01', 120, 12),
+                                                                                    ('2025-03-01', '2026-03-01', 80, 13),
+                                                                                    ('2025-04-01', '2026-04-01', 150, 14),
+                                                                                    ('2025-05-01', '2026-05-01', 90, 15),
+                                                                                    ('2025-06-01', '2026-06-01', 110, 16),
+                                                                                    ('2025-07-01', '2026-07-01', 130, 17),
+                                                                                    ('2025-08-01', '2026-08-01', 75, 18),
+                                                                                    ('2025-09-01', '2026-09-01', 140, 19),
+                                                                                    ('2025-10-01', '2026-10-01', 105, 20);
+    ('2025-01-25', '2026-01-25', 95, 21),   -- Usuario: cervezanacional
+    ('2025-01-26', '2026-01-26', 125, 22),  -- Usuario: lagerfuerte
+    ('2025-01-27', '2026-01-27', 85, 23),   -- Usuario: stoutpremium
+    ('2025-01-28', '2026-01-28', 160, 24),  -- Usuario: delvallebebidas
+    ('2025-01-29', '2026-01-29', 100, 25),  -- Usuario: larensebeerprov
+    ('2025-01-30', '2026-01-30', 115, 26),  -- Usuario: paramofrio
+    ('2025-01-31', '2026-01-31', 135, 27),  -- Usuario: costerabeerimports
+    ('2025-02-01', '2026-02-01', 70, 28),   -- Usuario: integralbeersolutions
+    ('2025-02-02', '2026-02-02', 145, 29),  -- Usuario: bebidasdecalidad
+('2025-02-03', '2026-02-03', 110, 30);  -- Usuario: polarnorte
 
 INSERT INTO COMPRA_REPOSICION (fecha_emision, fecha_entrega, fecha_pago_estimada, fecha_pago_real, total, fk_miembro_acaucab) VALUES
                                                                                                                                               ('2025-05-20', '2025-05-28', '2025-06-15', '2025-06-10', 5000, 1),

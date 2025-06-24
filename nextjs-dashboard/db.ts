@@ -826,103 +826,48 @@ export async function getReportReposicionAnaqueles(fechaInicio?: string, fechaFi
 }
 
 // 3. Cuotas de Afiliación Pendientes de Pago
-export async function getCuotasAfiliacionPendientes(fechaInicio?: string, fechaFin?: string, limite: number = 100) {
+export async function getCuotasAfiliacionPendientes() {
   try {
     console.log("=== getCuotasAfiliacionPendientes ===")
-    console.log("Parámetros:", { fechaInicio, fechaFin, limite })
 
-    let query
-    if (fechaInicio && fechaFin) {
-      query = sql`
-        SELECT 
-          ma.miembro_id,
-          ma.razon_social,
-          ma.rif,
-          ma.direccion,
-          u.fecha_creacion as fecha_afiliacion,
-          mem.monto as cuota_mensual,
-          CASE 
-            WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
-            ELSE 'VENCIDO'
-          END as estado_afiliacion,
-          MAX(p.fecha) as ultimo_pago_fecha,
-          MAX(p.monto) as ultimo_pago_monto,
-          EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) as meses_pendientes,
-          mem.monto * EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) as monto_pendiente,
-          EXTRACT(DAY FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) as dias_vencido,
-          CASE 
-            WHEN EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) >= 3 THEN 'ALTA'
-            WHEN EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) >= 2 THEN 'MEDIA'
-            ELSE 'BAJA'
-          END as prioridad,
-          CONCAT(pc.primer_nombre, ' ', pc.primer_apellido) as contacto_nombre,
-          CONCAT(t.codigo, '-', t.numero) as contacto_telefono,
-          CONCAT(ce.usuario, ce.dominio) as contacto_email
-        FROM miembro_acaucab ma
-        LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
-        LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
-        LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia 
-          AND p.fecha BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
-        LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
-        LEFT JOIN telefono t ON ma.miembro_id = t.fk_miembro_acaucab
-        LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
-        WHERE ma.miembro_id IS NOT NULL
-        AND mem.fecha_vencimiento < CURRENT_DATE
-        GROUP BY 
-          ma.miembro_id, ma.razon_social, ma.rif, ma.direccion, 
-          u.fecha_creacion, mem.fecha_vencimiento, mem.monto, pc.primer_nombre, pc.primer_apellido,
-          t.codigo, t.numero, ce.usuario, ce.dominio
-        HAVING EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) > 0
-        ORDER BY monto_pendiente DESC, dias_vencido DESC
-        LIMIT ${limite}
-      `
-    } else {
-      query = sql`
-        SELECT 
-          ma.miembro_id,
-          ma.razon_social,
-          ma.rif,
-          ma.direccion,
-          u.fecha_creacion as fecha_afiliacion,
-          mem.monto as cuota_mensual,
-          CASE 
-            WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
-            ELSE 'VENCIDO'
-          END as estado_afiliacion,
-          MAX(p.fecha) as ultimo_pago_fecha,
-          MAX(p.monto) as ultimo_pago_monto,
-          EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) as meses_pendientes,
-          mem.monto * EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) as monto_pendiente,
-          EXTRACT(DAY FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) as dias_vencido,
-          CASE 
-            WHEN EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) >= 3 THEN 'ALTA'
-            WHEN EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) >= 2 THEN 'MEDIA'
-            ELSE 'BAJA'
-          END as prioridad,
-          CONCAT(pc.primer_nombre, ' ', pc.primer_apellido) as contacto_nombre,
-          CONCAT(t.codigo, '-', t.numero) as contacto_telefono,
-          CONCAT(ce.usuario, ce.dominio) as contacto_email
-        FROM miembro_acaucab ma
-        LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
-        LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
-        LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia
-        LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
-        LEFT JOIN telefono t ON ma.miembro_id = t.fk_miembro_acaucab
-        LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
-        WHERE ma.miembro_id IS NOT NULL
-        AND mem.fecha_vencimiento < CURRENT_DATE
-        GROUP BY 
-          ma.miembro_id, ma.razon_social, ma.rif, ma.direccion, 
-          u.fecha_creacion, mem.fecha_vencimiento, mem.monto, pc.primer_nombre, pc.primer_apellido,
-          t.codigo, t.numero, ce.usuario, ce.dominio
-        HAVING EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))) > 0
-        ORDER BY monto_pendiente DESC, dias_vencido DESC
-        LIMIT ${limite}
-      `
-    }
+    const query = sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        u.fecha_creacion as fecha_afiliacion,
+        mem.monto as cuota_mensual,
+        mem.fecha_vencimiento,
+        CASE 
+          WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
+          ELSE 'VENCIDO'
+        END as estado_afiliacion,
+        MAX(p.fecha) as ultimo_pago_fecha,
+        MAX(p.monto) as ultimo_pago_monto,
+        GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion)))) as meses_pendientes,
+        mem.monto * GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion)))) as monto_pendiente,
+        CONCAT(pc.primer_nombre, ' ', pc.primer_apellido) as contacto_nombre,
+        CONCAT(t.codigo, '-', t.numero) as contacto_telefono,
+        CONCAT(ce.usuario, ce.dominio) as contacto_email,
+        ma.rif,
+        ma.direccion
+      FROM miembro_acaucab ma
+      LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+      LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia
+      LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
+      LEFT JOIN telefono t ON ma.miembro_id = t.fk_miembro_acaucab
+      LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
+      WHERE ma.miembro_id IS NOT NULL
+      GROUP BY 
+        ma.miembro_id, ma.razon_social, ma.rif, ma.direccion, 
+        u.fecha_creacion, mem.fecha_vencimiento, mem.monto, pc.primer_nombre, pc.primer_apellido,
+        t.codigo, t.numero, ce.usuario, ce.dominio
+      HAVING GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion)))) >= 1
+      ORDER BY meses_pendientes DESC, monto_pendiente DESC
+    `
 
     const result = await query
-    console.log(`Cuotas de afiliación pendientes encontradas: ${result.length}`)
+    console.log(`Miembros ACAUCAB con cuotas vencidas: ${result.length}`)
     return result
   } catch (error) {
     console.error("Error en getCuotasAfiliacionPendientes:", error)
@@ -931,15 +876,14 @@ export async function getCuotasAfiliacionPendientes(fechaInicio?: string, fechaF
 }
 
 // ===== FUNCIÓN QUE USA STORED PROCEDURE =====
-export async function getCuotasAfiliacionPendientesSP(fechaInicio?: string, fechaFin?: string, limite: number = 100) {
+export async function getCuotasAfiliacionPendientesSP() {
   try {
     console.log("=== getCuotasAfiliacionPendientesSP ===")
-    console.log("Parámetros:", { fechaInicio, fechaFin, limite })
 
-    const query = sql`SELECT * FROM get_cuotas_afiliacion_pendientes(${fechaInicio || null}, ${fechaFin || null}, ${limite})`
+    const query = sql`SELECT * FROM get_cuotas_afiliacion_pendientes(NULL, NULL, 1000)`
     const result = await query
 
-    console.log(`Cuotas de afiliación pendientes encontradas: ${result.length}`)
+    console.log(`Miembros ACAUCAB encontrados: ${result.length}`)
     return result
   } catch (error) {
     console.error("Error en getCuotasAfiliacionPendientesSP:", error)
@@ -1033,32 +977,35 @@ export async function getProductosMasVendidosSP(fechaInicio?: string, fechaFin?:
   }
 }
 
-// ===== FUNCIÓN DE PRUEBA SIMPLE =====
-export async function testCuotasAfiliacionSimple() {
+// ===== FUNCIÓN DE PRUEBA SIMPLE PARA MIEMBROS ACAUCAB =====
+export async function testMiembrosAcaucabSimple() {
   try {
-    console.log("=== testCuotasAfiliacionSimple ===")
+    console.log("=== testMiembrosAcaucabSimple ===")
     
-    // Consulta muy simple para verificar datos
+    // Consulta muy simple para verificar datos básicos
     const result = await sql`
       SELECT 
         ma.miembro_id,
         ma.razon_social,
+        ma.rif,
+        u.usuario_id,
         u.nombre_usuario,
-        mem.fecha_vencimiento,
+        mem.membresia_id,
         mem.monto,
+        mem.fecha_vencimiento,
         CURRENT_DATE as fecha_actual
       FROM miembro_acaucab ma
       LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
       LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
-      WHERE ma.miembro_id >= 21
       ORDER BY ma.miembro_id
+      LIMIT 20
     `
     
     console.log(`Datos básicos encontrados: ${result.length}`)
     console.log("Datos:", result)
     return result
   } catch (error) {
-    console.error("Error en testCuotasAfiliacionSimple:", error)
+    console.error("Error en testMiembrosAcaucabSimple:", error)
     throw error
   }
 }
@@ -1507,7 +1454,6 @@ export async function getHistorialComprasClienteJuridicoSimple(
         cj.razon_social,
         cj.denominacion_comercial,
         cj.rif,
-        cj.direccion,
         cj.capital,
         cj.pagina_web,
         vo.venta_online_id,
@@ -1637,4 +1583,615 @@ export async function getReposicionAnaquelesSP(fechaInicio?: string, fechaFin?: 
   }
 }
 
+// ===== FUNCIÓN PARA VERIFICAR MIEMBROS ACAUCAB Y SUS USUARIOS =====
+export async function verificarMiembrosAcaucab() {
+  try {
+    console.log("=== verificarMiembrosAcaucab ===")
+    
+    // Consulta para ver todos los miembros ACAUCAB y si tienen usuarios
+    const result = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        ma.rif,
+        ma.direccion,
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        mem.membresia_id,
+        mem.fecha_adquisicion,
+        mem.fecha_vencimiento,
+        mem.monto,
+        CASE 
+          WHEN u.usuario_id IS NOT NULL THEN 'CON USUARIO'
+          ELSE 'SIN USUARIO'
+        END as estado_usuario,
+        CASE 
+          WHEN mem.membresia_id IS NOT NULL THEN 'CON MEMBRESÍA'
+          ELSE 'SIN MEMBRESÍA'
+        END as estado_membresia
+      FROM miembro_acaucab ma
+      LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+      ORDER BY ma.miembro_id
+    `
+    
+    console.log(`Miembros ACAUCAB encontrados: ${result.length}`)
+    console.log("Datos:", result)
+    return result
+  } catch (error) {
+    console.error("Error en verificarMiembrosAcaucab:", error)
+    throw error
+  }
+}
 
+// ===== FUNCIÓN PARA ASIGNAR FECHAS DE AFILIACIÓN A MIEMBROS SIN USUARIO =====
+export async function asignarFechasAfiliacion() {
+  try {
+    console.log("=== asignarFechasAfiliacion ===")
+    
+    // Primero, verificar cuántos miembros no tienen usuario
+    const miembrosSinUsuario = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        ma.rif
+      FROM miembro_acaucab ma
+      LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      WHERE u.usuario_id IS NULL
+      ORDER BY ma.miembro_id
+    `
+    
+    console.log(`Miembros sin usuario encontrados: ${miembrosSinUsuario.length}`)
+    
+    if (miembrosSinUsuario.length === 0) {
+      console.log("Todos los miembros ya tienen usuarios asociados")
+      return { message: "Todos los miembros ya tienen usuarios asociados", count: 0 }
+    }
+    
+    // Crear usuarios para los miembros que no los tienen
+    let usuariosCreados = 0
+    for (const miembro of miembrosSinUsuario) {
+      try {
+        // Crear usuario con fecha de afiliación
+        const fechaAfiliacion = new Date()
+        fechaAfiliacion.setFullYear(2024) // Establecer año 2024
+        fechaAfiliacion.setMonth(Math.floor(Math.random() * 12)) // Mes aleatorio
+        fechaAfiliacion.setDate(Math.floor(Math.random() * 28) + 1) // Día aleatorio
+        
+        const usuario = await sql`
+          INSERT INTO usuario (fecha_creacion, nombre_usuario, hash_contrasena, fk_miembro_acaucab)
+          VALUES (${fechaAfiliacion.toISOString().split('T')[0]}, ${`miembro_${miembro.miembro_id}`}, 'password123', ${miembro.miembro_id})
+          RETURNING usuario_id, fecha_creacion
+        `
+        
+        // Crear membresía para el usuario
+        const fechaVencimiento = new Date(fechaAfiliacion)
+        fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1)
+        
+        await sql`
+          INSERT INTO membresia (fecha_adquisicion, fecha_vencimiento, monto, fk_usuario)
+          VALUES (${fechaAfiliacion.toISOString().split('T')[0]}, ${fechaVencimiento.toISOString().split('T')[0]}, 100, ${usuario[0].usuario_id})
+        `
+        
+        usuariosCreados++
+        console.log(`Usuario creado para miembro ${miembro.miembro_id}: ${miembro.razon_social}`)
+      } catch (error) {
+        console.error(`Error creando usuario para miembro ${miembro.miembro_id}:`, error)
+      }
+    }
+    
+    console.log(`Total de usuarios creados: ${usuariosCreados}`)
+    return { message: `Se crearon ${usuariosCreados} usuarios`, count: usuariosCreados }
+  } catch (error) {
+    console.error("Error en asignarFechasAfiliacion:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIÓN DE PRUEBA MUY SIMPLE =====
+export async function testDatosBasicos() {
+  try {
+    console.log("=== testDatosBasicos ===")
+    
+    // Verificar cuántos registros hay en cada tabla
+    const miembros = await sql`SELECT COUNT(*) as total FROM miembro_acaucab`
+    const usuarios = await sql`SELECT COUNT(*) as total FROM usuario WHERE fk_miembro_acaucab IS NOT NULL`
+    const membresias = await sql`SELECT COUNT(*) as total FROM membresia`
+    const pagos = await sql`SELECT COUNT(*) as total FROM pago`
+    
+    // Ver algunos datos de ejemplo
+    const ejemploMiembros = await sql`
+      SELECT miembro_id, razon_social, rif 
+      FROM miembro_acaucab 
+      ORDER BY miembro_id 
+      LIMIT 5
+    `
+    
+    const ejemploUsuarios = await sql`
+      SELECT usuario_id, nombre_usuario, fecha_creacion, fk_miembro_acaucab 
+      FROM usuario 
+      WHERE fk_miembro_acaucab IS NOT NULL 
+      ORDER BY usuario_id 
+      LIMIT 5
+    `
+    
+    const ejemploMembresias = await sql`
+      SELECT membresia_id, fecha_adquisicion, fecha_vencimiento, monto, fk_usuario 
+      FROM membresia 
+      ORDER BY membresia_id 
+      LIMIT 5
+    `
+    
+    const resultado = {
+      conteos: {
+        miembros: miembros[0].total,
+        usuarios: usuarios[0].total,
+        membresias: membresias[0].total,
+        pagos: pagos[0].total
+      },
+      ejemploMiembros,
+      ejemploUsuarios,
+      ejemploMembresias
+    }
+    
+    console.log("Resultado:", resultado)
+    return resultado
+  } catch (error) {
+    console.error("Error en testDatosBasicos:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIÓN DE PRUEBA PARA REPORTE DE CUOTAS =====
+export async function testReporteCuotas() {
+  try {
+    console.log("=== testReporteCuotas ===")
+    
+    // Paso 1: Verificar si hay miembros con usuarios y membresías
+    const miembrosConDatos = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        ma.rif,
+        u.usuario_id,
+        u.fecha_creacion,
+        mem.membresia_id,
+        mem.monto,
+        mem.fecha_vencimiento
+      FROM miembro_acaucab ma
+      INNER JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      INNER JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+      ORDER BY ma.miembro_id
+      LIMIT 10
+    `
+    
+    console.log(`Miembros con datos completos: ${miembrosConDatos.length}`)
+    console.log("Datos:", miembrosConDatos)
+    
+    // Paso 2: Probar la consulta del reporte sin GROUP BY
+    const reporteSimple = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        ma.rif,
+        u.fecha_creacion as fecha_afiliacion,
+        mem.monto as cuota_mensual,
+        mem.fecha_vencimiento,
+        CASE 
+          WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
+          ELSE 'VENCIDO'
+        END as estado_afiliacion
+      FROM miembro_acaucab ma
+      INNER JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      INNER JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+      ORDER BY ma.miembro_id
+      LIMIT 10
+    `
+    
+    console.log(`Reporte simple: ${reporteSimple.length} registros`)
+    console.log("Reporte simple:", reporteSimple)
+    
+    return {
+      miembrosConDatos,
+      reporteSimple,
+      totalMiembrosConDatos: miembrosConDatos.length,
+      totalReporteSimple: reporteSimple.length
+    }
+  } catch (error) {
+    console.error("Error en testReporteCuotas:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIÓN DE DIAGNÓSTICO DETALLADO =====
+export async function diagnosticoDetallado() {
+  try {
+    console.log("=== diagnosticoDetallado ===")
+    
+    // 1. Contar registros en cada tabla
+    const conteos = await sql`
+      SELECT 
+        (SELECT COUNT(*) FROM miembro_acaucab) as total_miembros,
+        (SELECT COUNT(*) FROM usuario WHERE fk_miembro_acaucab IS NOT NULL) as usuarios_miembros,
+        (SELECT COUNT(*) FROM membresia) as total_membresias,
+        (SELECT COUNT(*) FROM pago) as total_pagos
+    `
+    
+    // 2. Ver algunos miembros ACAUCAB
+    const miembros = await sql`
+      SELECT miembro_id, razon_social, rif, direccion
+      FROM miembro_acaucab 
+      ORDER BY miembro_id 
+      LIMIT 10
+    `
+    
+    // 3. Ver usuarios que pertenecen a miembros
+    const usuarios = await sql`
+      SELECT usuario_id, nombre_usuario, fecha_creacion, fk_miembro_acaucab
+      FROM usuario 
+      WHERE fk_miembro_acaucab IS NOT NULL
+      ORDER BY usuario_id 
+      LIMIT 10
+    `
+    
+    // 4. Ver membresías
+    const membresias = await sql`
+      SELECT membresia_id, fecha_adquisicion, fecha_vencimiento, monto, fk_usuario
+      FROM membresia 
+      ORDER BY membresia_id 
+      LIMIT 10
+    `
+    
+    // 5. Ver la relación completa
+    const relacionCompleta = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        u.usuario_id,
+        u.nombre_usuario,
+        mem.membresia_id,
+        mem.monto,
+        mem.fecha_vencimiento
+      FROM miembro_acaucab ma
+      LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+      ORDER BY ma.miembro_id
+      LIMIT 15
+    `
+    
+    const resultado = {
+      conteos: conteos[0],
+      miembros,
+      usuarios,
+      membresias,
+      relacionCompleta,
+      totalMiembros: miembros.length,
+      totalUsuarios: usuarios.length,
+      totalMembresias: membresias.length,
+      totalRelacionCompleta: relacionCompleta.length
+    }
+    
+    console.log("Diagnóstico completo:", resultado)
+    return resultado
+  } catch (error) {
+    console.error("Error en diagnosticoDetallado:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIÓN SIMPLE PARA ESTADO DE AFILIACIÓN =====
+export async function getEstadoAfiliacionSimple() {
+  try {
+    console.log("=== getEstadoAfiliacionSimple ===")
+
+    const query = sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        ma.rif,
+        u.fecha_creacion as fecha_afiliacion,
+        mem.monto as cuota_mensual,
+        mem.fecha_vencimiento,
+        CASE 
+          WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
+          ELSE 'VENCIDO'
+        END as estado_afiliacion,
+        CURRENT_DATE as fecha_actual
+      FROM miembro_acaucab ma
+      LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+      ORDER BY ma.miembro_id
+    `
+
+    const result = await query
+    console.log(`Miembros ACAUCAB con estado de afiliación: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getEstadoAfiliacionSimple:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIÓN PARA VER DATOS DE PAGOS =====
+export async function verDatosPagos() {
+  try {
+    console.log("=== verDatosPagos ===")
+
+    // 1. Ver la estructura de la tabla PAGO
+    const estructuraPago = await sql`
+      SELECT 
+        pago_id,
+        fecha,
+        monto,
+        fk_membresia
+      FROM pago 
+      ORDER BY pago_id 
+      LIMIT 10
+    `
+
+    // 2. Ver la relación completa: Miembro -> Usuario -> Membresía -> Pago
+    const relacionCompleta = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        u.usuario_id,
+        mem.membresia_id,
+        mem.monto as cuota_membresia,
+        mem.fecha_vencimiento,
+        p.pago_id,
+        p.fecha as fecha_pago,
+        p.monto as monto_pago,
+        CASE 
+          WHEN p.pago_id IS NOT NULL THEN 'HA PAGADO'
+          ELSE 'NO HA PAGADO'
+        END as estado_pago
+      FROM miembro_acaucab ma
+      LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+      LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia
+      ORDER BY ma.miembro_id, p.fecha DESC
+      LIMIT 20
+    `
+
+    // 3. Ver el último pago de cada miembro (usando MAX)
+    const ultimoPagoPorMiembro = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        MAX(p.fecha) as ultimo_pago_fecha,
+        MAX(p.monto) as ultimo_pago_monto,
+        COUNT(p.pago_id) as total_pagos,
+        CASE 
+          WHEN MAX(p.fecha) IS NOT NULL THEN 'HA PAGADO'
+          ELSE 'NO HA PAGADO'
+        END as estado_pago
+      FROM miembro_acaucab ma
+      LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+      LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+      LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia
+      GROUP BY ma.miembro_id, ma.razon_social
+      ORDER BY ma.miembro_id
+      LIMIT 15
+    `
+
+    const resultado = {
+      estructuraPago,
+      relacionCompleta,
+      ultimoPagoPorMiembro,
+      totalPagos: estructuraPago.length,
+      totalRelaciones: relacionCompleta.length,
+      totalMiembrosConPagos: ultimoPagoPorMiembro.length
+    }
+
+    console.log("Datos de pagos:", resultado)
+    return resultado
+  } catch (error) {
+    console.error("Error en verDatosPagos:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIÓN PARA VERIFICAR CONTACTOS FALTANTES =====
+export async function verificarContactosFaltantes() {
+  try {
+    console.log("=== verificarContactosFaltantes ===")
+    
+    // Verificar miembros sin personal de contacto
+    const miembrosSinContacto = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        ma.rif,
+        CASE 
+          WHEN pc.personal_contacto_id IS NULL THEN 'SIN CONTACTO'
+          ELSE 'CON CONTACTO'
+        END as estado_contacto,
+        CASE 
+          WHEN ce.correo_electronico_id IS NULL THEN 'SIN EMAIL'
+          ELSE 'CON EMAIL'
+        END as estado_email
+      FROM miembro_acaucab ma
+      LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
+      LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
+      WHERE pc.personal_contacto_id IS NULL OR ce.correo_electronico_id IS NULL
+      ORDER BY ma.miembro_id
+    `
+    
+    console.log(`Miembros con contactos faltantes: ${miembrosSinContacto.length}`)
+    return miembrosSinContacto
+  } catch (error) {
+    console.error("Error en verificarContactosFaltantes:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIÓN PARA GENERAR INSERTS DE CONTACTOS =====
+export async function generarInsertsContactos() {
+  try {
+    console.log("=== generarInsertsContactos ===")
+    
+    // Obtener miembros que necesitan contactos
+    const miembrosNecesitanContacto = await sql`
+      SELECT 
+        ma.miembro_id,
+        ma.razon_social,
+        ma.rif,
+        pc.personal_contacto_id,
+        ce.correo_electronico_id
+      FROM miembro_acaucab ma
+      LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
+      LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
+      WHERE pc.personal_contacto_id IS NULL OR ce.correo_electronico_id IS NULL
+      ORDER BY ma.miembro_id
+    `
+    
+    const inserts = []
+    
+    for (const miembro of miembrosNecesitanContacto) {
+      // Generar datos de contacto basados en el nombre de la empresa
+      const nombreEmpresa = miembro.razon_social.toLowerCase()
+      let nombreContacto = 'Contacto'
+      let apellidoContacto = 'General'
+      
+      // Extraer nombre de contacto del nombre de la empresa
+      if (nombreEmpresa.includes('cervecería') || nombreEmpresa.includes('cerveceria')) {
+        nombreContacto = 'Gerente'
+        apellidoContacto = 'Comercial'
+      } else if (nombreEmpresa.includes('distribuidora') || nombreEmpresa.includes('distribuciones')) {
+        nombreContacto = 'Director'
+        apellidoContacto = 'Ventas'
+      } else if (nombreEmpresa.includes('comercializadora') || nombreEmpresa.includes('comercial')) {
+        nombreContacto = 'Administrador'
+        apellidoContacto = 'General'
+      } else if (nombreEmpresa.includes('importadora')) {
+        nombreContacto = 'Coordinador'
+        apellidoContacto = 'Importaciones'
+      } else {
+        nombreContacto = 'Representante'
+        apellidoContacto = 'Legal'
+      }
+      
+      // Generar email basado en el nombre de la empresa
+      const nombreEmail = nombreEmpresa.replace(/[^a-z0-9]/g, '').substring(0, 10)
+      const dominio = nombreEmpresa.includes('www.') ? nombreEmpresa.split('www.')[1] : 'empresa.com'
+      
+      // INSERT para personal de contacto (si no existe)
+      if (!miembro.personal_contacto_id) {
+        inserts.push({
+          tipo: 'personal_contacto',
+          miembro_id: miembro.miembro_id,
+          sql: `INSERT INTO personal_contacto (primer_nombre, primer_apellido, fk_miembro_acaucab) VALUES ('${nombreContacto}', '${apellidoContacto}', ${miembro.miembro_id});`
+        })
+      }
+      
+      // INSERT para correo electrónico (si no existe)
+      if (!miembro.correo_electronico_id) {
+        inserts.push({
+          tipo: 'correo_electronico',
+          miembro_id: miembro.miembro_id,
+          sql: `INSERT INTO correo_electronico (usuario, dominio, fk_miembro_acaucab) VALUES ('${nombreEmail}', '@${dominio}', ${miembro.miembro_id});`
+        })
+      }
+    }
+    
+    console.log(`Inserts generados: ${inserts.length}`)
+    return {
+      miembrosNecesitanContacto,
+      inserts,
+      totalInserts: inserts.length
+    }
+  } catch (error) {
+    console.error("Error en generarInsertsContactos:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIÓN PARA GENERAR ARCHIVO SQL DE CONTACTOS =====
+export async function generarArchivoSQLContactos() {
+  try {
+    console.log("=== generarArchivoSQLContactos ===")
+    
+    const resultado = await generarInsertsContactos()
+    
+    let sqlContent = `-- =====================================================
+-- INSERTS PARA PERSONAL DE CONTACTO Y CORREOS ELECTRÓNICOS
+-- Miembros ACAUCAB que necesitan datos de contacto
+-- =====================================================
+
+-- Fecha de generación: ${new Date().toISOString().split('T')[0]}
+-- Total de INSERTs generados: ${resultado.totalInserts}
+
+`
+
+    // Agrupar por tipo
+    const personalContacto = resultado.inserts.filter(i => i.tipo === 'personal_contacto')
+    const correosElectronicos = resultado.inserts.filter(i => i.tipo === 'correo_electronico')
+    
+    if (personalContacto.length > 0) {
+      sqlContent += `-- =====================================================
+-- INSERTS PARA PERSONAL DE CONTACTO
+-- =====================================================
+
+`
+      personalContacto.forEach(insert => {
+        sqlContent += `${insert.sql}\n`
+      })
+    }
+    
+    if (correosElectronicos.length > 0) {
+      sqlContent += `-- =====================================================
+-- INSERTS PARA CORREOS ELECTRÓNICOS
+-- =====================================================
+
+`
+      correosElectronicos.forEach(insert => {
+        sqlContent += `${insert.sql}\n`
+      })
+    }
+    
+    sqlContent += `-- =====================================================
+-- VERIFICACIÓN POST-INSERT
+-- =====================================================
+
+-- Verificar que todos los miembros tengan contactos
+SELECT 
+  ma.miembro_id,
+  ma.razon_social,
+  CASE 
+    WHEN pc.personal_contacto_id IS NOT NULL THEN 'CON CONTACTO'
+    ELSE 'SIN CONTACTO'
+  END as estado_contacto,
+  CASE 
+    WHEN ce.correo_electronico_id IS NOT NULL THEN 'CON EMAIL'
+    ELSE 'SIN EMAIL'
+  END as estado_email
+FROM miembro_acaucab ma
+LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
+LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
+ORDER BY ma.miembro_id;
+
+-- Contar miembros con contactos completos
+SELECT 
+  COUNT(*) as total_miembros,
+  COUNT(pc.personal_contacto_id) as con_contacto,
+  COUNT(ce.correo_electronico_id) as con_email,
+  COUNT(CASE WHEN pc.personal_contacto_id IS NOT NULL AND ce.correo_electronico_id IS NOT NULL THEN 1 END) as completos
+FROM miembro_acaucab ma
+LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
+LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab;
+`
+    
+    return {
+      sqlContent,
+      estadisticas: {
+        totalInserts: resultado.totalInserts,
+        personalContacto: personalContacto.length,
+        correosElectronicos: correosElectronicos.length
+      }
+    }
+  } catch (error) {
+    console.error("Error en generarArchivoSQLContactos:", error)
+    throw error
+  }
+}

@@ -68,7 +68,7 @@ export default function Reportes() {
       descripcion: "Miembros ACAUCAB que aún no han cancelado su cuota mensual",
       icono: "💸",
       color: "green",
-      filtros: ["fechaInicio", "fechaFin", "limite"]
+      filtros: []
     },
     {
       id: "4",
@@ -96,10 +96,16 @@ export default function Reportes() {
     try {
       let params = new URLSearchParams()
 
-      // Agregar filtros
-      if (filtros.fechaInicio) params.append("fechaInicio", filtros.fechaInicio)
-      if (filtros.fechaFin) params.append("fechaFin", filtros.fechaFin)
-      if (filtros.limite) params.append("limite", filtros.limite.toString())
+      // Agregar filtros según el tipo de reporte
+      if (reporte.id === "3") {
+        // Para Cuotas de Afiliación, no enviar ningún filtro
+        // params se mantiene vacío
+      } else {
+        // Para otros reportes, enviar todos los filtros
+        if (filtros.fechaInicio) params.append("fechaInicio", filtros.fechaInicio)
+        if (filtros.fechaFin) params.append("fechaFin", filtros.fechaFin)
+        if (filtros.limite) params.append("limite", filtros.limite.toString())
+      }
 
       // Determinar la URL de la API según el tipo de reporte
       let apiUrl = ""
@@ -405,49 +411,51 @@ export default function Reportes() {
               </div>
               <div className="p-6">
                 {datosReporte.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          {Object.keys(datosReporte[0])
-                            .filter(header => header !== 'precio_promedio' && header !== 'precio_promedio_ponderado')
-                            .map((header) => (
-                              <th
-                                key={header}
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                              >
-                                {header === 'precio'
-                                  ? 'Precio'
-                                  : header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                              </th>
-                            ))}
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {datosReporte.map((row, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            {Object.entries(row)
-                              .filter(([header]) => header !== 'precio_promedio' && header !== 'precio_promedio_ponderado')
-                              .map(([header, value], cellIndex) => (
-                                <td
-                                  key={cellIndex}
-                                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                    <div className="min-w-max">
+                      <table className="w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            {Object.keys(datosReporte[0])
+                              .filter(header => header !== 'precio_promedio' && header !== 'precio_promedio_ponderado')
+                              .map((header) => (
+                                <th
+                                  key={header}
+                                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                                 >
-                                  {header === 'precio' && value !== null && value !== undefined && !isNaN(Number(value))
-                                    ? `$ ${Number(value).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                    : ['ingresos_totales'].includes(header) && value !== null && value !== undefined && !isNaN(Number(value))
-                                      ? `$ ${Number(value).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                      : typeof value === "number"
-                                        ? value.toLocaleString()
-                                        : (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}T/))
-                                          ? new Date(value).toLocaleDateString('es-VE')
-                                          : String(value || '')}
-                                </td>
+                                  {header === 'precio'
+                                    ? 'Precio'
+                                    : header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </th>
                               ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {datosReporte.map((row, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              {Object.entries(row)
+                                .filter(([header]) => header !== 'precio_promedio' && header !== 'precio_promedio_ponderado')
+                                .map(([header, value], cellIndex) => (
+                                  <td
+                                    key={cellIndex}
+                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                  >
+                                    {header === 'precio' && value !== null && value !== undefined && !isNaN(Number(value))
+                                      ? `$ ${Number(value).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                      : ['ingresos_totales', 'monto_pendiente', 'cuota_mensual', 'ultimo_pago_monto'].includes(header) && value !== null && value !== undefined && !isNaN(Number(value))
+                                        ? `$ ${Number(value).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                        : typeof value === "number"
+                                          ? value.toLocaleString()
+                                          : (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}T/))
+                                            ? new Date(value).toLocaleDateString('es-VE')
+                                            : String(value || '')}
+                                  </td>
+                                ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-12">

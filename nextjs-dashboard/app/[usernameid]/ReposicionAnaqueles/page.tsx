@@ -22,6 +22,9 @@ interface Order {
     fecha: string;
     productos: string;
     estado: string;
+    stock_actual: number;
+    prioridad: string;
+    CANTIDAD_SOLICITADA: number;
 }
 
 
@@ -106,7 +109,8 @@ export default function Orders({
             currentOrdenes = currentOrdenes.filter(orden =>
                 orden.productos.toLowerCase().includes(lowerCaseFilter) ||
                 orden.reposicion_anaquel_id.toString().toLowerCase().includes(lowerCaseFilter) ||
-                orden.estado.toLowerCase().includes(lowerCaseFilter)
+                orden.estado.toLowerCase().includes(lowerCaseFilter) ||
+                orden.prioridad.toLowerCase().includes(lowerCaseFilter)
             );
         }
 
@@ -187,7 +191,7 @@ export default function Orders({
                     <input
                         id="search"
                         type="text"
-                        placeholder="Buscar por nombre, ID, estado o productos..."
+                        placeholder="Buscar por nombre, ID, estado, productos o prioridad..."
                         value={filter}
                         onChange={handleFilterChange}
                         className="block w-full rounded-md border border-gray-300 py-3 pl-12 pr-4 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:ring-indigo-500 text-base outline-none transition-colors"
@@ -238,6 +242,15 @@ export default function Orders({
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Estado
                             </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none">
+                                CANTIDAD SOLICITADA
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none">
+                                Stock Actual
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none">
+                                Prioridad
+                            </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Accion
                             </th>
@@ -271,6 +284,24 @@ export default function Orders({
                                             <XCircleIcon className="w-5 h-5 text-red-500"></XCircleIcon>
                                         )}
 
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                                        {orden.CANTIDAD_SOLICITADA} unidades
+                                    </td>
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${
+                                        orden.stock_actual < 10 ? 'text-red-600' : 
+                                        orden.stock_actual < 20 ? 'text-orange-600' : 
+                                        'text-green-600'
+                                    }`}>
+                                        {orden.stock_actual} unidades
+                                    </td>
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${
+                                        orden.prioridad === 'CRÍTICA' ? 'text-red-600 bg-red-50 px-2 py-1 rounded' :
+                                        orden.prioridad === 'ALTA' ? 'text-orange-600 bg-orange-50 px-2 py-1 rounded' :
+                                        orden.prioridad === 'MEDIA' ? 'text-yellow-600 bg-yellow-50 px-2 py-1 rounded' :
+                                        'text-green-600 bg-green-50 px-2 py-1 rounded'
+                                    }`}>
+                                        {orden.prioridad}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center rounded space-x-3">
@@ -312,7 +343,7 @@ export default function Orders({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+                                <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
                                     No se encontraron ordenes.
                                 </td>
                             </tr>

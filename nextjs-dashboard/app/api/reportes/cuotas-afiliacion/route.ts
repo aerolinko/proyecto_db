@@ -6,23 +6,17 @@ export async function GET(request: NextRequest) {
     console.log("=== API: Cuotas de Afiliación Pendientes ===")
     
     const { searchParams } = new URL(request.url)
-    const fechaInicio = searchParams.get('fechaInicio')
-    const fechaFin = searchParams.get('fechaFin')
-    const limite = parseInt(searchParams.get('limite') || '100')
     const usarSP = searchParams.get('usarSP') === 'true'
 
     console.log("Parámetros recibidos:", {
-      fechaInicio,
-      fechaFin,
-      limite,
       usarSP
     })
 
     let data
     if (usarSP) {
-      data = await getCuotasAfiliacionPendientesSP(fechaInicio || undefined, fechaFin || undefined, limite)
+      data = await getCuotasAfiliacionPendientesSP()
     } else {
-      data = await getCuotasAfiliacionPendientes(fechaInicio || undefined, fechaFin || undefined, limite)
+      data = await getCuotasAfiliacionPendientes()
     }
 
     console.log(`Datos obtenidos: ${data.length} registros`)
@@ -32,9 +26,6 @@ export async function GET(request: NextRequest) {
       data: data,
       total: data.length,
       filtros: {
-        fechaInicio,
-        fechaFin,
-        limite,
         usarSP
       }
     })
@@ -44,7 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Error al obtener cuotas de afiliación pendientes',
+        error: 'Error al obtener miembros ACAUCAB',
         details: error instanceof Error ? error.message : 'Error desconocido'
       },
       { status: 500 }
