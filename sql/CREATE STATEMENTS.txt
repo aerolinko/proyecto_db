@@ -1451,7 +1451,7 @@ begin
                 cr.fecha_entrega is null AND cr.fk_miembro_acaucab = (select ma.miembro_id from miembro_acaucab ma, cerveza_presentacion pc
                                                                       where new.fk_cerveza_presentacion = pc.cerveza_presentacion_id
                                                                         AND pc.fk_miembro_acaucab = ma.miembro_id) and cr.compra_reposicion_id = ecr.fk_compra_reposicion
-                                                                                                and ecr.fk_estado NOT IN(4,5) and ecr.fecha_fin is null
+                                                                                                and ecr.fk_estado NOT IN(1,4,5) and ecr.fecha_fin is null
         ) into existe;
 
         IF NOT existe THEN
