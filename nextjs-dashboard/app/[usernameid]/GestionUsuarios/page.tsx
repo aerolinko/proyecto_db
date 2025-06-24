@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import {PencilIcon, TrashIcon} from "@heroicons/react/24/outline";
-
+import Cookies from "js-cookie";
 interface Empleado {
   id: string
   cedula: number
@@ -34,6 +34,7 @@ export default function GestionUsuarios() {
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingEmpleados, setLoadingEmpleados] = useState(true)
+  const [permissions, setPermissions] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [editingUser, setEditingUser] = useState<Usuario | null>(null)
@@ -43,6 +44,10 @@ export default function GestionUsuarios() {
   useEffect(() => {
     fetchUsuarios()
     fetchEmpleados()
+    const permissionsCookie = Cookies.get("permissions");
+    if (permissionsCookie != null) {
+      setPermissions(JSON.parse(permissionsCookie));
+    }
   }, [])
 
   const fetchEmpleados = async () => {
@@ -233,6 +238,7 @@ export default function GestionUsuarios() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Gestión de Usuarios</h1>
 
         {/* Formulario para crear nuevo usuario */}
+        {permissions.some((element) => element.descripcion.includes('crear USUARIO')) && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <span className="text-green-600">+</span>
@@ -276,7 +282,7 @@ export default function GestionUsuarios() {
             </button>
           </div>
         </div>
-
+        )}
         {/* Barra de búsqueda */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
           <div className="relative">
@@ -359,18 +365,22 @@ export default function GestionUsuarios() {
                           )}
                         </div>
                         <div className="flex gap-2 pr-6">
+                          {permissions.some((element) => element.descripcion.includes('modificar USUARIO')) && (
                           <button
                               onClick={() => setEditingUser(user)}
                               className="inline-flex items-center p-2 rounded-full text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
                           >
                             <PencilIcon className="h-5 w-5" />
                           </button>
+                              )}
+                          {permissions.some((element) => element.descripcion.includes('eliminar USUARIO')) && (
                           <button
                               onClick={() => deleteUser(user.id)}
                               className="inline-flex items-center p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
                           >
                             <TrashIcon className="h-5 w-5" />
                           </button>
+                          )}
                         </div>
                       </>
                     )}

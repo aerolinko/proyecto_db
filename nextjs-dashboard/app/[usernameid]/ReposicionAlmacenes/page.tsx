@@ -72,9 +72,10 @@ export default function Orders({
             setError(error.message);
             setOrdenes([]);
         }
-        const permisos = Cookies.get("permissions");
-        // @ts-ignore
-        setPermissions(JSON.parse(permisos));
+        const permissionsCookie = Cookies.get("permissions");
+        if (permissionsCookie != null) {
+            setPermissions(JSON.parse(permissionsCookie));
+        }
 
     }
     console.log(permissions);

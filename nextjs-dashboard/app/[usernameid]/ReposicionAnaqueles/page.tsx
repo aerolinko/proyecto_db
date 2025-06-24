@@ -67,9 +67,10 @@ export default function Orders({
                 setError(null);
             }
             // Initialize statuses from fetched orders if they have estado
-            const permisos = Cookies.get("permissions");
-            // @ts-ignore
-            setPermissions(JSON.parse(permisos));
+            const permissionsCookie = Cookies.get("permissions");
+            if (permissionsCookie != null) {
+                setPermissions(JSON.parse(permissionsCookie));
+            }
         } catch (error: any) {
             setError(error.message);
             setOrdenes([]);
