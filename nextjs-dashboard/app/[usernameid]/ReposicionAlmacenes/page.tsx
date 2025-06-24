@@ -11,6 +11,7 @@ import {
     TrashIcon,
     TruckIcon, UserGroupIcon, XCircleIcon, XMarkIcon
 } from "@heroicons/react/24/outline";
+import Cookies from "js-cookie";
 import Link from "next/link";
 
 // Define types
@@ -35,6 +36,7 @@ export default function Orders({
     const { usernameid } = React.use(params);
     const [filter, setFilter] = useState('');
     const [ordenes, setOrdenes] = useState<Order[]>([]);
+    const [permissions, setPermissions] = useState<any[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
     const [error, setError] = useState<string | null>(null);
@@ -70,8 +72,12 @@ export default function Orders({
             setError(error.message);
             setOrdenes([]);
         }
-    }
+        const permisos = Cookies.get("permissions");
+        // @ts-ignore
+        setPermissions(JSON.parse(permisos));
 
+    }
+    console.log(permissions);
     // Fetch orders
     useEffect(() => {
 
@@ -290,6 +296,9 @@ export default function Orders({
                                                 <></>
                                             )}
                                             {(orden.estado == 'En Proceso' || orden.estado == 'Pendiente') && (
+                                                <>
+                                                {permissions.some((element)=> element.descripcion.includes('modificar ESTADO_COMPRA_REPOSICION')) && (
+
                                                 <div className={`flex`}>
                                                     <button
                                                         onClick={() => handleSubmit(orden.compra_reposicion_id,'Recibido')}
@@ -310,9 +319,12 @@ export default function Orders({
 
                                                     </button>
                                                 </div>
-
+                                                    )}
+                                                </>
                                             )}
                                             {orden.estado == 'En Revisión' && (
+                                                <>
+                                                {permissions.some((element)=> element.descripcion.includes('crear ESTADO_COMPRA_REPOSICION')) && (
                                                 <div className={`flex`}>
                                                 <button
                                                     onClick={() => handleSubmit(orden.compra_reposicion_id,'Pendiente')}
@@ -333,6 +345,8 @@ export default function Orders({
 
                                                 </button>
                                                 </div>
+                                                    )}
+                                                </>
                                             )}
                                             {(orden.estado == 'Cancelado' || orden.estado == 'Rechazado') && (
                                                 <div></div>

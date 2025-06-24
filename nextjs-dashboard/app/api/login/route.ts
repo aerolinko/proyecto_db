@@ -24,7 +24,11 @@ const filters=[
     {descripcion:'consultar ROL_PERMISO' },
     {descripcion:'consultar ROL_USUARIO' },
     {descripcion:'consultar ESTADO_REPOSICION_ANAQUEL' },
-    {descripcion:'consultar ESTADO_COMPRA_REPOSICION' }]
+    {descripcion:'consultar ESTADO_COMPRA_REPOSICION' },
+    {descripcion:'modificar ESTADO_REPOSICION_ANAQUEL' },
+    {descripcion:'modificar ESTADO_COMPRA_REPOSICION' },
+    {descripcion:'crear ESTADO_REPOSICION_ANAQUEL' },
+    {descripcion:'crear ESTADO_COMPRA_REPOSICION' }]
 
 export async function POST(request: Request) {
     // Parse the incoming JSON payload

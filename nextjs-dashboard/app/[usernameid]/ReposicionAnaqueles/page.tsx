@@ -11,6 +11,7 @@ import {
     TrashIcon,
     TruckIcon, UserGroupIcon, XCircleIcon, XMarkIcon
 } from "@heroicons/react/24/outline";
+import Cookies from "js-cookie";
 import Link from "next/link";
 
 // Define types
@@ -33,6 +34,7 @@ export default function Orders({
     const { usernameid } = React.use(params);
     const [filter, setFilter] = useState('');
     const [ordenes, setOrdenes] = useState<Order[]>([]);
+    const [permissions, setPermissions] = useState<any[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
     const [error, setError] = useState<string | null>(null);
@@ -65,8 +67,9 @@ export default function Orders({
                 setError(null);
             }
             // Initialize statuses from fetched orders if they have estado
-
-
+            const permisos = Cookies.get("permissions");
+            // @ts-ignore
+            setPermissions(JSON.parse(permisos));
         } catch (error: any) {
             setError(error.message);
             setOrdenes([]);
@@ -274,6 +277,8 @@ export default function Orders({
                                                 <></>
                                             )}
                                             {(orden.estado == 'En Proceso' || orden.estado == 'Pendiente') && (
+                                                <>
+                                                {permissions.some((element)=> element.descripcion.includes('modificar ESTADO_REPOSICION_ANAQUEL')) && (
                                                 <div className={`flex`}>
                                                     <button
                                                         onClick={() => handleSubmit(orden.reposicion_anaquel_id,'Recibido')}
@@ -294,32 +299,11 @@ export default function Orders({
 
                                                     </button>
                                                 </div>
-
-                                            )}
-                                            {orden.estado == 'En Revisión' && (
-                                                <div className={`flex`}>
-                                                    <button
-                                                        onClick={() => handleSubmit(orden.reposicion_anaquel_id,'Pendiente')}
-                                                        className=" p-2 items-center flex-col flex  rounded-full text-green-600 hover:text-green-900 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
-
-                                                    >
-                                                        <CheckIcon className="h-5 w-5" />
-                                                        <span className='text-xs font-semibold'>Aprobar</span>
-
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleSubmit(orden.reposicion_anaquel_id,'Rechazado')}
-                                                        className=" items-center flex-col flex  p-2 rounded-full text-red-600 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-
-                                                    >
-                                                        <XMarkIcon className="h-5 w-5" />
-                                                        <span className='text-xs font-semibold'>Rechazar</span>
-
-                                                    </button>
-                                                </div>
-                                            )}
+                                                    )}
+                                                </>
+                                                    )}
                                             {(orden.estado == 'Cancelado' || orden.estado == 'Rechazado') && (
-                                                <div></div>
+                                                <></>
                                             )}
                                         </div>
                                     </td>

@@ -1302,8 +1302,8 @@ create trigger triggerajustarpuntos
     for each row
 execute procedure ajustarpuntos();
 
-create or replace function emitirOrdenReposicionAnaquel()
-    RETURNS TRIGGER
+create or replace function emitirordenreposicionanaquel()
+    returns trigger
     language plpgsql
 as
 $$
@@ -1316,8 +1316,9 @@ begin
 
     if(NEW.cantidad) < 20 then
         select exists(
-            select reposicion_anaquel_id from reposicion_anaquel where
-                fecha_entrega is null
+            select reposicion_anaquel_id from reposicion_anaquel, estado_reposicion_anaquel era where
+                fecha_entrega is null and era.fk_reposicion_anaquel=reposicion_anaquel_id and
+                era.fk_estado not in(4,5) and era.fecha_fin is null
             order by reposicion_anaquel_id desc
             limit 1
         ) into existe;
@@ -1434,8 +1435,7 @@ CREATE TRIGGER triggerReducirStockAlmacen
     AFTER INSERT on estado_reposicion_anaquel
     FOR EACH ROW EXECUTE FUNCTION reducirStockAlmacen();
 
-create or replace function emitirCompraReposicion()
-    RETURNS TRIGGER
+create function emitircomprareposicion() returns trigger
     language plpgsql
 as
 $$
@@ -1447,18 +1447,19 @@ begin
 
     if(NEW.cantidad) <= 100 then
         select exists(
-            select compra_reposicion_id from compra_reposicion cr where
+            select compra_reposicion_id from compra_reposicion cr, estado_compra_reposicion ecr where
                 cr.fecha_entrega is null AND cr.fk_miembro_acaucab = (select ma.miembro_id from miembro_acaucab ma, cerveza_presentacion pc
-                                                                where new.fk_cerveza_presentacion = pc.cerveza_presentacion_id
-                                                                AND pc.fk_miembro_acaucab = ma.miembro_id)
+                                                                      where new.fk_cerveza_presentacion = pc.cerveza_presentacion_id
+                                                                        AND pc.fk_miembro_acaucab = ma.miembro_id) and cr.compra_reposicion_id = ecr.fk_compra_reposicion
+                                                                                                and ecr.fk_estado NOT IN(4,5) and ecr.fecha_fin is null
         ) into existe;
 
         IF NOT existe THEN
             INSERT INTO compra_reposicion (fecha_emision, fecha_entrega, fecha_pago_estimada, fecha_pago_real, total, fk_miembro_acaucab)
             VALUES (CURRENT_DATE,null,null,null,0,(select ma.miembro_id from miembro_acaucab ma,
-                                                                                                                                            cerveza_presentacion pc
-                                                                                                                    where new.fk_cerveza_presentacion = pc.cerveza_presentacion_id
-                                                                                                                    AND pc.fk_miembro_acaucab = ma.miembro_id))
+                                                                             cerveza_presentacion pc
+                                                   where new.fk_cerveza_presentacion = pc.cerveza_presentacion_id
+                                                     AND pc.fk_miembro_acaucab = ma.miembro_id))
             RETURNING compra_reposicion_id INTO orderid;
             insert into estado_compra_reposicion (fecha_inicio, fecha_fin, fk_estado, fk_compra_reposicion)
             values (current_date,null,6,orderid);
@@ -1469,17 +1470,18 @@ begin
                                                                         AND pc.fk_miembro_acaucab = ma.miembro_id);
         end if;
 
-            insert into detalle_compra (fk_cerveza_presentacion, fk_compra_reposicion, precio_unitario, cantidad)
-            values (new.fk_cerveza_presentacion,orderid,new.precio_unitario,10000)
-            RETURNING precio_unitario*10000 into cantpedido;
+        insert into detalle_compra (fk_cerveza_presentacion, fk_compra_reposicion, precio_unitario, cantidad)
+        values (new.fk_cerveza_presentacion,orderid,new.precio_unitario,10000)
+        RETURNING precio_unitario*10000 into cantpedido;
 
-            update compra_reposicion set total = total + cantpedido*0.7
-            where compra_reposicion_id = orderid;
+        update compra_reposicion set total = total + cantpedido*0.7
+        where compra_reposicion_id = orderid;
 
     END IF;
 
     return new;
 end;
+$$;
 $$;
 
 create trigger triggerCompraReposicion
