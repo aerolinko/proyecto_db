@@ -32,6 +32,25 @@ export default function Reportes() {
   const [filtros, setFiltros] = useState<FiltrosReporte>({})
   const [searchTerm, setSearchTerm] = useState("")
 
+  // Agrego este useEffect para autocargar el reporte de productos más vendidos
+  useEffect(() => {
+    if (
+      reporteSeleccionado &&
+      reporteSeleccionado.id === "1" && // Productos Más Vendidos
+      datosReporte.length === 0 &&
+      !loading
+    ) {
+      generarReporte(reporteSeleccionado);
+    }
+  }, [reporteSeleccionado]);
+
+  // Nuevo useEffect: seleccionar automáticamente el reporte de productos más vendidos al cargar
+  useEffect(() => {
+    if (!reporteSeleccionado) {
+      setReporteSeleccionado(reportesDisponibles[0]);
+    }
+  }, []);
+
   // Solo un reporte: Productos más vendidos
   const reportesDisponibles: Reporte[] = [
     {
@@ -111,6 +130,8 @@ export default function Reportes() {
           throw new Error("Tipo de reporte no válido")
       }
 
+      console.log('URL de la API:', apiUrl);
+
       const response = await fetch(apiUrl, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -121,6 +142,7 @@ export default function Reportes() {
       }
 
       const data = await response.json()
+      console.log('Respuesta de la API:', data);
       
       // Manejar diferentes estructuras de respuesta de las APIs
       let reporteData = []
@@ -394,27 +416,41 @@ export default function Reportes() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          {Object.keys(datosReporte[0]).map((header) => (
-                            <th
-                              key={header}
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                              {header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </th>
-                          ))}
+                          {Object.keys(datosReporte[0])
+                            .filter(header => header !== 'precio_promedio' && header !== 'precio_promedio_ponderado')
+                            .map((header) => (
+                              <th
+                                key={header}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              >
+                                {header === 'precio'
+                                  ? 'Precio'
+                                  : header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </th>
+                            ))}
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {datosReporte.map((row, index) => (
                           <tr key={index} className="hover:bg-gray-50">
-                            {Object.values(row).map((value, cellIndex) => (
-                              <td
-                                key={cellIndex}
-                                className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                              >
-                                {typeof value === "number" ? value.toLocaleString() : String(value || '')}
-                              </td>
-                            ))}
+                            {Object.entries(row)
+                              .filter(([header]) => header !== 'precio_promedio' && header !== 'precio_promedio_ponderado')
+                              .map(([header, value], cellIndex) => (
+                                <td
+                                  key={cellIndex}
+                                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                >
+                                  {header === 'precio' && value !== null && value !== undefined && !isNaN(Number(value))
+                                    ? `$ ${Number(value).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                    : ['ingresos_totales'].includes(header) && value !== null && value !== undefined && !isNaN(Number(value))
+                                      ? `$ ${Number(value).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                      : typeof value === "number"
+                                        ? value.toLocaleString()
+                                        : (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}T/))
+                                          ? new Date(value).toLocaleDateString('es-VE')
+                                          : String(value || '')}
+                                </td>
+                              ))}
                           </tr>
                         ))}
                       </tbody>
