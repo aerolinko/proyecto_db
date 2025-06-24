@@ -1,0 +1,81 @@
+DROP FUNCTION IF EXISTS get_stock_almacen();
+
+CREATE OR REPLACE FUNCTION get_stock_almacen()
+RETURNS TABLE(
+  cerveza_presentacion_id INT,
+  nombre_cerveza TEXT,
+  material TEXT,
+  cap_volumen INT,
+  cantidad INT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    cp.cerveza_presentacion_id::INT,
+    c.nombre::TEXT,
+    p.material::TEXT,
+    p.cap_volumen::INT,
+    COALESCE(SUM(ac.cantidad), 0)::INT
+  FROM almacen_cerveza ac
+  JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+  JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+  JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+  GROUP BY cp.cerveza_presentacion_id, c.nombre, p.material, p.cap_volumen;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+DROP FUNCTION IF EXISTS get_stock_anaquel();
+
+CREATE OR REPLACE FUNCTION get_stock_anaquel()
+RETURNS TABLE(
+  cerveza_presentacion_id INT,
+  nombre_cerveza TEXT,
+  material TEXT,
+  cap_volumen INT,
+  cantidad INT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    cp.cerveza_presentacion_id::INT,
+    c.nombre::TEXT,
+    p.material::TEXT,
+    p.cap_volumen::INT,
+    COALESCE(SUM(anac.cantidad), 0)::INT
+  FROM anaquel_cerveza anac
+  JOIN cerveza_presentacion cp ON anac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+  JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+  JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+  GROUP BY cp.cerveza_presentacion_id, c.nombre, p.material, p.cap_volumen;
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION IF EXISTS get_stock_general();
+
+CREATE OR REPLACE FUNCTION get_stock_general()
+RETURNS TABLE(
+  cerveza_presentacion_id INT,
+  nombre_cerveza TEXT,
+  material TEXT,
+  cap_volumen INT,
+  cantidad_total INT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    cp.cerveza_presentacion_id::INT,
+    c.nombre::TEXT,
+    p.material::TEXT,
+    p.cap_volumen::INT,
+    (COALESCE(SUM(ac.cantidad), 0) + COALESCE(SUM(anac.cantidad), 0))::INT AS cantidad_total
+  FROM cerveza_presentacion cp
+  LEFT JOIN almacen_cerveza ac ON cp.cerveza_presentacion_id = ac.fk_cerveza_presentacion
+  LEFT JOIN anaquel_cerveza anac ON cp.cerveza_presentacion_id = anac.fk_cerveza_presentacion
+  JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+  JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+  GROUP BY cp.cerveza_presentacion_id, c.nombre, p.material, p.cap_volumen;
+END;
+$$ LANGUAGE plpgsql;

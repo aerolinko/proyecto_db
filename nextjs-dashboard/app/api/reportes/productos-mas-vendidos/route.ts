@@ -12,10 +12,10 @@ export async function GET(request: NextRequest) {
     console.log('Parámetros:', { fechaInicio, fechaFin, limite })
 
     // Opción 1: Usar función directa de db.ts
-    const reporte = await getProductosMasVendidos(fechaInicio, fechaFin, limite)
+   // const reporte = await getProductosMasVendidos(fechaInicio, fechaFin, limite)
     
     // Opción 2: Usar Stored Procedure (descomenta la línea de abajo y comenta la de arriba)
-    // const reporte = await getProductosMasVendidosSP(fechaInicio, fechaFin, limite)
+     const reporte = await getProductosMasVendidosSP(fechaInicio, fechaFin, limite)
 
     return NextResponse.json({
       success: true,

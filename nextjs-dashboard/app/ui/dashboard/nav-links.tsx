@@ -12,7 +12,7 @@ import clsx from 'clsx'
 export default function NavLinks({currentUser}) {
   const links = [
     { name: 'Menú Principal', href: `/${currentUser.usuario_id}/dashboard`, icon: HomeIcon },
-    { name: 'Perfil', href: `/${currentUser.usuario_id}/profile`, icon: UserIcon }
+    { name: 'Perfil', href: `/${currentUser.usuario_id}/profile`, icon: UserIcon },
   ];
   const pathname = usePathname();
   return (
@@ -30,7 +30,7 @@ export default function NavLinks({currentUser}) {
                 },
             )}
           >
-            <LinkIcon className="w-6" />
+            {LinkIcon && <LinkIcon className="w-6" />}
             <p className="hidden md:block">{link.name}</p>
           </Link>
         );

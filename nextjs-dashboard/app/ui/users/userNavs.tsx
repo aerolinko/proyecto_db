@@ -18,7 +18,8 @@ export default function UserNavs({ permissions }) {
     { path: `GestionUsuarios`, nombre: 'Manejo de usuarios', icon: UserGroupIcon, id: 'consultar USUARIO' },
     { path: `ReposicionAlmacenes`, nombre: 'Manejo de estados de las órdenes a proveedores', icon: TruckIcon, id: 'consultar ESTADO_COMPRA_REPOSICION' },
     { path: `ReposicionAnaqueles`, nombre: 'Manejo de estados de las ordenes de anaqueles', icon: CubeIcon, id: 'consultar ESTADO_REPOSICION_ANAQUEL' },
-    { path: `Reportes`, nombre: 'Sistema de Reportes', icon: ChartBarIcon, id: 'consultar DETALLE_VENTA_ONLINE' }
+    { path: `Reportes`, nombre: 'Sistema de Reportes', icon: ChartBarIcon, id: 'consultar DETALLE_VENTA_ONLINE' },
+    { path: `Reportes/InventarioResumen`, nombre: 'Inventario', icon: BuildingStorefrontIcon, id: 'consultar INVENTARIO' },
   ];
 
   // Versión temporal: siempre mostrar todos los enlaces para debugging

@@ -1608,4 +1608,16 @@ export async function getResumenComprasClienteJuridicoSimple(
   }
 }
 
+export async function getStockAlmacen() {
+  return await sql`SELECT * FROM get_stock_almacen()`;
+}
+
+export async function getStockAnaquel() {
+  return await sql`SELECT * FROM get_stock_anaquel()`;
+}
+
+export async function getStockGeneral() {
+  return await sql`SELECT * FROM get_stock_general()`;
+}
+
 
