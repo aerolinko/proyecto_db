@@ -1,0 +1,17 @@
+{
+    "name": "nominaDepartamento",
+    "engine": "jsrender",
+    "recipe": "chrome-pdf",
+    "shortid": "ZqgZPV11P",
+    "chrome": {
+        "printBackground": true
+    },
+    "creationDate": {
+        "$$date": 1750888322961
+    },
+    "modificationDate": {
+        "$$date": 1750888322961
+    },
+    "_id": "0RyjzbKI2S5Z1nyn",
+    "$entitySet": "templates"
+}

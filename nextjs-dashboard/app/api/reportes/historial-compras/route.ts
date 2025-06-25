@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { 
-  getHistorialComprasClienteJuridico, 
-  getResumenComprasClienteJuridico,
-  getClientesJuridicos,
-  getHistorialComprasClienteJuridicoSimple,
-  getResumenComprasClienteJuridicoSimple
-} from '@/db'
+import { getHistorialComprasClienteJuridico, getClientesJuridicos } from '@/db'
+import axios from 'axios'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,80 +9,51 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const clienteJuridicoId = searchParams.get('clienteJuridicoId') ? 
       parseInt(searchParams.get('clienteJuridicoId')!) : undefined
-    const fechaInicio = searchParams.get('fechaInicio')
-    const fechaFin = searchParams.get('fechaFin')
+    const fechaInicio = searchParams.get('fechaInicio') || undefined
+    const fechaFin = searchParams.get('fechaFin') || undefined
     const limite = parseInt(searchParams.get('limite') || '100')
-    const tipo = searchParams.get('tipo') || 'detalle' // 'detalle' o 'resumen'
     const accion = searchParams.get('accion') || 'reporte' // 'reporte' o 'clientes'
-    const modo = searchParams.get('modo') || 'simple' // 'simple' o 'completo'
 
     console.log("Parámetros recibidos:", {
       clienteJuridicoId,
       fechaInicio,
       fechaFin,
       limite,
-      tipo,
-      accion,
-      modo
+      accion
     })
 
     let data
     if (accion === 'clientes') {
       // Obtener lista de clientes jurídicos
       data = await getClientesJuridicos()
-    } else if (tipo === 'resumen') {
-      // Obtener resumen de compras
-      if (modo === 'simple') {
-        data = await getResumenComprasClienteJuridicoSimple(
-          clienteJuridicoId, 
-          fechaInicio || undefined, 
-          fechaFin || undefined, 
-          limite
-        )
-      } else {
-        data = await getResumenComprasClienteJuridico(
-          clienteJuridicoId, 
-          fechaInicio || undefined, 
-          fechaFin || undefined, 
-          limite
-        )
-      }
     } else {
-      // Obtener historial detallado
-      if (modo === 'simple') {
-        data = await getHistorialComprasClienteJuridicoSimple(
-          clienteJuridicoId, 
-          fechaInicio || undefined, 
-          fechaFin || undefined, 
-          limite
-        )
-      } else {
-        data = await getHistorialComprasClienteJuridico(
-          clienteJuridicoId, 
-          fechaInicio || undefined, 
-          fechaFin || undefined, 
-          limite
-        )
-      }
+      // Obtener historial detallado usando stored procedure
+      data = await getHistorialComprasClienteJuridico(
+        clienteJuridicoId, 
+        fechaInicio, 
+        fechaFin, 
+        limite
+      )
     }
 
     console.log(`Datos obtenidos: ${data.length} registros`)
 
-    return NextResponse.json({
-      success: true,
-      data: data,
-      total: data.length,
-      tipo: tipo,
-      accion: accion,
-      modo: modo,
-      filtros: {
-        clienteJuridicoId,
-        fechaInicio,
-        fechaFin,
-        limite
+    const jsreportResponse = await axios.post(
+      'http://localhost:5488/api/report',
+      {
+        template: { name: 'historialCompras' },
+        data: { reporte: data }
+      },
+      { responseType: 'arraybuffer' }
+    )
+
+    return new NextResponse(jsreportResponse.data, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'inline; filename="historial-compras.pdf"'
       }
     })
-
   } catch (error) {
     console.error("Error en API historial-compras:", error)
     return NextResponse.json(

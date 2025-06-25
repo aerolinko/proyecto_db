@@ -1,0 +1,17 @@
+  <h1>Reporte de Productos Más Vendidos</h1>
+  <table>
+    <tr>
+      <th>#</th>
+      <th>Producto</th>
+      <th>Unidades Vendidas</th>
+      <th>Ingresos Totales</th>
+    </tr>
+    {{for productos}}
+      <tr>
+        <td>{{:#index + 1}}</td>
+        <td>{{:nombre_producto}}</td>
+        <td>{{:unidades_vendidas}}</td>
+        <td>{{:ingresos_totales}}</td>
+      </tr>
+    {{/for}}
+  </table>

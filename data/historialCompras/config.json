@@ -1,0 +1,17 @@
+{
+    "name": "historialCompras",
+    "engine": "jsrender",
+    "recipe": "chrome-pdf",
+    "shortid": "h6u8fTfav",
+    "chrome": {
+        "printBackground": true
+    },
+    "creationDate": {
+        "$$date": 1750888349889
+    },
+    "modificationDate": {
+        "$$date": 1750888349889
+    },
+    "_id": "xkUS24VADm8ariGR",
+    "$entitySet": "templates"
+}

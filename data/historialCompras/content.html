@@ -1,0 +1,23 @@
+<h1>Historial de Compras por Cliente Jurídico</h1>
+<table border="1" cellpadding="5" cellspacing="0">
+  <tr>
+    <th>#</th>
+    <th>Cliente</th>
+    <th>RIF</th>
+    <th>Fecha</th>
+    <th>Producto</th>
+    <th>Cantidad</th>
+    <th>Total</th>
+  </tr>
+  {{for reporte}}
+    <tr>
+      <td>{{:#index + 1}}</td>
+      <td>{{:razon_social}}</td>
+      <td>{{:rif}}</td>
+      <td>{{:fecha_emision}}</td>
+      <td>{{:nombre_cerveza}}</td>
+      <td>{{:cantidad}}</td>
+      <td>{{:total_venta}}</td>
+    </tr>
+  {{/for}}
+</table>

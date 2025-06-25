@@ -1,14 +1,9 @@
 import type { NextRequest } from "next/server"
-import {findEmpleadoTable, getEmpleados} from "@/db";
-
+import { getEmpleados } from "@/db"
 
 export async function GET(request: NextRequest) {
   try {
     console.log("=== INICIO GET /api/empleados ===")
-
-    // Encontrar la tabla empleado
-    const { schemaTable } = await findEmpleadoTable()
-    console.log("Usando tabla empleado:", schemaTable)
 
     // Obtener todos los empleados
     const empleados = await getEmpleados()

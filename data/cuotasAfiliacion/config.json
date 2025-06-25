@@ -1,0 +1,17 @@
+{
+    "name": "cuotasAfiliacion",
+    "engine": "jsrender",
+    "recipe": "chrome-pdf",
+    "shortid": "hSmzJOOQN",
+    "chrome": {
+        "printBackground": true
+    },
+    "creationDate": {
+        "$$date": 1750888300954
+    },
+    "modificationDate": {
+        "$$date": 1750888300954
+    },
+    "_id": "Y91DlftgMi5IU0qP",
+    "$entitySet": "templates"
+}
