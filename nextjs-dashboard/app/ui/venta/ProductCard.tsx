@@ -42,7 +42,7 @@ export default function ProductCard({ product, onAddToCart, initialQuantity }) {
                     <h3 className="text-xl font-bold text-gray-800">{product.name}</h3>
                     <p className="text-amber-600 font-medium">{product.presentation} ml</p>
                     <p className="text-gray-700 mt-1">
-                        <span className="font-semibold">${product.price.toFixed(2)}</span>
+                        <span className="font-semibold">{product.price.toFixed(2)}Bs.</span>
                     </p>
                     <div className={`mt-2 text-sm font-medium ${product.stock <= 20 ? 'text-red-500' : 'text-green-600'}`}>
                         {product.stock} disponibles

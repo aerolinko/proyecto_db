@@ -8,10 +8,31 @@ import {red} from "next/dist/lib/picocolors";
 
 // @ts-ignore
 export default function MetodoPago({ cart, setPagando, setProducts, usernameid, setCart }) {
-
+    const [tasa, setTasa] = useState(0);
     // Update internal quantity state if initialQuantity prop changes (e.g., cart is cleared)
     useEffect(() => {
-
+        async function fetchTasa() {
+            try {
+                // Makes a GET request to the `/api/products` endpoint.
+                const response = await fetch("/api/ventas", {
+                    method: "GET", // Specifies the HTTP method as GET.
+                    headers: { "Content-Type": "application/json" } // Sets the request header.
+                });
+                // Checks if the HTTP response was successful (status code 200-299).
+                if (!response.ok) {
+                    // Throws an error if the HTTP response indicates a problem.
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                // Parses the JSON body of the response.
+                const data = await response.json();
+                setTasa(data.res[0].tasa);
+            } catch (err: any) {
+                // Catches any errors that occur during the fetch operation.
+                console.error("Error fetching products:", err); // Logs the error to the console for debugging.
+                // Set error message // This line is an incomplete comment, likely intended to set an error state.
+            }
+        }
+        fetchTasa();
     }, []);
 
     // State for client selection
@@ -46,9 +67,14 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
             filteredpayments = filteredpayments.filter((element:any)=>element.tipo!=='puntos');
         }
 
+        if ((newPaymentMethodType.tipo == 'efectivo' || newPaymentMethodType.tipo == 'dolares') && (parseFloat(newPaymentMethodAmount) % 1 != 0)) {
+            setModalMessage("Por favor solo valores enteros para pagos en efectivo o divisas.");
+            setIsModalOpen(true);
+            return;
+        }
         const totalPaidcheck = filteredpayments.reduce((sum, method:any) => sum + method.cantidad, 0);
 
-        const amount = parseFloat(newPaymentMethodAmount);
+        let amount = parseFloat(newPaymentMethodAmount);
         const numero_cuenta = newPaymentMethodNumeroCuenta;
         const numero_cheque = newPaymentMethodNumeroCheque;
         const banco = newPaymentMethodBanco;
@@ -64,13 +90,17 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
             return;
         }
 
-        if (totalPaidcheck + amount > cartTotal) { // Adding a small tolerance for floating point issues
+        if ((totalPaidcheck + amount > cartTotal) ||( newPaymentMethodType.tipo=='dolares' && (totalPaidcheck + amount*tasa > cartTotal))) { // Adding a small tolerance for floating point issues
             setModalMessage("El total excede el monto a pagar. Por favor ajuste la cantidad.");
             setIsModalOpen(true);
             return;
         }
-        // @ts-ignore
 
+        if(newPaymentMethodType.tipo == 'dolares'){
+            amount = amount * tasa;
+        }
+
+        // @ts-ignore
         setPaymentMethods([...filteredpayments, {
             tipo: newPaymentMethodType.tipo,
             id: newPaymentMethodType.metodo_pago_id ? newPaymentMethodType.metodo_pago_id : null,
@@ -95,7 +125,7 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
     // Handle form submission (placeholder for actual transaction logic)
     const handleSubmit = async () => {
         if (remainingBalance > 0.01) { // Check if remaining balance is negligible
-            setModalMessage(`No se pudo completar el pago. Total faltante: $${remainingBalance.toFixed(2)}`);
+            setModalMessage(`No se pudo completar el pago. Total faltante: ${remainingBalance.toFixed(2)}Bs.`);
             setIsModalOpen(true);
             return;
         }
@@ -106,7 +136,7 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
         const response = await fetch("/api/ventas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({paymentMethods, cart, foundClientId }),
+            body: JSON.stringify({paymentMethods, cart, foundClientId}),
         })
 
         if (response.ok) {
@@ -319,7 +349,7 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
                                             <div key={item.id} className="grid grid-cols-4 gap-2 p-3 text-sm border-b border-gray-200 hover:bg-gray-50 transition duration-150">
                                                 <span className="col-span-2 text-gray-800 truncate">{item.name} {item.presentation}ml</span>
                                                 <span className="text-center text-gray-600">{item.quantity}</span>
-                                                <span className="text-right text-gray-800">${(item.price * 1).toFixed(2)}</span>
+                                                <span className="text-right text-gray-800">{(item.price * 1).toFixed(2)}Bs.</span>
                                             </div>
                                         ))}
                                     </div>
@@ -327,7 +357,7 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
                                     <div className="p-3 bg-gray-50 border-t border-gray-200">
                                         <div className="flex justify-between items-center">
                                             <span className="text-lg font-bold text-gray-800">Total:</span>
-                                            <span className="text-xl font-extrabold text-blue-600">${cartTotal.toFixed(2)}</span>
+                                            <span className="text-xl font-extrabold text-blue-600">{cartTotal.toFixed(2)}Bs.</span>
                                         </div>
                                     </div>
                                 </div>
@@ -373,6 +403,9 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
                                         ))}
                                         <option value={JSON.stringify({ tipo: 'efectivo' })} key={'cash'}>
                                             Efectivo
+                                        </option>
+                                        <option value={JSON.stringify({ tipo: 'dolares' })} key={'dollar'}>
+                                            Divisas ($)
                                         </option>
                                         <option value={JSON.stringify({ tipo: 'cheque' })} key={'cheque'}>
                                             Cheque
@@ -455,7 +488,12 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
                                     </label>
                                     <div className="relative rounded-md shadow-sm">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span className="text-gray-500">$</span>
+                                            {newPaymentMethodType.tipo=='dolares' && (
+                                            <span className="text-gray-500">$ </span>
+                                            )}
+                                            {newPaymentMethodType.tipo!=='dolares' && (
+                                                <span className="text-gray-500">Bs. </span>
+                                            )}
                                         </div>
                                         <input
                                             type="number"
@@ -472,7 +510,7 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
                                             placeholder="0.00"
                                             min="0.01"
                                             step="0.01"
-                                            className="block w-full pl-7 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="block w-full pl-9 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
                                 </div>
@@ -511,12 +549,13 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
                         <span className="text-gray-800 truncate">
                           {method.tipo === 'efectivo' && 'Efectivo'}
                             {method.tipo === 'cheque' && 'Cheque'}
+                            {method.tipo === 'dolares' && 'Divisas ($)'}
                             {method.tipo === 'puntos' && `Puntos (${method.cantidad})`}
-                            {method.tipo !== 'efectivo' && method.tipo !== 'cheque' && method.tipo !== 'puntos' &&
+                            {method.tipo !== 'efectivo' && method.tipo !== 'cheque' && method.tipo !== 'dolares' && method.tipo !== 'puntos' &&
                                 `${method.tipo} ****${method.numero_tarjeta?.substring(12, 16) || ''}`
                             }
                         </span>
-                                                    <span className="text-right text-gray-800">${method.cantidad.toFixed(2)}</span>
+                                                    <span className="text-right text-gray-800">{method.cantidad.toFixed(2)}Bs.</span>
                                                     <span className="text-center">
                           <button
                               onClick={() => handleRemovePayment(index)}
@@ -534,12 +573,12 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
                                 <div className="mt-4 space-y-2">
                                     <div className="flex justify-between text-gray-700">
                                         <span>Total pagando:</span>
-                                        <span className="font-medium">${totalPaid.toFixed(2)}</span>
+                                        <span className="font-medium">{totalPaid.toFixed(2)}Bs.</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Total faltante:</span>
                                         <span className={`font-bold ${remainingBalance > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-                    ${remainingBalance.toFixed(2)}
+                    {remainingBalance.toFixed(2)}Bs.
                   </span>
                                     </div>
                                 </div>

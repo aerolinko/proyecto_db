@@ -226,7 +226,7 @@ export default function Page ({
                                     </div>
                                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-purple-300">
                                         <span className="text-lg font-bold text-purple-800">Total:</span>
-                                        <span className="text-xl font-extrabold text-purple-900">${total.toFixed(2)}</span>
+                                        <span className="text-xl font-extrabold text-purple-900">{total.toFixed(2)}Bs.</span>
                                     </div>
                                 </>
                             )}
