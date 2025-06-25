@@ -1,0 +1,17 @@
+{
+    "name": "reposicionAnaqueles",
+    "engine": "jsrender",
+    "recipe": "chrome-pdf",
+    "shortid": "rocuJHJPj",
+    "chrome": {
+        "printBackground": true
+    },
+    "creationDate": {
+        "$$date": 1750888280823
+    },
+    "modificationDate": {
+        "$$date": 1750889058091
+    },
+    "_id": "yhNOUsamxBnAD573",
+    "$entitySet": "templates"
+}

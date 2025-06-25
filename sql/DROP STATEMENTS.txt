@@ -212,4 +212,6 @@ drop function get_reposicion_anaqueles(date, date, integer);
 
 drop function gettasadolar();
 
+DROP FUNCTION IF EXISTS get_nomina_departamento(DATE, DATE, INTEGER);
 
+DROP FUNCTION IF EXISTS get_historial_compras_cliente_juridico(INTEGER, DATE, DATE, INTEGER);

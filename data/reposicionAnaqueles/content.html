@@ -1,0 +1,25 @@
+<h1>Reporte de Reposición de Anaqueles</h1>
+<table border="1" cellpadding="5" cellspacing="0">
+  <tr>
+    <th>#</th>
+    <th>Fecha</th>
+    <th>Producto</th>
+    <th>Presentación</th>
+    <th>Cantidad</th>
+    <th>Pasillo</th>
+    <th>Anaquel</th>
+    <th>Estado</th>
+  </tr>
+  {{for reporte}}
+    <tr>
+      <td>{{:#index + 1}}</td>
+      <td>{{:fecha}}</td>
+      <td>{{:producto_nombre}}</td>
+      <td>{{:presentacion}}</td>
+      <td>{{:cantidad_solicitada}}</td>
+      <td>{{:pasillo}}</td>
+      <td>{{:anaquel}}</td>
+      <td>{{:estado}}</td>
+    </tr>
+  {{/for}}
+</table>

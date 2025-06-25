@@ -1,30 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getReposicionAnaquelesSP } from '@/db'
+import axios from 'axios'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const fechaInicio = searchParams.get('fechaInicio') || undefined
     const fechaFin = searchParams.get('fechaFin') || undefined
-    const limite = searchParams.get('limite') ? Number(searchParams.get('limite')) : 100
+    const limite = searchParams.get('limite') ? Number(searchParams.get('limite')) : 10
 
-    console.log('=== API Reporte Reposición de Anaqueles ===')
-    console.log('Parámetros:', { fechaInicio, fechaFin, limite })
-
-    // Opción 1: Usar función directa de db.ts
-    // const reporte = await getReposicionAnaqueles(fechaInicio, fechaFin, limite)
-    
-    // Opción 2: Usar Stored Procedure (descomenta la línea de abajo y comenta la de arriba)
     const reporte = await getReposicionAnaquelesSP(fechaInicio, fechaFin, limite)
+    const jsreportResponse = await axios.post(
+      'http://localhost:5488/api/report',
+      {
+        template: { name: 'reposicionAnaqueles' },
+        data: { reporte }
+      },
+      { responseType: 'arraybuffer' }
+    )
 
-    return NextResponse.json({
-      success: true,
-      reporte: reporte,
-      total: reporte.length,
-      filtros: { fechaInicio, fechaFin, limite }
+    return new NextResponse(jsreportResponse.data, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'inline; filename="reposicion-anaqueles.pdf"'
+      }
     })
   } catch (error) {
-    console.error('Error en API reporte reposición anaqueles:', error)
+    console.error('Error en API reporte reposicion anaqueles:', error)
     return NextResponse.json(
       {
         success: false,

@@ -1,51 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getNominaDepartamento, getNominaDepartamentoResumen } from '@/db'
+import { getNominaDepartamento } from '@/db'
+import axios from 'axios'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("=== API: Nómina por Departamento ===")
-    
     const { searchParams } = new URL(request.url)
-    const fechaInicio = searchParams.get('fechaInicio')
-    const fechaFin = searchParams.get('fechaFin')
-    const limite = parseInt(searchParams.get('limite') || '100')
-    const tipo = searchParams.get('tipo') || 'detalle' // 'detalle' o 'resumen'
+    const fechaInicio = searchParams.get('fechaInicio') || undefined
+    const fechaFin = searchParams.get('fechaFin') || undefined
+    const limite = searchParams.get('limite') ? Number(searchParams.get('limite')) : 10
 
-    console.log("Parámetros recibidos:", {
-      fechaInicio,
-      fechaFin,
-      limite,
-      tipo
-    })
+    const reporte = await getNominaDepartamento(fechaInicio, fechaFin, limite)
 
-    let data
-    if (tipo === 'resumen') {
-      data = await getNominaDepartamentoResumen(fechaInicio || undefined, fechaFin || undefined, limite)
-    } else {
-      data = await getNominaDepartamento(fechaInicio || undefined, fechaFin || undefined, limite)
-    }
+    const jsreportResponse = await axios.post(
+      'http://localhost:5488/api/report',
+      {
+        template: { name: 'nominaDepartamento' },
+        data: { reporte }
+      },
+      { responseType: 'arraybuffer' }
+    )
 
-    console.log(`Datos obtenidos: ${data.length} registros`)
-
-    return NextResponse.json({
-      success: true,
-      data: data,
-      total: data.length,
-      tipo: tipo,
-      filtros: {
-        fechaInicio,
-        fechaFin,
-        limite
+    return new NextResponse(jsreportResponse.data, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'inline; filename="nomina-departamento.pdf"'
       }
     })
-
   } catch (error) {
-    console.error("Error en API nomina-departamento:", error)
+    console.error('Error en API reporte nomina departamento:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Error al obtener datos de nómina por departamento',
-        details: error instanceof Error ? error.message : 'Error desconocido'
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Error desconocido'
       },
       { status: 500 }
     )

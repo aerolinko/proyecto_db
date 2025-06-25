@@ -1,0 +1,23 @@
+<h1>Reporte de Nómina por Departamento</h1>
+<table border="1" cellpadding="5" cellspacing="0">
+  <tr>
+    <th>#</th>
+    <th>Departamento</th>
+    <th>Cargo</th>
+    <th>Empleado</th>
+    <th>Salario Base</th>
+    <th>Beneficios</th>
+    <th>Costo Total</th>
+  </tr>
+  {{for reporte}}
+    <tr>
+      <td>{{:#index + 1}}</td>
+      <td>{{:nombre_departamento}}</td>
+      <td>{{:nombre_cargo}}</td>
+      <td>{{:nombre_completo}}</td>
+      <td>{{:salario_base}}</td>
+      <td>{{:total_beneficios}}</td>
+      <td>{{:costo_total}}</td>
+    </tr>
+  {{/for}}
+</table>

@@ -107,29 +107,29 @@ export default function Reportes() {
         if (filtros.limite) params.append("limite", filtros.limite.toString())
       }
 
-      // Determinar la URL de la API según el tipo de reporte
+      // Determinar la URL de la API JSON según el tipo de reporte
       let apiUrl = ""
       switch (reporte.id) {
         case "1":
-          apiUrl = `/api/reportes/productos-mas-vendidos?${params.toString()}`
+          apiUrl = `/api/reportes/productos-mas-vendidos-json?${params.toString()}`
           break
         case "2":
-          apiUrl = `/api/reportes/reposicion-anaqueles?${params.toString()}`
+          apiUrl = `/api/reportes/reposicion-anaqueles-json?${params.toString()}`
           break
         case "3":
-          apiUrl = `/api/reportes/cuotas-afiliacion?${params.toString()}`
+          apiUrl = `/api/reportes/cuotas-afiliacion-json?${params.toString()}`
           break
         case "4":
-          apiUrl = `/api/reportes/nomina-departamento?${params.toString()}`
+          apiUrl = `/api/reportes/nomina-departamento-json?${params.toString()}`
           break
         case "5":
-          apiUrl = `/api/reportes/historial-compras?${params.toString()}`
+          apiUrl = `/api/reportes/historial-compras-json?${params.toString()}`
           break
         default:
           throw new Error("Tipo de reporte no válido")
       }
 
-      console.log('URL de la API:', apiUrl);
+      if (!apiUrl) return;
 
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -141,9 +141,6 @@ export default function Reportes() {
       }
 
       const data = await response.json()
-      console.log('Respuesta de la API:', data);
-      
-      // Manejar diferentes estructuras de respuesta de las APIs
       let reporteData = []
       if (data.reporte) {
         reporteData = data.reporte
@@ -154,10 +151,6 @@ export default function Reportes() {
       } else if (Array.isArray(data)) {
         reporteData = data
       }
-      
-      console.log(`Datos recibidos: ${reporteData.length} registros`)
-      console.log('Estructura de respuesta:', data)
-      
       setDatosReporte(reporteData)
     } catch (error) {
       setError(error instanceof Error ? error.message : "Error desconocido")
@@ -208,6 +201,41 @@ export default function Reportes() {
     reporte.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     reporte.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  const descargarPDF = async () => {
+    if (!reporteSeleccionado) return
+
+    let params = new URLSearchParams()
+    if (filtros.fechaInicio) params.append("fechaInicio", filtros.fechaInicio)
+    if (filtros.fechaFin) params.append("fechaFin", filtros.fechaFin)
+    if (filtros.limite) params.append("limite", filtros.limite.toString())
+
+    let apiUrl = ""
+    switch (reporteSeleccionado.id) {
+      case "1":
+        apiUrl = `/api/reportes/productos-mas-vendidos?${params.toString()}`
+        break
+      case "2":
+        apiUrl = `/api/reportes/reposicion-anaqueles?${params.toString()}`
+        break
+      case "3":
+        apiUrl = `/api/reportes/cuotas-afiliacion?${params.toString()}`
+        break
+      case "4":
+        apiUrl = `/api/reportes/nomina-departamento?${params.toString()}`
+        break
+      case "5":
+        apiUrl = `/api/reportes/historial-compras?${params.toString()}`
+        break
+      default:
+        return
+    }
+
+    const res = await fetch(apiUrl)
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    window.open(url)
+  }
 
   if (loading) {
     return (
@@ -343,6 +371,14 @@ export default function Reportes() {
                   >
                     <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                     Exportar CSV
+                  </button>
+                  {/* Botón para exportar PDF para todos los reportes */}
+                  <button
+                    onClick={descargarPDF}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                    Exportar PDF
                   </button>
                 </div>
               </div>
