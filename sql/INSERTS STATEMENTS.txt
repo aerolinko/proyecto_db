@@ -3018,7 +3018,7 @@ INSERT INTO PUNTO_VENTA_COMPRA (fk_venta_tienda, fk_venta_online, fk_cliente_nat
 
 INSERT INTO TASA_CONVERSION (fecha_inicio, tasa_puntos_a_bs, tasa_dola_a_bs, fecha_fin, fk_metodo_pago_punto, fk_metodo_pago_efectivo) VALUES
                                                                                                                                            ('2025-01-01', 10, 36,'2025-01-01',1, NULL),
-                                                                                                                                           ('2025-04-01', 12, 38,'2025-04-01'2,NULL),
+                                                                                                                                           ('2025-04-01', 12, 38,'2025-04-01',2,NULL),
                                                                                                                                            ('2025-01-01', 1, 35, '2025-01-01',NULL, 1),
                                                                                                                                            ('2025-07-01', 1, 40, '2025-07-01',NULL, 2),
                                                                                                                                            ('2025-05-01', 11, 37,'2025-05-01', 3, NULL),
