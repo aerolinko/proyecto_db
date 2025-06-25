@@ -481,6 +481,11 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
                                         </div>
                                     </div>
                                 )}
+                                {newPaymentMethodType !== undefined && newPaymentMethodType.tipo == 'dolares' && (
+                                    <div className="bg-gray-200 rounded-md p-1.5 w-fit">
+                                        <span className="text-green-700">1$ --{'>'} {tasa}Bs.</span>
+                                    </div>
+                                )}
 
                                 <div className="mt-4">
                                     <label htmlFor="paymentAmount" className="block text-sm font-medium text-gray-700 mb-1">
