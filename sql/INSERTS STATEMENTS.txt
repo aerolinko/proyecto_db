@@ -2905,16 +2905,16 @@ INSERT INTO PREMIACION (nombre, fecha, hora_inicio, hora_fin) VALUES
                                                                   ('Premio Especial del Jurado', '2025-11-15', '19:00:00', '21:00:00');
 
 INSERT INTO ESTADO_REPOSICION_ANAQUEL (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel) VALUES
-                                                                                                      ('2025-05-28', null, 3, 1),
-                                                                                                      ('2025-06-02', null, 3, 2),
-                                                                                                      ('2025-06-07', null, 3, 3),
-                                                                                                      ('2025-06-12', null, 3, 4),
-                                                                                                      ('2025-06-17', null, 3, 5),
-                                                                                                      ('2025-06-28', null, 3, 6),
-                                                                                                      ('2025-07-02', null, 3, 7),
-                                                                                                      ('2025-07-07', null, 3, 8),
-                                                                                                      ('2025-07-12', null, 3, 9),
-                                                                                                      ('2025-07-17', null, 3, 10);
+                                                                                                      ('2025-05-28', null, 1, 1),
+                                                                                                      ('2025-06-02', null, 1, 2),
+                                                                                                      ('2025-06-07', null, 1, 3),
+                                                                                                      ('2025-06-12', null, 1, 4),
+                                                                                                      ('2025-06-17', null, 1, 5),
+                                                                                                      ('2025-06-28', null, 1, 6),
+                                                                                                      ('2025-07-02', null, 1, 7),
+                                                                                                      ('2025-07-07', null, 1, 8),
+                                                                                                      ('2025-07-12', null, 1, 9),
+                                                                                                      ('2025-07-17', null, 1, 10);
 
 INSERT INTO PASILLO (nombre, fk_acaucab) VALUES
                                              ('Pasillo A - Cervezas Lager', 1),
