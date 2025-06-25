@@ -3,7 +3,7 @@ import postgres from 'postgres';
 
 
 
-/*
+
 const sql = postgres({
     host: 'localhost',
     port: 5432,
@@ -12,7 +12,7 @@ const sql = postgres({
     password: 'root',
 });
 
-*/
+/*
 
 const sql = postgres({
     host: 'localhost',
@@ -25,7 +25,7 @@ const sql = postgres({
     // await sql`SET search_path TO schema_name`;
 });
 
-
+*/
 
 
 export async function getAllLugares() {
@@ -117,103 +117,6 @@ export async function getOrdenesAnaquel() {
 export async function updateOrdenesAnaquel(id:number,cambio:string) {
   return await sql`call cambiarEstadoRepAnaquel(${cambio},${id})`;
 }
-/*
-///para usuarios
-export async function getAllUsuarios() {
-    try {
-        const result = await sql`
-      SELECT usuario_id::text as id, nombre_usuario as email
-      FROM USUARIO
-      ORDER BY usuario_id
-    `
-        return result
-    } catch (error) {
-        console.error("Error getting all usuarios:", error)
-        throw error
-    }
-}
-
-export async function getUsuarioById(id: string) {
-    try {
-        const result = await sql`
-      SELECT usuario_id::text as id, nombre_usuario as email 
-      FROM USUARIO 
-      WHERE usuario_id = ${Number.parseInt(id)}
-    `
-        return result
-    } catch (error) {
-        console.error("Error getting usuario by id:", error)
-        throw error
-    }
-}
-
-export async function getUsuarioByEmail(email: string) {
-    try {
-        const result = await sql`
-      SELECT usuario_id::text as id, nombre_usuario as email 
-      FROM USUARIO 
-      WHERE nombre_usuario = ${email}
-    `
-        return result
-    } catch (error) {
-        console.error("Error getting usuario by email:", error)
-        throw error
-    }
-}
-
-export async function createUsuario(email: string, password: string) {
-    try {
-        const result = await sql`
-      INSERT INTO USUARIO (nombre_usuario, hash_contrasena) 
-      VALUES (${email}, ${password}) 
-      RETURNING usuario_id::text as id, nombre_usuario as email
-    `
-        return result
-    } catch (error) {
-        console.error("Error creating usuario:", error)
-        throw error
-    }
-}
-
-export async function updateUsuario(id: string, email: string, password?: string) {
-    try {
-        let result
-        if (password) {
-            result = await sql`
-        UPDATE USUARIO 
-        SET nombre_usuario = ${email}, hash_contrasena = ${password}
-        WHERE usuario_id = ${Number.parseInt(id)}
-        RETURNING usuario_id::text as id, nombre_usuario as email
-      `
-        } else {
-            result = await sql`
-        UPDATE USUARIO 
-        SET nombre_usuario = ${email}
-        WHERE usuario_id = ${Number.parseInt(id)}
-        RETURNING usuario_id::text as id, nombre_usuario as email
-      `
-        }
-        return result
-    } catch (error) {
-        console.error("Error updating usuario:", error)
-        throw error
-    }
-}
-
-export async function deleteUsuario(id: string) {
-    try {
-        const result = await sql`
-      DELETE FROM USUARIO 
-      WHERE usuario_id = ${Number.parseInt(id)} 
-      RETURNING usuario_id::text as id, nombre_usuario as email
-    `
-        return result
-    } catch (error) {
-        console.error("Error deleting usuario:", error)
-        throw error
-    }
-}
- */
 
 export async function getEmpleados(){
     return await sql`
