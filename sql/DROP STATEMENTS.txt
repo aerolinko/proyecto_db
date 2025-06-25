@@ -200,3 +200,16 @@ drop procedure cambiarestadorepanaquel(varchar, integer) cascade;
 
 drop function obtenerordenesalmacen() cascade;
 
+drop function get_stock_almacen();
+
+drop function get_stock_anaquel();
+
+drop function get_stock_general();
+
+drop function get_productos_mas_vendidos(date, date, integer);
+
+drop function get_reposicion_anaqueles(date, date, integer);
+
+drop function gettasadolar();
+
+
