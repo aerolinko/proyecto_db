@@ -2585,41 +2585,112 @@ INSERT INTO ACAUCAB (direccion, denomiancion_comercial, RIF, razon_social, fk_lu
 
 
 INSERT INTO PERSONAL_CONTACTO (primer_nombre, primer_apellido, fk_cliente_juridico, fk_miembro_acaucab) VALUES
-                                                                                                            ('Ana', 'Gómez', 1, NULL),
-                                                                                                            ('Luis', 'Pérez', 13, NULL),
-                                                                                                            ('María', 'Rodríguez', NULL, 8),
-                                                                                                            ('Carlos', 'Sánchez', NULL, 7),
-                                                                                                            ('Laura', 'Díaz', 3, NULL),
-                                                                                                            ('Javier', 'Fernández', NULL, 12),
-                                                                                                            ('Sofía', 'Martínez', 4, NULL),
-                                                                                                            ('Miguel', 'López', NULL, 15),
-                                                                                                            ('Elena', 'González', 5, NULL),
-                                                                                                            ('Pedro', 'Ruiz', NULL, 20);
+-- Clientes jurídicos existentes
+('Ana', 'Gómez', 1, NULL),
+('Luis', 'Pérez', 13, NULL),
+('Laura', 'Díaz', 3, NULL),
+('Sofía', 'Martínez', 4, NULL),
+('Elena', 'González', 5, NULL),
+
+-- Miembros ACAUCAB existentes
+('Juan', 'Pérez', NULL, 1),
+('María', 'Rodríguez', NULL, 8),
+('Carlos', 'Sánchez', NULL, 7),
+('Javier', 'Fernández', NULL, 12),
+('Miguel', 'López', NULL, 15),
+('Pedro', 'Ruiz', NULL, 20),
+
+-- Nuevos contactos para miembros ACAUCAB faltantes
+('Roberto', 'García', NULL, 2),
+('Carmen', 'Morales', NULL, 3),
+('Diego', 'Herrera', NULL, 4),
+('Patricia', 'Jiménez', NULL, 5),
+('Fernando', 'Castro', NULL, 6),
+('Lucía', 'Vargas', NULL, 9),
+('Andrés', 'Mendoza', NULL, 10),
+('Gabriela', 'Torres', NULL, 11),
+('Ricardo', 'Flores', NULL, 13),
+('Valeria', 'Ramírez', NULL, 14),
+('Sebastián', 'Aguilar', NULL, 16),
+('Natalia', 'Ortega', NULL, 17),
+('Alejandro', 'Delgado', NULL, 18),
+('Isabella', 'Vega', NULL, 19);
+
 
 
 INSERT INTO TELEFONO (codigo, numero, fk_personal_contacto, fk_miembro_acaucab, fk_cliente_juridico, fk_cliente_natural) VALUES
-                                                                                                                             (58, 4121234567, NULL, NULL, NULL, 1),
-                                                                                                                             (58, 2128765432, NULL, NULL, NULL, 2),
-                                                                                                                             (58, 2511020304, NULL, NULL, 1, NULL),
-                                                                                                                             (58, 4125060708, NULL, NULL, 2, NULL),
-                                                                                                                             (58, 2128765432, NULL, NULL, 3, NULL),
-                                                                                                                             (58, 4146543210, NULL, 1, NULL, NULL),
-                                                                                                                             (58, 2519876543, NULL, 2, NULL, NULL),
-                                                                                                                             (58, 4120123456, NULL, 3, NULL, NULL),
-                                                                                                                             (58, 2413444333, 1, NULL, NULL, NULL),
-                                                                                                                             (58, 4144446744, 2, NULL, NULL, NULL);
+-- Clientes naturales existentes
+(58, 4121234567, NULL, NULL, NULL, 1),
+(58, 2128765432, NULL, NULL, NULL, 2),
+
+-- Clientes jurídicos existentes  
+(58, 2511020304, NULL, NULL, 1, NULL),
+(58, 4125060708, NULL, NULL, 2, NULL),
+(58, 2128765432, NULL, NULL, 3, NULL),
+
+-- Miembros ACAUCAB existentes
+(58, 4146543210, NULL, 1, NULL, NULL),
+(58, 2519876543, NULL, 2, NULL, NULL),
+(58, 4120123456, NULL, 3, NULL, NULL),
+
+-- Personal contacto existente
+(58, 2413444333, 1, NULL, NULL, NULL),
+(58, 4144446744, 2, NULL, NULL, NULL),
+
+-- Nuevos teléfonos para miembros ACAUCAB faltantes (4-20)
+(58, 4127891234, NULL, 4, NULL, NULL),
+(58, 2514567890, NULL, 5, NULL, NULL),
+(58, 4123456789, NULL, 6, NULL, NULL),
+(58, 2129876543, NULL, 7, NULL, NULL),
+(58, 4141234567, NULL, 8, NULL, NULL),
+(58, 2518765432, NULL, 9, NULL, NULL),
+(58, 4125678901, NULL, 10, NULL, NULL),
+(58, 2123456780, NULL, 11, NULL, NULL),
+(58, 4148901234, NULL, 12, NULL, NULL),
+(58, 2517890123, NULL, 13, NULL, NULL),
+(58, 4126789012, NULL, 14, NULL, NULL),
+(58, 2124567891, NULL, 15, NULL, NULL),
+(58, 4143456789, NULL, 16, NULL, NULL),
+(58, 2516789012, NULL, 17, NULL, NULL),
+(58, 4129012345, NULL, 18, NULL, NULL),
+(58, 2125678902, NULL, 19, NULL, NULL),
+(58, 4147890123, NULL, 20, NULL, NULL);
 
 INSERT INTO CORREO_ELECTRONICO (usuario, dominio, fk_cliente_natural, fk_cliente_juridico, fk_miembro_acaucab) VALUES
-                                                                                                                   ('garcia.ana', '@gmail.com', 1, NULL, NULL),
-                                                                                                                   ('martinez.luis', '@outlook.com', 2, NULL, NULL),
-                                                                                                                   ('rodriguez.sofia', '@yahoo.com', 3, NULL, NULL),
-                                                                                                                   ('hernandez.diego', '@hotmail.com', 4, NULL, NULL),
-                                                                                                                   ('support', '@cerveceriaavila.com', NULL, 1, NULL),
-                                                                                                                   ('info', '@regionalzulia.com', NULL, 2, NULL),
-                                                                                                                   ('admin', '@cervezacarabobo.com', NULL, 3, NULL),
-                                                                                                                   ('contacto.compras', '@laespumadorada.com', NULL, NULL, 1),
-                                                                                                                   ('logistica.malta', '@maltapura.com', NULL, NULL, 2),
-                                                                                                                   ('ventas.express', '@friacerveza.com', NULL, NULL, 3);
+-- Clientes naturales existentes
+('garcia.ana', '@gmail.com', 1, NULL, NULL),
+('martinez.luis', '@outlook.com', 2, NULL, NULL),
+('rodriguez.sofia', '@yahoo.com', 3, NULL, NULL),
+('hernandez.diego', '@hotmail.com', 4, NULL, NULL),
+
+-- Clientes jurídicos existentes
+('support', '@cerveceriaavila.com', NULL, 1, NULL),
+('info', '@regionalzulia.com', NULL, 2, NULL),
+('admin', '@cervezacarabobo.com', NULL, 3, NULL),
+
+-- Miembros ACAUCAB existentes
+('contacto.compras', '@laespumadorada.com', NULL, NULL, 1),
+('logistica.malta', '@maltapura.com', NULL, NULL, 2),
+('ventas.express', '@friacerveza.com', NULL, NULL, 3),
+
+-- Nuevos correos para miembros ACAUCAB faltantes (4-20)
+('gerencia.operaciones', '@cervezaandina.com', NULL, NULL, 4),
+('administracion.general', '@maltacentral.com', NULL, NULL, 5),
+('ventas.regionales', '@cervezaoriente.com', NULL, NULL, 6),
+('produccion.calidad', '@maltaoccidente.com', NULL, NULL, 7),
+('logistica.distribucion', '@cervezasur.com', NULL, NULL, 8),
+('compras.materiales', '@maltanorte.com', NULL, NULL, 9),
+('finanzas.contabilidad', '@cervezacentro.com', NULL, NULL, 10),
+('recursos.humanos', '@maltaeste.com', NULL, NULL, 11),
+('marketing.ventas', '@cervezaoeste.com', NULL, NULL, 12),
+('operaciones.planta', '@maltasureste.com', NULL, NULL, 13),
+('control.inventarios', '@cervezanoroeste.com', NULL, NULL, 14),
+('desarrollo.productos', '@maltasuroeste.com', NULL, NULL, 15),
+('servicios.tecnicos', '@cervezanoreste.com', NULL, NULL, 16),
+('atencion.clientes', '@maltanoroeste.com', NULL, NULL, 17),
+('exportaciones.comercio', '@cervezainternacional.com', NULL, NULL, 18),
+('investigacion.desarrollo', '@maltainnovacion.com', NULL, NULL, 19),
+('direccion.ejecutiva', '@cervezaejecutiva.com', NULL, NULL, 20);
 
 
 INSERT INTO Tipo_evento ( nombre) VALUES

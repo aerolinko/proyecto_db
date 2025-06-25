@@ -1,0 +1,7 @@
+--obtener todas las ordenes de anaquel
+
+SELECT * FROM obtenerordenesanaquel();
+
+--obtener ordenes de anaquel para el reporte
+
+SELECT * FROM get_reposicion_anaqueles(NULL, NULL, 50);
