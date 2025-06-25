@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         });
         let filteredLinks=filters;
         const permissions = await getUserPermissions(res.usuario_id);
-        for (let i = 0; i < 12 ; i++) {
+        for (let i = 0; i < 23 ; i++) {
             if (!permissions.some((permission) => permission.descripcion == filters[i].descripcion)){
                 filteredLinks=filteredLinks.filter((link) => link.descripcion !== filters[i].descripcion);
             }
