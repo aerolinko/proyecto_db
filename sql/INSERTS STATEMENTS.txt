@@ -3017,16 +3017,16 @@ INSERT INTO PUNTO_VENTA_COMPRA (fk_venta_tienda, fk_venta_online, fk_cliente_nat
                                                                                                                                                             (NULL, 5, NULL, 5, 10, 60, '2025-06-10', 'gasto');
 
 INSERT INTO TASA_CONVERSION (fecha_inicio, tasa_puntos_a_bs, tasa_dola_a_bs, fecha_fin, fk_metodo_pago_punto, fk_metodo_pago_efectivo) VALUES
-                                                                                                                                           ('2025-01-01', 10, 36, '2025-03-31', 1, NULL),
-                                                                                                                                           ('2025-04-01', 12, 38, NULL, 2, NULL),
-                                                                                                                                           ('2025-01-01', 1, 35, '2025-06-30', NULL, 1),
-                                                                                                                                           ('2025-07-01', 1, 40, NULL, NULL, 2),
-                                                                                                                                           ('2025-05-01', 11, 37, '2025-07-31', 3, NULL),
-                                                                                                                                           ('2025-08-01', 13, 39, NULL, 4, NULL),
-                                                                                                                                           ('2025-02-01', 1, 36, '2025-05-31', NULL, 3),
-                                                                                                                                           ('2025-06-01', 1, 41, NULL, NULL, 4),
-                                                                                                                                           ('2025-09-01', 14, 40, NULL, 5, NULL),
-                                                                                                                                           ('2025-03-01', 1, 38, '2025-04-30', NULL, 5);
+                                                                                                                                           ('2025-01-01', 10, 36,'2025-01-01',1, NULL),
+                                                                                                                                           ('2025-04-01', 12, 38,'2025-04-01'2,NULL),
+                                                                                                                                           ('2025-01-01', 1, 35, '2025-01-01',NULL, 1),
+                                                                                                                                           ('2025-07-01', 1, 40, '2025-07-01',NULL, 2),
+                                                                                                                                           ('2025-05-01', 11, 37,'2025-05-01', 3, NULL),
+                                                                                                                                           ('2025-08-01', 13, 39,'2025-08-01',4, NULL),
+                                                                                                                                           ('2025-02-01', 1, 36, '2025-02-01', NULL, 3),
+                                                                                                                                           ('2025-06-01', 1, 41, '2025-06-01',NULL, 4),
+                                                                                                                                           ('2025-09-01', 14, 40,'2025-09-01', 5, NULL),
+                                                                                                                                           ('2025-03-01', 1, 38, NULL, NULL, 5);
 
 
 INSERT INTO PAGO (monto, fecha, fk_venta_online, fk_venta_tienda, fk_compra_reposicion, fk_venta_evento, fk_membresia, fk_metodo_pago_efectivo, fk_metodo_pago_cheque, fk_metodo_pago_debito, fk_metodo_pago_credito, fk_metodo_pago_punto) VALUES
