@@ -2147,16 +2147,16 @@ INSERT INTO TIPO_CERVEZA_CARACTERISTICA (fk_tipo_cerveza, fk_caracteristica) VAL
 (10, 47);
 
 INSERT INTO CERVEZA (nombre, densidad_inicial, densidad_final, IBUs, nivel_alcohol, fk_tipo_cerveza, fk_estilo_cerveza, fk_receta) VALUES
-('Pilsner Clásica Lager', 1.048, 1.009, 20, 4.80, 1, 1, 6),
-('IPA Pacífico Americana', 1.062, 1.014, 58, 6.70, 5, 7, 2),
-('Weizen Trigo Tradicional', 1.050, 1.011, 15, 5.20, 3, 51, 9),
+('Pilsner Clásica Dorada', 1.048, 1.009, 20, 4.80, 1, 1, 6),
+('IPA del Pacífico Amarga', 1.062, 1.014, 58, 6.70, 5, 7, 2),
+('Weizen Blanca Tradicional', 1.050, 1.011, 15, 5.20, 3, 51, 9),
 ('Stout Irlandesa Cremosa', 1.065, 1.016, 40, 6.00, 7, 10, 8),
 ('Dubbel Belga de Abadía', 1.070, 1.018, 25, 7.00, 9, 23, 4),
-('Amber Ale de la Casa', 1.055, 1.012, 35, 5.80, 5, 20, 1),
-('Bock Oscura Fuerte', 1.072, 1.017, 22, 7.50, 4, 6, 7),
-('Porter Malta Tostada', 1.060, 1.015, 30, 6.20, 8, 11, 8),
+('Amber Ale Americana', 1.055, 1.012, 35, 5.80, 5, 20, 1),
+('Bock Fuerte de Invierno', 1.072, 1.017, 22, 7.50, 4, 6, 7),
+('Porter Oscura Robusta', 1.060, 1.015, 30, 6.20, 8, 11, 8),
 ('Golden Strong Belga Clara', 1.075, 1.012, 30, 8.50, 9, 24, 5),
-('Barley Wine Reserva Especial', 1.100, 1.025, 60, 10.50, 10, 30, 10),
+('Barley Wine Envejecida', 1.100, 1.025, 60, 10.50, 10, 30, 10),
 ('Destilo', 1.052, 1.012, 28, 5.50, 2, 20, 1),
 ('Dos Leones Latin American Pale Ale', 1.055, 1.011, 35, 5.80, 5, 21, 3),
 ('Benitz Pale Ale', 1.050, 1.010, 30, 5.00, 5, 22, 3),
