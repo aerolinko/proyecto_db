@@ -2012,7 +2012,7 @@ BEGIN
   ORDER BY meses_pendientes DESC, monto_pendiente DESC
   LIMIT p_limite;
 END;
-
+$$;
 
 CREATE OR REPLACE FUNCTION get_empleados()
 RETURNS TABLE (
