@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
 
     if (role) {
       console.log("Buscando usuario roles de usurio:", role)
+      // @ts-ignore
       const rolesU = await getAllRolesUsuario(role)
 
       return Response.json({
