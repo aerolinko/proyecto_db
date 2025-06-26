@@ -2607,16 +2607,16 @@ INSERT INTO PREMIACION (nombre, fecha, hora_inicio, hora_fin) VALUES
                                                                   ('Premio Especial del Jurado', '2025-11-15', '19:00:00', '21:00:00');
 
 INSERT INTO ESTADO_REPOSICION_ANAQUEL (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel) VALUES
-                                                                                                      ('2025-05-28', null, 1, 1),
-                                                                                                      ('2025-06-02', null, 1, 2),
-                                                                                                      ('2025-06-07', null, 1, 3),
-                                                                                                      ('2025-06-12', null, 1, 4),
-                                                                                                      ('2025-06-17', null, 1, 5),
-                                                                                                      ('2025-06-28', null, 1, 6),
-                                                                                                      ('2025-07-02', null, 1, 7),
-                                                                                                      ('2025-07-07', null, 1, 8),
-                                                                                                      ('2025-07-12', null, 1, 9),
-                                                                                                      ('2025-07-17', null, 1, 10);
+                                                                                                      ('2025-05-28', null, 8, 1),
+                                                                                                      ('2025-06-02', null, 8, 2),
+                                                                                                      ('2025-06-07', null, 8, 3),
+                                                                                                      ('2025-06-12', null, 8, 4),
+                                                                                                      ('2025-06-17', null, 8, 5),
+                                                                                                      ('2025-06-28', null, 8, 6),
+                                                                                                      ('2025-07-02', null, 8, 7),
+                                                                                                      ('2025-07-07', null, 8, 8),
+                                                                                                      ('2025-07-12', null, 8, 9),
+                                                                                                      ('2025-07-17', null, 8, 10);
 
 INSERT INTO PASILLO (nombre, fk_acaucab) VALUES
                                              ('Pasillo A', 1),
@@ -2814,7 +2814,7 @@ INSERT INTO ALMACEN_CERVEZA (fk_almacen, fk_cerveza_presentacion, cantidad, fech
                                                                                                         (4, 7, 800, '2025-05-28', 4),
                                                                                                         (4, 8, 350, '2025-05-28', 5),
                                                                                                         (5, 9, 550, '2025-05-30', 4),
-                                                                                                        (5, 10, 150, '2025-05-30', 6),
+                                                                                                        (5, 10, 250, '2025-05-30', 6),
                                                                                                         (6, 11, 250, '2025-06-01', 5),
                                                                                                         (6, 12, 400, '2025-06-02', 6),
 (7, 13, 600, '2025-06-03', 4),
@@ -2939,16 +2939,16 @@ INSERT INTO COMPRA_REPOSICION (fecha_emision, fecha_entrega, fecha_pago_estimada
                                                                                                                                               ('2025-06-30', '2025-07-15', '2025-07-30', NULL, 9000, 10);
 
 INSERT INTO ESTADO_COMPRA_REPOSICION (fecha_inicio, fecha_fin, fk_estado, fk_compra_reposicion) VALUES
-                                                                                                    ('2025-05-20', NULL, 3, 1),
-                                                                                                    ('2025-05-25', NULL, 2, 2),
-                                                                                                    ('2025-05-30', NULL, 3, 3),
-                                                                                                    ('2025-06-01', NULL, 2, 4),
-                                                                                                    ('2025-06-05', NULL, 3, 5),
-                                                                                                    ('2025-06-10', NULL, 2, 6),
-                                                                                                    ('2025-06-15', NULL, 3, 7),
-                                                                                                    ('2025-06-20', NULL, 2, 8),
-                                                                                                    ('2025-06-25', NULL, 3, 9),
-                                                                                                    ('2025-06-30', NULL, 2, 10);
+                                                                                                    ('2025-05-20', NULL, 8, 1),
+                                                                                                    ('2025-05-25', NULL, 8, 2),
+                                                                                                    ('2025-05-30', NULL, 8, 3),
+                                                                                                    ('2025-06-01', NULL, 8, 4),
+                                                                                                    ('2025-06-05', NULL, 8, 5),
+                                                                                                    ('2025-06-10', NULL, 8, 6),
+                                                                                                    ('2025-06-15', NULL, 8, 7),
+                                                                                                    ('2025-06-20', NULL, 8, 8),
+                                                                                                    ('2025-06-25', NULL, 8, 9),
+                                                                                                    ('2025-06-30', NULL, 8, 10);
 
 INSERT INTO DETALLE_COMPRA (fk_cerveza_presentacion, fk_compra_reposicion, precio_unitario, cantidad) VALUES
                                                                                                           (1, 1, 35, 100),
