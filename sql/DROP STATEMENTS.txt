@@ -215,3 +215,17 @@ drop function gettasadolar();
 DROP FUNCTION IF EXISTS get_nomina_departamento(DATE, DATE, INTEGER);
 
 DROP FUNCTION IF EXISTS get_historial_compras_cliente_juridico(INTEGER, DATE, DATE, INTEGER);
+
+DROP FUNCTION IF EXISTS create_usuario_with_empleado(VARCHAR, VARCHAR, INTEGER);
+DROP FUNCTION IF EXISTS delete_usuario_by_id(INTEGER);
+DROP FUNCTION IF EXISTS get_all_usuarios_with_empleados();
+DROP FUNCTION IF EXISTS get_cargos_disponibles();
+DROP FUNCTION IF EXISTS get_clientes_juridicos();
+DROP FUNCTION IF EXISTS get_cuotas_afiliacion_pendientes(DATE, DATE, INTEGER);
+DROP FUNCTION IF EXISTS get_departamentos_disponibles();
+DROP FUNCTION IF EXISTS get_empleados();
+DROP FUNCTION IF EXISTS get_nomina_departamento(DATE, DATE, INTEGER);
+DROP FUNCTION IF EXISTS get_usuario_with_empleado_by_email(VARCHAR);
+DROP FUNCTION IF EXISTS get_usuario_with_empleado_by_id(INTEGER);
+DROP FUNCTION IF EXISTS update_usuario_with_empleado(INTEGER, VARCHAR, VARCHAR, INTEGER);
+DROP FUNCTION IF EXISTS get_nomina_departamento(integer, integer);

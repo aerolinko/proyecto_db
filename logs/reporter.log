@@ -563,3 +563,81 @@ Error: Unable to find specified template (productosMasVendidos)
 2025-06-25T23:18:38.153Z - debug: Running chrome with params {"printBackground":true,"timeout":59687,"margin":{}} rootId=nzhttpzh8ajueuv, id=nzhttpzh8ajueuv
 2025-06-25T23:18:38.650Z - debug: Skipping storing report. rootId=nzhttpzh8ajueuv, id=nzhttpzh8ajueuv
 2025-06-25T23:18:38.651Z - info: Rendering request 19 finished in 1669 ms rootId=nzhttpzh8ajueuv, id=nzhttpzh8ajueuv
+2025-06-26T02:48:02.196Z - info: Initializing jsreport (version: 4.9.0, configuration file: jsreport.config.json, nodejs: 22.11.0)
+2025-06-26T02:48:02.209Z - info: Searching for available extensions in C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\
+2025-06-26T02:48:02.230Z - info: Extensions location cache C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json contains older information, crawling
+2025-06-26T02:48:05.838Z - info: Found 35 extension(s)
+2025-06-26T02:48:07.121Z - debug: Writing extension locations cache to C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json
+2025-06-26T02:48:07.125Z - debug: Discovered 35 extensions
+2025-06-26T02:48:07.185Z - debug: Extension authentication@4.2.3 is disabled, skipping
+2025-06-26T02:48:07.187Z - info: Using extension base@4.0.0
+2025-06-26T02:48:07.209Z - info: Using extension child-templates@4.1.0
+2025-06-26T02:48:07.229Z - info: Using extension cli@4.1.1
+2025-06-26T02:48:07.335Z - info: Using extension components@4.0.2
+2025-06-26T02:48:07.363Z - info: Using extension data@4.1.0
+2025-06-26T02:48:07.385Z - info: Using extension express@4.2.0
+2025-06-26T02:48:19.926Z - info: Using extension freeze@4.0.0
+2025-06-26T02:48:19.951Z - info: Using extension fs-store@4.1.1
+2025-06-26T02:48:23.667Z - info: Using extension handlebars@4.0.1
+2025-06-26T02:48:23.689Z - info: Using extension import-export@4.0.7
+2025-06-26T02:48:23.936Z - info: Using extension jsrender@4.0.0
+2025-06-26T02:48:23.951Z - info: Using extension licensing@4.0.5
+2025-06-26T02:48:24.642Z - info: Using extension localization@4.0.1
+2025-06-26T02:48:24.657Z - info: Using extension npm@4.0.0
+2025-06-26T02:48:24.686Z - info: Using extension pdf-utils@4.3.0
+2025-06-26T02:48:24.713Z - info: Using extension reports@4.1.4
+2025-06-26T02:48:24.744Z - info: Using extension tags@4.0.1
+2025-06-26T02:48:24.794Z - info: Using extension text@4.0.2
+2025-06-26T02:48:24.812Z - info: Using extension version-control@4.1.1
+2025-06-26T02:48:25.029Z - info: Using extension assets@4.2.2
+2025-06-26T02:48:25.301Z - info: Using extension authorization@4.1.0
+2025-06-26T02:48:25.447Z - debug: Extension authorization@4.1.0 was disabled
+2025-06-26T02:48:25.448Z - info: Using extension browser-client@4.1.0
+2025-06-26T02:48:25.544Z - info: Using extension chrome-pdf@4.2.0
+2025-06-26T02:48:25.576Z - debug: Chrome strategy is chrome-pool, numberOfWorkers: 1
+2025-06-26T02:48:25.578Z - debug: Chrome custom launch options are protocolTimeout=60000
+2025-06-26T02:48:25.579Z - info: Using extension docx@4.8.0
+2025-06-26T02:48:25.602Z - info: Using extension html-to-xlsx@4.2.1
+2025-06-26T02:48:29.816Z - info: html-to-xlsx detected chrome as available html engine
+2025-06-26T02:48:29.817Z - info: Using extension pptx@4.4.1
+2025-06-26T02:48:29.839Z - info: Using extension scheduling@4.1.0
+2025-06-26T02:48:30.637Z - info: Using extension scripts@4.2.0
+2025-06-26T02:48:30.654Z - info: Using extension static-pdf@4.1.0
+2025-06-26T02:48:30.672Z - info: Using extension studio@4.3.1
+2025-06-26T02:48:32.535Z - info: Using extension xlsx@4.4.1
+2025-06-26T02:48:32.564Z - info: Using extension public-templates@4.0.0
+2025-06-26T02:48:32.591Z - debug: Extension public-templates@4.0.0 was disabled
+2025-06-26T02:48:32.592Z - info: Using extension sample-template@4.0.1
+2025-06-26T02:48:32.620Z - info: Using extension studio-theme-dark@4.0.0
+2025-06-26T02:48:32.693Z - warn: options.allowLocalFilesAccess is deprecated, use options.trustUserCode instead
+2025-06-26T02:48:32.693Z - info: Using general timeout for rendering (reportTimeout: 60000)
+2025-06-26T02:48:32.694Z - info: Using fs provider for template store.
+2025-06-26T02:48:32.704Z - info: fs store is persisting using fs for C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\data
+2025-06-26T02:48:32.722Z - info: fs store is loading data
+2025-06-26T02:48:32.755Z - info: fs store is initialized successfully
+2025-06-26T02:48:32.763Z - debug: studio default theme is: light
+2025-06-26T02:48:32.771Z - info: Creating default express app.
+2025-06-26T02:48:33.815Z - info: jsreport server successfully started on http port: 5488
+2025-06-26T02:48:33.818Z - info: Verifying license key free
+2025-06-26T02:48:34.764Z - info: Using enterprise trial license
+2025-06-26T02:48:34.770Z - info: Initializing worker threads
+2025-06-26T02:48:34.771Z - debug: Extensions in workers: base, child-templates, components, data, express, handlebars, jsrender, localization, npm, pdf-utils, reports, text, version-control, assets, browser-client, chrome-pdf, docx, html-to-xlsx, pptx, scripts, static-pdf, studio, xlsx
+2025-06-26T02:48:41.804Z - info: 2 worker threads initialized in 7034ms
+2025-06-26T02:48:41.805Z - info: Starting temp files cleanup with 180000ms threshold
+2025-06-26T02:48:41.806Z - info: reporter initialized
+2025-06-26T02:49:32.785Z - warn: Cleaning fs journal failed, will reload Unexpected end of JSON input stack=SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at module.exports.parse (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\serializator\index.js:56:15)
+    at parse (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\customUtils.js:63:10)
+    at Object.clean (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\journal.js:199:24)
+    at async lock (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\customUtils.js:153:12)
+2025-06-26T02:50:51.126Z - debug: OData query on templates
+2025-06-26T02:50:51.159Z - debug: OData query on settings
+2025-06-26T02:50:51.164Z - debug: OData query on folders
+2025-06-26T02:50:51.172Z - debug: OData query on components
+2025-06-26T02:50:51.179Z - debug: OData query on data
+2025-06-26T02:50:51.186Z - debug: OData query on tags
+2025-06-26T02:50:51.193Z - debug: OData query on assets
+2025-06-26T02:50:51.202Z - debug: OData query on scripts
+2025-06-26T02:50:51.209Z - debug: OData query on schedules
+2025-06-26T02:50:51.290Z - debug: OData query on templates
