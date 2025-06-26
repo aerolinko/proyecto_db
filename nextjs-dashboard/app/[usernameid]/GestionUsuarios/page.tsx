@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import {PencilIcon, TrashIcon} from "@heroicons/react/24/outline";
 import Cookies from "js-cookie";
+
 interface Empleado {
   id: string
   cedula: number
@@ -17,6 +18,42 @@ interface Empleado {
   nombre_completo_full: string
 }
 
+interface ClienteNatural {
+  id: string
+  cedula: number
+  primer_nombre: string
+  primer_apellido: string
+  segundo_nombre?: string
+  segundo_apellido?: string
+  direccion: string
+  rif: string
+  total_puntos: number
+  nombre_completo: string
+  nombre_completo_full: string
+}
+
+interface ClienteJuridico {
+  id: string
+  rif: string
+  razon_social: string
+  denominacion_comercial: string
+  capital: number
+  direccion: string
+  total_puntos: number
+  nombre_completo: string
+  nombre_completo_full: string
+}
+
+interface MiembroAcaucab {
+  id: string
+  rif: string
+  razon_social: string
+  denominacion_comercial: string
+  direccion: string
+  nombre_completo: string
+  nombre_completo_full: string
+}
+
 interface Usuario {
   id: string
   email: string
@@ -27,52 +64,108 @@ interface Usuario {
   primer_apellido?: string
   cedula?: number
   password?: string
+  entidad_asociada?: string
+  fk_cliente_natural?: number
+  fk_cliente_juridico?: number
+  fk_miembro_acaucab?: number
 }
 
 export default function GestionUsuarios() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [empleados, setEmpleados] = useState<Empleado[]>([])
+  const [clientesNaturales, setClientesNaturales] = useState<ClienteNatural[]>([])
+  const [clientesJuridicos, setClientesJuridicos] = useState<ClienteJuridico[]>([])
+  const [miembrosAcaucab, setMiembrosAcaucab] = useState<MiembroAcaucab[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadingEmpleados, setLoadingEmpleados] = useState(true)
+  const [loadingEntidades, setLoadingEntidades] = useState(true)
   const [permissions, setPermissions] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [editingUser, setEditingUser] = useState<Usuario | null>(null)
-  const [newUser, setNewUser] = useState({ email: "", password: "", empleadoId: "" })
+  const [newUser, setNewUser] = useState({ 
+    email: "", 
+    password: "", 
+    tipoEntidad: "empleado" as 'empleado' | 'cliente_natural' | 'cliente_juridico' | 'miembro_acaucab',
+    entidadId: "" 
+  })
+  const [debugMode, setDebugMode] = useState(false)
+  const [debugData, setDebugData] = useState<any>({})
 
-  // Cargar usuarios y empleados al montar el componente
+  // Cargar usuarios y entidades al montar el componente
   useEffect(() => {
     fetchUsuarios()
-    fetchEmpleados()
+    fetchEntidades()
     const permissionsCookie = Cookies.get("permissions");
     if (permissionsCookie != null) {
       setPermissions(JSON.parse(permissionsCookie));
     }
   }, [])
 
-  const fetchEmpleados = async () => {
+  const fetchEntidades = async () => {
     try {
-      setLoadingEmpleados(true)
+      setLoadingEntidades(true)
 
-      const response = await fetch("/api/empleados", {
+      // Obtener empleados
+      const empleadosResponse = await fetch("/api/usuarios?tipoEntidad=empleados", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      if (empleadosResponse.ok) {
+        const empleadosData = await empleadosResponse.json()
+        setEmpleados(empleadosData.entidades || [])
       }
 
-      const data = await response.json()
-      setEmpleados(data.empleados || [])
+      // Obtener clientes naturales
+      const clientesNaturalesResponse = await fetch("/api/usuarios?tipoEntidad=clientes_naturales", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+      if (clientesNaturalesResponse.ok) {
+        const clientesNaturalesData = await clientesNaturalesResponse.json()
+        setClientesNaturales(clientesNaturalesData.entidades || [])
+      }
+
+      // Obtener clientes jurídicos
+      const clientesJuridicosResponse = await fetch("/api/usuarios?tipoEntidad=clientes_juridicos", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+      if (clientesJuridicosResponse.ok) {
+        const clientesJuridicosData = await clientesJuridicosResponse.json()
+        setClientesJuridicos(clientesJuridicosData.entidades || [])
+      }
+
+      // Obtener miembros ACAUCAB
+      const miembrosAcaucabResponse = await fetch("/api/usuarios?tipoEntidad=miembros_acaucab", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+      if (miembrosAcaucabResponse.ok) {
+        const miembrosAcaucabData = await miembrosAcaucabResponse.json()
+        setMiembrosAcaucab(miembrosAcaucabData.entidades || [])
+      }
     } catch (error) {
-      // No bloquear la UI si no se pueden cargar empleados
-      setEmpleados([])
+      console.error("Error cargando entidades:", error)
     } finally {
-      setLoadingEmpleados(false)
+      setLoadingEntidades(false)
+    }
+  }
+
+  const fetchDebugData = async () => {
+    try {
+      const [clientesNaturales, clientesJuridicos, miembrosAcaucab] = await Promise.all([
+        fetch("/api/usuarios?tipoEntidad=all_clientes_naturales").then(r => r.json()),
+        fetch("/api/usuarios?tipoEntidad=all_clientes_juridicos").then(r => r.json()),
+        fetch("/api/usuarios?tipoEntidad=all_miembros_acaucab").then(r => r.json())
+      ])
+
+      setDebugData({
+        clientesNaturales: clientesNaturales.entidades || [],
+        clientesJuridicos: clientesJuridicos.entidades || [],
+        miembrosAcaucab: miembrosAcaucab.entidades || []
+      })
+    } catch (error) {
+      console.error("Error cargando datos de debugging:", error)
     }
   }
 
@@ -114,8 +207,8 @@ export default function GestionUsuarios() {
   }
 
   const createUser = async () => {
-    if (!newUser.email || !newUser.password || !newUser.empleadoId) {
-      alert("Por favor, completa todos los campos incluyendo la selección de empleado")
+    if (!newUser.email || !newUser.password || !newUser.entidadId) {
+      alert("Por favor, completa todos los campos incluyendo la selección de entidad")
       return
     }
 
@@ -133,8 +226,11 @@ export default function GestionUsuarios() {
 
       const data = await response.json()
       setUsuarios((prev) => [...(prev || []), data.user])
-      setNewUser({ email: "", password: "", empleadoId: "" })
+      setNewUser({ email: "", password: "", tipoEntidad: "empleado", entidadId: "" })
       alert("Usuario creado exitosamente")
+      
+      // Recargar entidades para actualizar las listas
+      fetchEntidades()
     } catch (error) {
       alert(error instanceof Error ? error.message : "Error al crear usuario")
     }
@@ -150,7 +246,7 @@ export default function GestionUsuarios() {
         body: JSON.stringify({
           email: editingUser.email,
           password: editingUser.password,
-          empleadoId: editingUser.empleado_id,
+          // No enviar tipoEntidad ni entidadId ya que no se pueden cambiar
         }),
       })
 
@@ -163,6 +259,9 @@ export default function GestionUsuarios() {
       setUsuarios((prev) => (prev || []).map((user) => (user.id === editingUser.id ? data.user : user)))
       setEditingUser(null)
       alert("Usuario actualizado exitosamente")
+      
+      // Recargar entidades para actualizar las listas
+      fetchEntidades()
     } catch (error) {
       alert(error instanceof Error ? error.message : "Error al actualizar usuario")
     }
@@ -185,9 +284,52 @@ export default function GestionUsuarios() {
 
       setUsuarios((prev) => (prev || []).filter((user) => user.id !== id))
       alert("Usuario eliminado exitosamente")
+      
+      // Recargar entidades para actualizar las listas
+      fetchEntidades()
     } catch (error) {
       alert(error instanceof Error ? error.message : "Error al eliminar usuario")
     }
+  }
+
+  // Obtener las entidades disponibles según el tipo seleccionado
+  const getEntidadesDisponibles = () => {
+    switch (newUser.tipoEntidad) {
+      case 'empleado':
+        return empleados
+      case 'cliente_natural':
+        return clientesNaturales
+      case 'cliente_juridico':
+        return clientesJuridicos
+      case 'miembro_acaucab':
+        return miembrosAcaucab
+      default:
+        return []
+    }
+  }
+
+  const getEntidadDisplayName = (entidad: any) => {
+    const baseName = (() => {
+      switch (newUser.tipoEntidad) {
+        case 'empleado':
+          return `${entidad.nombre_completo} (Cédula: ${entidad.cedula})`
+        case 'cliente_natural':
+          return `${entidad.nombre_completo} (Cédula: ${entidad.cedula})`
+        case 'cliente_juridico':
+          return `${entidad.razon_social} (RIF: ${entidad.rif})`
+        case 'miembro_acaucab':
+          return `${entidad.razon_social} (RIF: ${entidad.rif})`
+        default:
+          return entidad.nombre_completo || entidad.razon_social || 'Sin nombre'
+      }
+    })()
+    
+    // Agregar indicador si tiene usuario (solo para debugging o información)
+    if (entidad.tiene_usuario) {
+      return `${baseName} ✅ (Ya tiene usuario)`
+    }
+    
+    return baseName
   }
 
   // Filtrar usuarios basado en el término de búsqueda
@@ -195,7 +337,10 @@ export default function GestionUsuarios() {
     usuarios?.filter(
       (user) =>
         user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.empleado_nombre?.toLowerCase().includes(searchTerm.toLowerCase()),
+        user.empleado_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.entidad_asociada?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.primer_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.primer_apellido?.toLowerCase().includes(searchTerm.toLowerCase()),
     ) || []
 
   // Estado de carga
@@ -237,6 +382,60 @@ export default function GestionUsuarios() {
       <div className="max-w-6xl mx-auto px-4">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Gestión de Usuarios</h1>
 
+        {/* Botón de debugging temporal */}
+        <div className="mb-4">
+          <button
+            onClick={() => {
+              setDebugMode(!debugMode)
+              if (!debugMode) {
+                fetchDebugData()
+              }
+            }}
+            className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors"
+          >
+            {debugMode ? "Ocultar Debug" : "Mostrar Debug - Ver todas las entidades"}
+          </button>
+        </div>
+
+        {/* Sección de debugging */}
+        {debugMode && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-4">Debug - Todas las entidades</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <h4 className="font-medium text-yellow-700 mb-2">Clientes Naturales ({debugData.clientesNaturales?.length || 0})</h4>
+                <div className="text-sm space-y-1 max-h-40 overflow-y-auto">
+                  {debugData.clientesNaturales?.map((cliente: any) => (
+                    <div key={cliente.id} className={`p-1 rounded ${cliente.tiene_usuario ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                      {cliente.nombre_completo} - {cliente.tiene_usuario ? 'Con usuario' : 'Sin usuario'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-yellow-700 mb-2">Clientes Jurídicos ({debugData.clientesJuridicos?.length || 0})</h4>
+                <div className="text-sm space-y-1 max-h-40 overflow-y-auto">
+                  {debugData.clientesJuridicos?.map((cliente: any) => (
+                    <div key={cliente.id} className={`p-1 rounded ${cliente.tiene_usuario ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                      {cliente.razon_social} - {cliente.tiene_usuario ? 'Con usuario' : 'Sin usuario'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-yellow-700 mb-2">Miembros ACAUCAB ({debugData.miembrosAcaucab?.length || 0})</h4>
+                <div className="text-sm space-y-1 max-h-40 overflow-y-auto">
+                  {debugData.miembrosAcaucab?.map((miembro: any) => (
+                    <div key={miembro.id} className={`p-1 rounded ${miembro.tiene_usuario ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                      {miembro.razon_social} - {miembro.tiene_usuario ? 'Con usuario' : 'Sin usuario'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Formulario para crear nuevo usuario */}
         {permissions.some((element) => element.descripcion.includes('crear USUARIO')) && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -244,7 +443,7 @@ export default function GestionUsuarios() {
             <span className="text-green-600">+</span>
             Crear Nuevo Usuario
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <input
               type="email"
               placeholder="Email (nombre_usuario)"
@@ -260,21 +459,35 @@ export default function GestionUsuarios() {
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <select
-              value={newUser.empleadoId}
-              onChange={(e) => setNewUser((prev) => ({ ...prev, empleadoId: e.target.value }))}
+              value={newUser.tipoEntidad}
+              onChange={(e) => setNewUser((prev) => ({ 
+                ...prev, 
+                tipoEntidad: e.target.value as 'empleado' | 'cliente_natural' | 'cliente_juridico' | 'miembro_acaucab',
+                entidadId: "" // Reset entidadId when changing tipoEntidad
+              }))}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={loadingEmpleados}
             >
-              <option value="">{loadingEmpleados ? "Cargando empleados..." : "Seleccionar empleado"}</option>
-              {empleados.map((empleado) => (
-                <option key={empleado.id} value={empleado.id}>
-                  {empleado.nombre_completo} (Cédula: {empleado.cedula})
+              <option value="empleado">Empleado</option>
+              <option value="cliente_natural">Cliente Natural</option>
+              <option value="cliente_juridico">Cliente Jurídico</option>
+              <option value="miembro_acaucab">Miembro ACAUCAB</option>
+            </select>
+            <select
+              value={newUser.entidadId}
+              onChange={(e) => setNewUser((prev) => ({ ...prev, entidadId: e.target.value }))}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loadingEntidades}
+            >
+              <option value="">{loadingEntidades ? "Cargando entidades..." : "Seleccionar entidad"}</option>
+              {getEntidadesDisponibles().map((entidad) => (
+                <option key={entidad.id} value={entidad.id}>
+                  {getEntidadDisplayName(entidad)}
                 </option>
               ))}
             </select>
             <button
               onClick={createUser}
-              disabled={loadingEmpleados}
+              disabled={loadingEntidades}
               className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <span>+</span>
@@ -289,7 +502,7 @@ export default function GestionUsuarios() {
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
             <input
               type="text"
-              placeholder="Buscar usuarios por email o empleado..."
+              placeholder="Buscar usuarios por email, empleado o entidad..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -319,21 +532,15 @@ export default function GestionUsuarios() {
                           value={editingUser.email}
                           onChange={(e) => setEditingUser((prev) => (prev ? { ...prev, email: e.target.value } : null))}
                           className="flex-1 min-w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Email"
                         />
-                        <select
-                          value={editingUser.empleado_id || ""}
-                          onChange={(e) =>
-                            setEditingUser((prev) => (prev ? { ...prev, empleado_id: e.target.value } : null))
-                          }
+                        <input
+                          type="password"
+                          value={editingUser.password || ""}
+                          onChange={(e) => setEditingUser((prev) => (prev ? { ...prev, password: e.target.value } : null))}
                           className="flex-1 min-w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Sin empleado asignado</option>
-                          {empleados.map((empleado) => (
-                            <option key={empleado.id} value={empleado.id}>
-                              {empleado.nombre_completo} (Cédula: {empleado.cedula})
-                            </option>
-                          ))}
-                        </select>
+                          placeholder="Nueva contraseña (dejar vacío para mantener la actual)"
+                        />
                         <div className="flex gap-2">
                           <button
                             onClick={updateUser}
@@ -354,10 +561,9 @@ export default function GestionUsuarios() {
                         <div className="flex-1">
                           <p className="font-medium text-gray-900">{user.email}</p>
                           <p className="text-sm text-gray-500">ID: {user.id}</p>
-                          {user.empleado_nombre && (
+                          {user.entidad_asociada && (
                             <p className="text-sm text-blue-600">
-                              👤 Empleado: {user.empleado_nombre}
-                              {user.cedula && ` (Cédula: ${user.cedula})`}
+                              👤 {user.entidad_asociada}
                             </p>
                           )}
                           {user.fecha_creacion && (

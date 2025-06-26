@@ -168,11 +168,12 @@ export async function getEmpleados(){
 // Funciones para operaciones CRUD de usuarios con empleados
 export async function getAllUsuariosWithEmpleados() {
   try {
-    const result = await sql`SELECT * FROM get_all_usuarios_with_empleados()`
-    console.log(`Usuarios con empleados obtenidos: ${result.length} registros`)
+    console.log("=== getAllUsuariosWithEmpleados ===")
+    const result = await sql`SELECT * FROM get_all_usuarios_complete()`
+    console.log(`Usuarios obtenidos: ${result.length}`)
     return result
   } catch (error) {
-    console.error("Error getting all usuarios with empleados:", error)
+    console.error("Error en getAllUsuariosWithEmpleados:", error)
     throw error
   }
 }
@@ -523,4 +524,92 @@ export async function getClientesJuridicos() {
     console.error("Error en getClientesJuridicos:", error)
     throw error
   }
+}
+
+// Funciones para obtener entidades sin usuarios asignados
+export async function getClientesNaturalesSinUsuario() {
+    return await sql`SELECT * FROM get_clientes_naturales_sin_usuario()`;
+}
+
+export async function getClientesJuridicosSinUsuario() {
+    return await sql`SELECT * FROM get_clientes_juridicos_sin_usuario()`;
+}
+
+export async function getMiembrosAcaucabSinUsuario() {
+    return await sql`SELECT * FROM get_miembros_acaucab_sin_usuario()`;
+}
+
+// Funciones para obtener TODAS las entidades (para debugging)
+export async function getAllClientesNaturales() {
+    return await sql`SELECT * FROM get_all_clientes_naturales()`;
+}
+
+export async function getAllClientesJuridicos() {
+    return await sql`SELECT * FROM get_all_clientes_juridicos()`;
+}
+
+export async function getAllMiembrosAcaucab() {
+    return await sql`SELECT * FROM get_all_miembros_acaucab()`;
+}
+
+// Nuevas funciones para crear usuarios con diferentes tipos de entidades
+export async function createUsuarioWithEntidad(
+  email: string, 
+  password: string, 
+  tipoEntidad: 'empleado' | 'cliente_natural' | 'cliente_juridico' | 'miembro_acaucab',
+  entidadId: string
+) {
+  try {
+    console.log(`Creando usuario con ${tipoEntidad}:`, { email, tipoEntidad, entidadId })
+    
+    let result
+    switch (tipoEntidad) {
+      case 'empleado':
+        result = await sql`SELECT * FROM create_usuario_with_empleado(${email}, ${password}, ${Number.parseInt(entidadId)})`
+        break
+      case 'cliente_natural':
+        result = await sql`SELECT * FROM create_usuario_with_cliente_natural(${email}, ${password}, ${Number.parseInt(entidadId)})`
+        break
+      case 'cliente_juridico':
+        result = await sql`SELECT * FROM create_usuario_with_cliente_juridico(${email}, ${password}, ${Number.parseInt(entidadId)})`
+        break
+      case 'miembro_acaucab':
+        result = await sql`SELECT * FROM create_usuario_with_miembro_acaucab(${email}, ${password}, ${Number.parseInt(entidadId)})`
+        break
+      default:
+        throw new Error(`Tipo de entidad no válido: ${tipoEntidad}`)
+    }
+    
+    console.log(`Usuario creado con ${tipoEntidad}: ${result.length} registros`)
+    return result[0]
+  } catch (error) {
+    console.error(`Error creating usuario with ${tipoEntidad}:`, error)
+    throw error
+  }
+}
+
+export async function updateUsuarioWithEntidad(
+  id: string, 
+  email: string, 
+  password?: string, 
+  tipoEntidad?: 'empleado' | 'cliente_natural' | 'cliente_juridico' | 'miembro_acaucab',
+  entidadId?: string
+) {
+  try {
+    console.log(`Actualizando usuario:`, { id, email, tipoEntidad, entidadId })
+    
+    // Usar la función unificada que no permite cambiar la entidad
+    const result = await sql`SELECT * FROM update_usuario_with_entidad(${Number.parseInt(id)}, ${email}, ${password || null})`
+    
+    console.log(`Usuario actualizado: ${result.length} registros`)
+    return result[0]
+  } catch (error) {
+    console.error("Error updating usuario:", error)
+    throw error
+  }
+}
+
+// Obtener todos los usuarios con información completa de todas las entidades
+export async function getAllUsuariosComplete() {
+  return await sql`SELECT * FROM get_all_usuarios_complete()`;
 }

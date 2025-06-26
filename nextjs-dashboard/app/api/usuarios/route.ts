@@ -1,11 +1,19 @@
 import type { NextRequest } from "next/server"
-import {
-  getAllUsuariosWithEmpleados,
-  getUsuarioWithEmpleadoById,
-  getUsuarioWithEmpleadoByEmail,
-  createUsuarioWithEmpleado,
-  updateUsuarioWithEmpleado,
-  deleteUsuarioById, getAllRolesUsuario,
+import { 
+  getUsuarioWithEmpleadoById, 
+  getUsuarioWithEmpleadoByEmail, 
+  createUsuarioWithEntidad, 
+  updateUsuarioWithEntidad, 
+  deleteUsuarioById, 
+  getAllRolesUsuario, 
+  getAllUsuariosComplete,
+  getClientesNaturalesSinUsuario,
+  getClientesJuridicosSinUsuario,
+  getMiembrosAcaucabSinUsuario,
+  getEmpleados,
+  getAllClientesNaturales,
+  getAllClientesJuridicos,
+  getAllMiembrosAcaucab
 } from "@/db"
 
 export async function GET(request: NextRequest) {
@@ -16,6 +24,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get("id")
     const email = searchParams.get("email")
     const role = searchParams.get("roles")
+    const tipoEntidad = searchParams.get("tipoEntidad")
 
     if (userId) {
       console.log("Buscando usuario por ID:", userId)
@@ -33,9 +42,7 @@ export async function GET(request: NextRequest) {
 
     if (role) {
       console.log("Buscando usuario roles de usurio:", role)
-      const rolesU = await getAllRolesUsuario(role)
-
-
+      const rolesU = await getAllRolesUsuario(parseInt(role))
 
       return Response.json({
         message: "Usuario encontrado",
@@ -57,9 +64,48 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Obtener entidades sin usuarios asignados
+    if (tipoEntidad) {
+      console.log("Obteniendo entidades sin usuarios:", tipoEntidad)
+      let entidades
+      
+      switch (tipoEntidad) {
+        case 'empleados':
+          entidades = await getEmpleados()
+          break
+        case 'clientes_naturales':
+          entidades = await getClientesNaturalesSinUsuario()
+          break
+        case 'clientes_juridicos':
+          entidades = await getClientesJuridicosSinUsuario()
+          break
+        case 'miembros_acaucab':
+          entidades = await getMiembrosAcaucabSinUsuario()
+          break
+        // Endpoints de debugging
+        case 'all_clientes_naturales':
+          entidades = await getAllClientesNaturales()
+          break
+        case 'all_clientes_juridicos':
+          entidades = await getAllClientesJuridicos()
+          break
+        case 'all_miembros_acaucab':
+          entidades = await getAllMiembrosAcaucab()
+          break
+        default:
+          return Response.json({ error: "Tipo de entidad no válido" }, { status: 400 })
+      }
+
+      return Response.json({
+        message: `${tipoEntidad} obtenidos exitosamente`,
+        entidades: entidades,
+        count: entidades.length,
+      })
+    }
+
     // Obtener todos los usuarios con información del empleado
     console.log("Obteniendo todos los usuarios con empleados...")
-    const usuarios = await getAllUsuariosWithEmpleados()
+    const usuarios = await getAllUsuariosComplete()
 
     console.log("Usuarios obtenidos:", usuarios.length)
 
@@ -87,22 +133,23 @@ export async function POST(request: NextRequest) {
   try {
     console.log("=== INICIO POST /api/usuarios ===")
 
-    const { email, password, empleadoId } = await request.json()
+    const { email, password, tipoEntidad, entidadId } = await request.json()
     console.log("Datos recibidos:", {
       email,
       password: password ? "[OCULTO]" : "undefined",
-      empleadoId,
+      tipoEntidad,
+      entidadId,
     })
 
     if (!email || !password) {
       return Response.json({ error: "Email y contraseña son requeridos" }, { status: 400 })
     }
 
-    if (!empleadoId) {
-      return Response.json({ error: "Debe seleccionar un empleado" }, { status: 400 })
+    if (!tipoEntidad || !entidadId) {
+      return Response.json({ error: "Debe seleccionar un tipo de entidad y la entidad correspondiente" }, { status: 400 })
     }
 
-    const usuarioCompleto = await createUsuarioWithEmpleado(email, password, empleadoId)
+    const usuarioCompleto = await createUsuarioWithEntidad(email, password, tipoEntidad, entidadId)
 
     return Response.json(
       {
@@ -119,7 +166,19 @@ export async function POST(request: NextRequest) {
       if (error.message === "El empleado seleccionado no existe") {
         return Response.json({ error: error.message }, { status: 400 })
       }
+      if (error.message === "El cliente natural seleccionado no existe") {
+        return Response.json({ error: error.message }, { status: 400 })
+      }
+      if (error.message === "El cliente jurídico seleccionado no existe") {
+        return Response.json({ error: error.message }, { status: 400 })
+      }
+      if (error.message === "El miembro ACAUCAB seleccionado no existe") {
+        return Response.json({ error: error.message }, { status: 400 })
+      }
       if (error.message === "El email ya está registrado") {
+        return Response.json({ error: error.message }, { status: 400 })
+      }
+      if (error.message.includes("ya tiene un usuario asignado")) {
         return Response.json({ error: error.message }, { status: 400 })
       }
     }
@@ -140,20 +199,19 @@ export async function PUT(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get("id")
-    const { email, password, empleadoId } = await request.json()
+    const { email, password } = await request.json()
 
     console.log("Datos recibidos:", {
       userId,
       email,
       password: password ? "[OCULTO]" : "undefined",
-      empleadoId,
     })
 
     if (!userId) {
       return Response.json({ error: "ID de usuario requerido" }, { status: 400 })
     }
 
-    const usuarioCompleto = await updateUsuarioWithEmpleado(userId, email, password, empleadoId)
+    const usuarioCompleto = await updateUsuarioWithEntidad(userId, email, password)
 
     return Response.json({
       message: "Usuario actualizado exitosamente",
@@ -167,7 +225,7 @@ export async function PUT(request: NextRequest) {
       if (error.message === "Usuario no encontrado") {
         return Response.json({ error: error.message }, { status: 404 })
       }
-      if (error.message === "El empleado seleccionado no existe") {
+      if (error.message.includes("seleccionado no existe")) {
         return Response.json({ error: error.message }, { status: 400 })
       }
     }

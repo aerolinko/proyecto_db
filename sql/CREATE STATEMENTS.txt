@@ -1968,6 +1968,8 @@ RETURNS TABLE (
   ultimo_pago_monto INTEGER,
   meses_pendientes INTEGER,
   monto_pendiente INTEGER,
+  monto_total_pagado INTEGER,
+  deuda_final INTEGER,
   contacto_nombre VARCHAR,
   contacto_telefono VARCHAR,
   contacto_email VARCHAR,
@@ -1977,39 +1979,72 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
   RETURN QUERY
+  WITH calculos_membresia AS (
+    SELECT 
+      ma.miembro_id,
+      ma.razon_social,
+      ma.rif,
+      u.fecha_creacion as fecha_afiliacion,
+      mem.monto::INTEGER as cuota_mensual,
+      mem.fecha_vencimiento,
+      CASE 
+        WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
+        ELSE 'VENCIDO'
+      END::VARCHAR as estado_afiliacion,
+      MAX(p.fecha) FILTER (WHERE p.fk_membresia IS NOT NULL) as ultimo_pago_fecha,
+      MAX(p.monto) FILTER (WHERE p.fk_membresia IS NOT NULL)::INTEGER as ultimo_pago_monto,
+      COALESCE(SUM(p.monto) FILTER (WHERE p.fk_membresia IS NOT NULL), 0)::INTEGER as monto_total_pagado,
+      CONCAT(pc.primer_nombre, ' ', pc.primer_apellido)::VARCHAR as contacto_nombre,
+      CONCAT(t.codigo, '-', t.numero)::VARCHAR as contacto_telefono,
+      CONCAT(ce.usuario, '@', ce.dominio)::VARCHAR as contacto_email,
+      ma.direccion,
+      -- Cálculo preciso de meses pendientes
+      CASE 
+        WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 
+          -- Para activos: meses desde afiliación hasta hoy
+          GREATEST(0, (DATE '2025-06-26' - u.fecha_creacion) / 30)
+        ELSE 
+          -- Para vencidos: meses desde afiliación hasta vencimiento
+          GREATEST(0, (mem.fecha_vencimiento - u.fecha_creacion) / 30)
+      END::INTEGER as meses_pendientes
+    FROM miembro_acaucab ma
+    INNER JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+    INNER JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+    LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia
+    LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
+    LEFT JOIN telefono t ON ma.miembro_id = t.fk_miembro_acaucab
+    LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
+    WHERE ma.miembro_id IS NOT NULL
+      AND (p_fecha_inicio IS NULL OR u.fecha_creacion >= p_fecha_inicio)
+      AND (p_fecha_fin IS NULL OR u.fecha_creacion <= p_fecha_fin)
+    GROUP BY 
+      ma.miembro_id, ma.razon_social, ma.rif, ma.direccion, 
+      u.fecha_creacion, mem.fecha_vencimiento, mem.monto, pc.primer_nombre, pc.primer_apellido,
+      t.codigo, t.numero, ce.usuario, ce.dominio
+  )
   SELECT 
-    ma.miembro_id,
-    ma.razon_social,
-    ma.rif,
-    u.fecha_creacion as fecha_afiliacion,
-    mem.monto::INTEGER as cuota_mensual,
-    mem.fecha_vencimiento,
-    CASE 
-      WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
-      ELSE 'VENCIDO'
-    END::VARCHAR as estado_afiliacion,
-    MAX(p.fecha) as ultimo_pago_fecha,
-    MAX(p.monto)::INTEGER as ultimo_pago_monto,
-    GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))))::INTEGER as meses_pendientes,
-    (mem.monto * GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion)))))::INTEGER as monto_pendiente,
-    CONCAT(pc.primer_nombre, ' ', pc.primer_apellido)::VARCHAR as contacto_nombre,
-    CONCAT(t.codigo, '-', t.numero)::VARCHAR as contacto_telefono,
-    CONCAT(ce.usuario, ce.dominio)::VARCHAR as contacto_email,
-    ma.direccion
-  FROM miembro_acaucab ma
-  LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
-  LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
-  LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia
-  LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
-  LEFT JOIN telefono t ON ma.miembro_id = t.fk_miembro_acaucab
-  LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
-  WHERE ma.miembro_id IS NOT NULL
-  GROUP BY 
-    ma.miembro_id, ma.razon_social, ma.rif, ma.direccion, 
-    u.fecha_creacion, mem.fecha_vencimiento, mem.monto, pc.primer_nombre, pc.primer_apellido,
-    t.codigo, t.numero, ce.usuario, ce.dominio
-  HAVING GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion)))) >= 1
-  ORDER BY meses_pendientes DESC, monto_pendiente DESC
+    cm.miembro_id,
+    cm.razon_social,
+    cm.rif,
+    cm.fecha_afiliacion,
+    cm.cuota_mensual,
+    cm.fecha_vencimiento,
+    cm.estado_afiliacion,
+    cm.ultimo_pago_fecha,
+    cm.ultimo_pago_monto,
+    cm.meses_pendientes,
+    (cm.cuota_mensual * cm.meses_pendientes)::INTEGER as monto_pendiente,
+    cm.monto_total_pagado,
+    (cm.cuota_mensual * cm.meses_pendientes - cm.monto_total_pagado)::INTEGER as deuda_final,
+    cm.contacto_nombre,
+    cm.contacto_telefono,
+    cm.contacto_email,
+    cm.direccion
+  FROM calculos_membresia cm
+  WHERE 
+    cm.meses_pendientes > 0 
+    AND (cm.cuota_mensual * cm.meses_pendientes - cm.monto_total_pagado) > 0
+  ORDER BY deuda_final DESC, meses_pendientes DESC
   LIMIT p_limite;
 END;
 $$;
@@ -2026,7 +2061,8 @@ RETURNS TABLE (
   fecha_contrato DATE,
   fk_lugar INTEGER,
   nombre_completo VARCHAR,
-  nombre_completo_full VARCHAR
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
 )
 LANGUAGE plpgsql
 AS $$
@@ -2043,8 +2079,10 @@ BEGIN
     fecha_contrato,
     fk_lugar,
     CONCAT(primer_nombre, ' ', primer_apellido)::VARCHAR as nombre_completo,
-    CONCAT(primer_nombre, ' ', COALESCE(segundo_nombre, ''), ' ', primer_apellido, ' ', COALESCE(segundo_apellido, ''))::VARCHAR as nombre_completo_full
-  FROM empleado
+    CONCAT(primer_nombre, ' ', COALESCE(segundo_nombre, ''), ' ', primer_apellido, ' ', COALESCE(segundo_apellido, ''))::VARCHAR as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM empleado e
+  LEFT JOIN usuario u ON e.empleado_id = u.fk_empleado
   ORDER BY primer_nombre, primer_apellido;
 END;
 $$;
@@ -2150,7 +2188,11 @@ END;
 $$;
 
 -- 4. Crear usuario con empleado
-CREATE OR REPLACE FUNCTION create_usuario_with_empleado(p_email VARCHAR, p_password VARCHAR, p_empleado_id INTEGER)
+CREATE OR REPLACE FUNCTION create_usuario_with_empleado(
+  p_email VARCHAR,
+  p_password VARCHAR,
+  p_empleado_id INTEGER
+)
 RETURNS TABLE (
   id TEXT,
   email VARCHAR,
@@ -2158,27 +2200,25 @@ RETURNS TABLE (
   empleado_id TEXT,
   primer_nombre VARCHAR,
   primer_apellido VARCHAR,
+  cedula INTEGER,
   empleado_nombre VARCHAR
 )
 LANGUAGE plpgsql
 AS $$
-DECLARE
-  nuevo_usuario_id INTEGER;
 BEGIN
   -- Verificar que el empleado existe
   IF NOT EXISTS (SELECT 1 FROM empleado WHERE empleado_id = p_empleado_id) THEN
     RAISE EXCEPTION 'El empleado seleccionado no existe';
   END IF;
 
-  -- Verificar si el email ya existe
+  -- Verificar que el email no esté registrado
   IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
     RAISE EXCEPTION 'El email ya está registrado';
   END IF;
 
-  -- Crear nuevo usuario
-  INSERT INTO usuario (nombre_usuario, hash_contrasena, fecha_creacion, fk_empleado) 
-  VALUES (p_email, p_password, CURRENT_DATE, p_empleado_id)
-  RETURNING usuario_id INTO nuevo_usuario_id;
+  -- Insertar usuario (permitir múltiples usuarios por empleado)
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_empleado, fecha_creacion)
+  VALUES (p_email, p_password, p_empleado_id, CURRENT_DATE);
 
   -- Retornar información completa
   RETURN QUERY
@@ -2189,10 +2229,11 @@ BEGIN
     u.fk_empleado::TEXT as empleado_id,
     e.primer_nombre,
     e.primer_apellido,
+    e.cedula,
     CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre
   FROM usuario u
   LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
-  WHERE u.usuario_id = nuevo_usuario_id;
+  WHERE u.nombre_usuario = p_email;
 END;
 $$;
 
@@ -2266,5 +2307,855 @@ BEGIN
   DELETE FROM usuario
   WHERE usuario_id = p_id 
   RETURNING usuario_id::TEXT as id, nombre_usuario as email;
+END;
+$$;
+
+-- ===== STORED PROCEDURES PARA GESTIÓN DE USUARIOS =====
+
+-- Obtener TODOS los clientes naturales (para debugging)
+CREATE OR REPLACE FUNCTION get_all_clientes_naturales()
+RETURNS TABLE (
+  id TEXT,
+  cedula INTEGER,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  segundo_nombre VARCHAR,
+  segundo_apellido VARCHAR,
+  direccion VARCHAR,
+  rif VARCHAR,
+  total_puntos INTEGER,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cn.cliente_id::TEXT as id,
+    cn.cedula,
+    cn.primer_nombre,
+    cn.primer_apellido,
+    cn.segundo_nombre,
+    cn.segundo_apellido,
+    cn.direccion,
+    cn.rif,
+    cn.total_puntos,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as nombre_completo,
+    CONCAT(cn.primer_nombre, ' ', COALESCE(cn.segundo_nombre, ''), ' ', cn.primer_apellido, ' ', COALESCE(cn.segundo_apellido, ''))::VARCHAR as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM cliente_natural cn
+  LEFT JOIN usuario u ON cn.cliente_id = u.fk_cliente_natural
+  ORDER BY cn.primer_nombre, cn.primer_apellido;
+END;
+$$;
+
+-- Obtener TODOS los clientes jurídicos (para debugging)
+CREATE OR REPLACE FUNCTION get_all_clientes_juridicos()
+RETURNS TABLE (
+  id TEXT,
+  rif VARCHAR,
+  razon_social VARCHAR,
+  denominacion_comercial VARCHAR,
+  capital NUMERIC,
+  direccion VARCHAR,
+  total_puntos INTEGER,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cj.cliente_id::TEXT as id,
+    cj.rif,
+    cj.razon_social,
+    cj.denominacion_comercial,
+    cj.capital,
+    cj.direccion,
+    cj.total_puntos,
+    cj.razon_social as nombre_completo,
+    cj.razon_social as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM cliente_juridico cj
+  LEFT JOIN usuario u ON cj.cliente_id = u.fk_cliente_juridico
+  ORDER BY cj.razon_social;
+END;
+$$;
+
+-- Obtener TODOS los miembros ACAUCAB (para debugging)
+CREATE OR REPLACE FUNCTION get_all_miembros_acaucab()
+RETURNS TABLE (
+  id TEXT,
+  rif VARCHAR,
+  razon_social VARCHAR,
+  denominacion_comercial VARCHAR,
+  direccion VARCHAR,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    ma.miembro_id::TEXT as id,
+    ma.rif,
+    ma.razon_social,
+    ma.denominacion_comercial,
+    ma.direccion,
+    ma.razon_social as nombre_completo,
+    ma.razon_social as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM miembro_acaucab ma
+  LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+  ORDER BY ma.razon_social;
+END;
+$$;
+
+-- ===== STORED PROCEDURES PARA CREAR USUARIOS =====
+
+-- Crear usuario con empleado
+CREATE OR REPLACE FUNCTION create_usuario_with_empleado(
+  p_email VARCHAR,
+  p_password VARCHAR,
+  p_empleado_id INTEGER
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  empleado_id TEXT,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  cedula INTEGER,
+  empleado_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar que el empleado existe
+  IF NOT EXISTS (SELECT 1 FROM empleado WHERE empleado_id = p_empleado_id) THEN
+    RAISE EXCEPTION 'El empleado seleccionado no existe';
+  END IF;
+
+  -- Verificar que el email no esté registrado
+  IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
+    RAISE EXCEPTION 'El email ya está registrado';
+  END IF;
+
+  -- Verificar que el empleado no tenga usuario asignado
+  IF EXISTS (SELECT 1 FROM usuario WHERE fk_empleado = p_empleado_id) THEN
+    RAISE EXCEPTION 'El empleado ya tiene un usuario asignado';
+  END IF;
+
+  -- Insertar usuario
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_empleado, fecha_creacion)
+  VALUES (p_email, p_password, p_empleado_id, CURRENT_DATE);
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    e.primer_nombre,
+    e.primer_apellido,
+    e.cedula,
+    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  WHERE u.nombre_usuario = p_email;
+END;
+$$;
+
+-- Crear usuario con cliente natural
+CREATE OR REPLACE FUNCTION create_usuario_with_cliente_natural(
+  p_email VARCHAR,
+  p_password VARCHAR,
+  p_cliente_natural_id INTEGER
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  cliente_natural_id TEXT,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  cedula INTEGER,
+  cliente_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar que el cliente natural existe
+  IF NOT EXISTS (SELECT 1 FROM cliente_natural WHERE cliente_id = p_cliente_natural_id) THEN
+    RAISE EXCEPTION 'El cliente natural seleccionado no existe';
+  END IF;
+
+  -- Verificar que el email no esté registrado
+  IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
+    RAISE EXCEPTION 'El email ya está registrado';
+  END IF;
+
+  -- Verificar que el cliente no tenga usuario asignado
+  IF EXISTS (SELECT 1 FROM usuario WHERE fk_cliente_natural = p_cliente_natural_id) THEN
+    RAISE EXCEPTION 'El cliente natural ya tiene un usuario asignado';
+  END IF;
+
+  -- Insertar usuario
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_cliente_natural, fecha_creacion)
+  VALUES (p_email, p_password, p_cliente_natural_id, CURRENT_DATE);
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_cliente_natural::TEXT as cliente_natural_id,
+    cn.primer_nombre,
+    cn.primer_apellido,
+    cn.cedula,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as cliente_nombre
+  FROM usuario u
+  LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+  WHERE u.nombre_usuario = p_email;
+END;
+$$;
+
+-- Crear usuario con cliente jurídico
+CREATE OR REPLACE FUNCTION create_usuario_with_cliente_juridico(
+  p_email VARCHAR,
+  p_password VARCHAR,
+  p_cliente_juridico_id INTEGER
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  cliente_juridico_id TEXT,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  cliente_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar que el cliente jurídico existe
+  IF NOT EXISTS (SELECT 1 FROM cliente_juridico WHERE cliente_id = p_cliente_juridico_id) THEN
+    RAISE EXCEPTION 'El cliente jurídico seleccionado no existe';
+  END IF;
+
+  -- Verificar que el email no esté registrado
+  IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
+    RAISE EXCEPTION 'El email ya está registrado';
+  END IF;
+
+  -- Verificar que el cliente no tenga usuario asignado
+  IF EXISTS (SELECT 1 FROM usuario WHERE fk_cliente_juridico = p_cliente_juridico_id) THEN
+    RAISE EXCEPTION 'El cliente jurídico ya tiene un usuario asignado';
+  END IF;
+
+  -- Insertar usuario
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_cliente_juridico, fecha_creacion)
+  VALUES (p_email, p_password, p_cliente_juridico_id, CURRENT_DATE);
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_cliente_juridico::TEXT as cliente_juridico_id,
+    cj.razon_social,
+    cj.rif,
+    cj.razon_social as cliente_nombre
+  FROM usuario u
+  LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+  WHERE u.nombre_usuario = p_email;
+END;
+$$;
+
+-- Crear usuario con miembro ACAUCAB
+CREATE OR REPLACE FUNCTION create_usuario_with_miembro_acaucab(
+  p_email VARCHAR,
+  p_password VARCHAR,
+  p_miembro_acaucab_id INTEGER
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  miembro_acaucab_id TEXT,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  miembro_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar que el miembro ACAUCAB existe
+  IF NOT EXISTS (SELECT 1 FROM miembro_acaucab WHERE miembro_id = p_miembro_acaucab_id) THEN
+    RAISE EXCEPTION 'El miembro ACAUCAB seleccionado no existe';
+  END IF;
+
+  -- Verificar que el email no esté registrado
+  IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
+    RAISE EXCEPTION 'El email ya está registrado';
+  END IF;
+
+  -- Insertar usuario (permitir múltiples usuarios por miembro ACAUCAB)
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_miembro_acaucab, fecha_creacion)
+  VALUES (p_email, p_password, p_miembro_acaucab_id, CURRENT_DATE);
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_miembro_acaucab::TEXT as miembro_acaucab_id,
+    ma.razon_social,
+    ma.rif,
+    ma.razon_social as miembro_nombre
+  FROM usuario u
+  LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+  WHERE u.nombre_usuario = p_email;
+END;
+$$;
+
+-- ===== STORED PROCEDURES PARA ACTUALIZAR USUARIOS =====
+
+-- Actualizar usuario con empleado
+CREATE OR REPLACE FUNCTION update_usuario_with_empleado(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL,
+  p_empleado_id INTEGER DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  empleado_id TEXT,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  empleado_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Si se proporciona empleadoId, verificar que existe
+  IF p_empleado_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM empleado WHERE empleado_id = p_empleado_id) THEN
+    RAISE EXCEPTION 'El empleado seleccionado no existe';
+  END IF;
+
+  -- Actualizar usuario
+  IF p_password IS NOT NULL AND p_empleado_id IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password, 
+      fk_empleado = p_empleado_id,
+      fk_cliente_natural = NULL,
+      fk_cliente_juridico = NULL,
+      fk_miembro_acaucab = NULL
+    WHERE usuario_id = p_id;
+  ELSIF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password 
+    WHERE usuario_id = p_id;
+  ELSIF p_empleado_id IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      fk_empleado = p_empleado_id,
+      fk_cliente_natural = NULL,
+      fk_cliente_juridico = NULL,
+      fk_miembro_acaucab = NULL
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    e.primer_nombre,
+    e.primer_apellido,
+    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- Actualizar usuario con cliente natural
+CREATE OR REPLACE FUNCTION update_usuario_with_cliente_natural(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  cliente_natural_id TEXT,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  cedula INTEGER,
+  cliente_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_cliente_natural::TEXT as cliente_natural_id,
+    cn.primer_nombre,
+    cn.primer_apellido,
+    cn.cedula,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as cliente_nombre
+  FROM usuario u
+  LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- Actualizar usuario con cliente jurídico
+CREATE OR REPLACE FUNCTION update_usuario_with_cliente_juridico(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  cliente_juridico_id TEXT,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  cliente_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_cliente_juridico::TEXT as cliente_juridico_id,
+    cj.razon_social,
+    cj.rif,
+    cj.razon_social as cliente_nombre
+  FROM usuario u
+  LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- Actualizar usuario con miembro ACAUCAB
+CREATE OR REPLACE FUNCTION update_usuario_with_miembro_acaucab(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  miembro_acaucab_id TEXT,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  miembro_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_miembro_acaucab::TEXT as miembro_acaucab_id,
+    ma.razon_social,
+    ma.rif,
+    ma.razon_social as miembro_nombre
+  FROM usuario u
+  LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- ===== STORED PROCEDURE PARA OBTENER TODOS LOS USUARIOS =====
+
+-- Obtener todos los usuarios con información completa
+CREATE OR REPLACE FUNCTION get_all_usuarios_complete()
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  empleado_id TEXT,
+  fk_cliente_natural INTEGER,
+  fk_cliente_juridico INTEGER,
+  fk_miembro_acaucab INTEGER,
+  -- Información del empleado
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  cedula INTEGER,
+  empleado_nombre VARCHAR,
+  -- Información del cliente natural
+  cliente_natural_nombre VARCHAR,
+  cliente_natural_apellido VARCHAR,
+  cliente_natural_cedula INTEGER,
+  cliente_natural_nombre_completo VARCHAR,
+  -- Información del cliente jurídico
+  cliente_juridico_nombre VARCHAR,
+  cliente_juridico_rif VARCHAR,
+  -- Información del miembro ACAUCAB
+  miembro_acaucab_nombre VARCHAR,
+  miembro_acaucab_rif VARCHAR,
+  -- Campo combinado para mostrar la entidad asociada
+  entidad_asociada VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    u.fk_cliente_natural, 
+    u.fk_cliente_juridico, 
+    u.fk_miembro_acaucab,
+    -- Información del empleado
+    e.primer_nombre,
+    e.primer_apellido,
+    e.cedula,
+    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre,
+    -- Información del cliente natural
+    cn.primer_nombre as cliente_natural_nombre,
+    cn.primer_apellido as cliente_natural_apellido,
+    cn.cedula as cliente_natural_cedula,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as cliente_natural_nombre_completo,
+    -- Información del cliente jurídico
+    cj.razon_social as cliente_juridico_nombre,
+    cj.rif as cliente_juridico_rif,
+    -- Información del miembro ACAUCAB
+    ma.razon_social as miembro_acaucab_nombre,
+    ma.rif as miembro_acaucab_rif,
+    -- Campo combinado para mostrar la entidad asociada
+    CASE 
+      WHEN u.fk_empleado IS NOT NULL THEN CONCAT('Empleado: ', e.primer_nombre, ' ', e.primer_apellido, ' (Cédula: ', e.cedula, ')')
+      WHEN u.fk_cliente_natural IS NOT NULL THEN CONCAT('Cliente Natural: ', cn.primer_nombre, ' ', cn.primer_apellido, ' (Cédula: ', cn.cedula, ')')
+      WHEN u.fk_cliente_juridico IS NOT NULL THEN CONCAT('Cliente Jurídico: ', cj.razon_social, ' (RIF: ', cj.rif, ')')
+      WHEN u.fk_miembro_acaucab IS NOT NULL THEN CONCAT('Miembro ACAUCAB: ', ma.razon_social, ' (RIF: ', ma.rif, ')')
+      ELSE 'Sin entidad asociada'
+    END::VARCHAR as entidad_asociada
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+  LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+  LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+  ORDER BY u.usuario_id;
+END;
+$$;
+
+-- Actualizar usuario con empleado
+CREATE OR REPLACE FUNCTION update_usuario_with_empleado(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  empleado_id TEXT,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  empleado_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    e.primer_nombre,
+    e.primer_apellido,
+    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- Función unificada para actualizar usuarios (no permite cambiar la entidad)
+CREATE OR REPLACE FUNCTION update_usuario_with_entidad(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  empleado_id TEXT,
+  fk_cliente_natural INTEGER,
+  fk_cliente_juridico INTEGER,
+  fk_miembro_acaucab INTEGER,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  cedula INTEGER,
+  empleado_nombre VARCHAR,
+  entidad_asociada VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_fk_empleado INTEGER;
+  v_fk_cliente_natural INTEGER;
+  v_fk_cliente_juridico INTEGER;
+  v_fk_miembro_acaucab INTEGER;
+BEGIN
+  -- Verificar si el usuario existe y obtener su tipo de entidad
+  SELECT fk_empleado, fk_cliente_natural, fk_cliente_juridico, fk_miembro_acaucab
+  INTO v_fk_empleado, v_fk_cliente_natural, v_fk_cliente_juridico, v_fk_miembro_acaucab
+  FROM usuario WHERE usuario_id = p_id;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa basada en el tipo de entidad
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    u.fk_cliente_natural, 
+    u.fk_cliente_juridico, 
+    u.fk_miembro_acaucab,
+    e.primer_nombre,
+    e.primer_apellido,
+    e.cedula,
+    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre,
+    CASE 
+      WHEN u.fk_empleado IS NOT NULL THEN CONCAT('Empleado: ', e.primer_nombre, ' ', e.primer_apellido, ' (Cédula: ', e.cedula, ')')
+      WHEN u.fk_cliente_natural IS NOT NULL THEN CONCAT('Cliente Natural: ', cn.primer_nombre, ' ', cn.primer_apellido, ' (Cédula: ', cn.cedula, ')')
+      WHEN u.fk_cliente_juridico IS NOT NULL THEN CONCAT('Cliente Jurídico: ', cj.razon_social, ' (RIF: ', cj.rif, ')')
+      WHEN u.fk_miembro_acaucab IS NOT NULL THEN CONCAT('Miembro ACAUCAB: ', ma.razon_social, ' (RIF: ', ma.rif, ')')
+      ELSE 'Sin entidad asociada'
+    END::VARCHAR as entidad_asociada
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+  LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+  LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- Obtener clientes naturales sin usuarios asignados
+CREATE OR REPLACE FUNCTION get_clientes_naturales_sin_usuario()
+RETURNS TABLE (
+  id TEXT,
+  cedula INTEGER,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  segundo_nombre VARCHAR,
+  segundo_apellido VARCHAR,
+  direccion VARCHAR,
+  rif VARCHAR,
+  total_puntos INTEGER,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cn.cliente_id::TEXT as id,
+    cn.cedula,
+    cn.primer_nombre,
+    cn.primer_apellido,
+    cn.segundo_nombre,
+    cn.segundo_apellido,
+    cn.direccion,
+    cn.rif,
+    cn.total_puntos,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as nombre_completo,
+    CONCAT(cn.primer_nombre, ' ', COALESCE(cn.segundo_nombre, ''), ' ', cn.primer_apellido, ' ', COALESCE(cn.segundo_apellido, ''))::VARCHAR as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM cliente_natural cn
+  LEFT JOIN usuario u ON cn.cliente_id = u.fk_cliente_natural
+  ORDER BY cn.primer_nombre, cn.primer_apellido;
+END;
+$$;
+
+-- Obtener clientes jurídicos sin usuarios asignados
+CREATE OR REPLACE FUNCTION get_clientes_juridicos_sin_usuario()
+RETURNS TABLE (
+  id TEXT,
+  rif VARCHAR,
+  razon_social VARCHAR,
+  denominacion_comercial VARCHAR,
+  capital NUMERIC,
+  direccion VARCHAR,
+  total_puntos INTEGER,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cj.cliente_id::TEXT as id,
+    cj.rif,
+    cj.razon_social,
+    cj.denominacion_comercial,
+    cj.capital,
+    cj.direccion,
+    cj.total_puntos,
+    cj.razon_social as nombre_completo,
+    cj.razon_social as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM cliente_juridico cj
+  LEFT JOIN usuario u ON cj.cliente_id = u.fk_cliente_juridico
+  ORDER BY cj.razon_social;
+END;
+$$;
+
+-- Obtener miembros ACAUCAB sin usuarios asignados
+CREATE OR REPLACE FUNCTION get_miembros_acaucab_sin_usuario()
+RETURNS TABLE (
+  id TEXT,
+  rif VARCHAR,
+  razon_social VARCHAR,
+  denominacion_comercial VARCHAR,
+  direccion VARCHAR,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    ma.miembro_id::TEXT as id,
+    ma.rif,
+    ma.razon_social,
+    ma.denominacion_comercial,
+    ma.direccion,
+    ma.razon_social as nombre_completo,
+    ma.razon_social as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM miembro_acaucab ma
+  LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+  ORDER BY ma.razon_social;
 END;
 $$;

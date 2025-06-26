@@ -641,3 +641,38 @@ Error: Unable to find specified template (productosMasVendidos)
 2025-06-26T02:50:51.202Z - debug: OData query on scripts
 2025-06-26T02:50:51.209Z - debug: OData query on schedules
 2025-06-26T02:50:51.290Z - debug: OData query on templates
+2025-06-26T03:24:52.307Z - debug: fs journal was not synced for a while, need full reload
+2025-06-26T03:24:52.465Z - info: fs store is loading data
+2025-06-26T03:35:09.815Z - debug: OData query on templates
+2025-06-26T03:35:09.857Z - debug: OData query on settings
+2025-06-26T03:35:09.864Z - debug: OData query on folders
+2025-06-26T03:35:09.875Z - debug: OData query on components
+2025-06-26T03:35:09.881Z - debug: OData query on data
+2025-06-26T03:35:09.887Z - debug: OData query on tags
+2025-06-26T03:35:09.895Z - debug: OData query on assets
+2025-06-26T03:35:09.903Z - debug: OData query on scripts
+2025-06-26T03:35:09.909Z - debug: OData query on schedules
+2025-06-26T03:35:09.978Z - debug: OData query on templates
+2025-06-26T04:33:01.676Z - info: Render request 1 queued for execution and waiting for available worker rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:01.906Z - info: Starting rendering request 1 rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:01.912Z - info: Rendering template { name: nominaDepartamento, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:01.914Z - debug: Inline data specified. rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:01.925Z - debug: Base url not specified, skipping its injection. rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:01.938Z - debug: Rendering engine jsrender rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:08.148Z - debug: Executing recipe chrome-pdf rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:19.487Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:19.564Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/e1018f59-fb3f-434b-9e95-a6e2aec1c1b9-chrome-pdf.html rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:19.585Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/e1018f59-fb3f-434b-9e95-a6e2aec1c1b9-chrome-pdf.html rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:19.611Z - debug: Running chrome with params {"printBackground":true,"timeout":53369,"margin":{}} rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:19.920Z - debug: Skipping storing report. rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:33:19.920Z - info: Rendering request 1 finished in 18275 ms rootId=molypr7jple7lgj, id=molypr7jple7lgj
+2025-06-26T04:36:32.656Z - debug: OData query on templates
+2025-06-26T04:36:32.676Z - debug: OData query on settings
+2025-06-26T04:36:32.693Z - debug: OData query on folders
+2025-06-26T04:36:32.699Z - debug: OData query on components
+2025-06-26T04:36:32.705Z - debug: OData query on data
+2025-06-26T04:36:32.710Z - debug: OData query on tags
+2025-06-26T04:36:32.716Z - debug: OData query on assets
+2025-06-26T04:36:32.725Z - debug: OData query on scripts
+2025-06-26T04:36:32.731Z - debug: OData query on schedules
+2025-06-26T04:36:32.787Z - debug: OData query on templates
