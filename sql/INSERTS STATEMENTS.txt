@@ -2825,7 +2825,7 @@ INSERT INTO ALMACEN_CERVEZA (fk_almacen, fk_cerveza_presentacion, cantidad, fech
 
 INSERT INTO ANAQUEL_CERVEZA (fk_anaquel, fk_cerveza_presentacion, cantidad, fecha, precio_unitario) VALUES
                                                                                                         (1, 1, 230, '2025-06-01', 4),
-                                                                                                        (1, 2, 150, '2025-06-01', 5),
+                                                                                                        (1, 2, 250, '2025-06-01', 5),
                                                                                                         (2, 3, 202, '2025-06-02', 4),
                                                                                                         (2, 4, 205, '2025-06-02', 5),
                                                                                                         (3, 5, 201, '2025-06-03', 6),
