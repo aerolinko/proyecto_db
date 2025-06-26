@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     if (role) {
       console.log("Buscando usuario roles de usurio:", role)
-      const rolesU = await getAllRolesUsuario(parseInt(role))
+      const rolesU = await getAllRolesUsuario(role)
 
       return Response.json({
         message: "Usuario encontrado",
