@@ -8,12 +8,10 @@ import {
   getAllRolesUsuario, 
   getAllUsuariosComplete,
   getClientesNaturalesSinUsuario,
-  getClientesJuridicosSinUsuario,
+  getClientesJuridicos,
   getMiembrosAcaucabSinUsuario,
   getEmpleados,
-  getAllClientesNaturales,
-  getAllClientesJuridicos,
-  getAllMiembrosAcaucab
+  getAllClientesNaturales
 } from "@/db"
 
 export async function GET(request: NextRequest) {
@@ -78,20 +76,14 @@ export async function GET(request: NextRequest) {
           entidades = await getClientesNaturalesSinUsuario()
           break
         case 'clientes_juridicos':
-          entidades = await getClientesJuridicosSinUsuario()
+        case 'all_clientes_juridicos':
+          entidades = await getClientesJuridicos()
           break
         case 'miembros_acaucab':
           entidades = await getMiembrosAcaucabSinUsuario()
           break
-        // Endpoints de debugging
         case 'all_clientes_naturales':
           entidades = await getAllClientesNaturales()
-          break
-        case 'all_clientes_juridicos':
-          entidades = await getAllClientesJuridicos()
-          break
-        case 'all_miembros_acaucab':
-          entidades = await getAllMiembrosAcaucab()
           break
         default:
           return Response.json({ error: "Tipo de entidad no válido" }, { status: 400 })
@@ -150,7 +142,21 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "Debe seleccionar un tipo de entidad y la entidad correspondiente" }, { status: 400 })
     }
 
-    const usuarioCompleto = await createUsuarioWithEntidad(email, password, tipoEntidad, entidadId)
+    // Convierte entidadId a número si corresponde
+    let entidadIdFinal: any = entidadId;
+    if (
+      tipoEntidad === "empleado" ||
+      tipoEntidad === "cliente_natural" ||
+      tipoEntidad === "cliente_juridico" ||
+      tipoEntidad === "miembro_acaucab"
+    ) {
+      entidadIdFinal = Number(entidadId);
+      if (isNaN(entidadIdFinal)) {
+        return Response.json({ error: "El ID de la entidad no es válido (no es un número)" }, { status: 400 });
+      }
+    }
+
+    const usuarioCompleto = await createUsuarioWithEntidad(email, password, tipoEntidad, entidadIdFinal);
 
     return Response.json(
       {

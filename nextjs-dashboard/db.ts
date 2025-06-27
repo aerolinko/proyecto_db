@@ -516,10 +516,9 @@ export async function getReposicionAnaquelesSP(fechaInicio?: string, fechaFin?: 
 export async function getClientesJuridicos() {
   try {
     console.log("=== getClientesJuridicos ===")
-    
     const result = await sql`SELECT * FROM get_clientes_juridicos()`
-    console.log(`Clientes jurídicos obtenidos: ${result.length} registros`)
-    return result
+    console.log("RESULTADO CLIENTES JURIDICOS:", result);
+    return result;
   } catch (error) {
     console.error("Error en getClientesJuridicos:", error)
     throw error
@@ -531,10 +530,6 @@ export async function getClientesNaturalesSinUsuario() {
     return await sql`SELECT * FROM get_clientes_naturales_sin_usuario()`;
 }
 
-export async function getClientesJuridicosSinUsuario() {
-    return await sql`SELECT * FROM get_clientes_juridicos_sin_usuario()`;
-}
-
 export async function getMiembrosAcaucabSinUsuario() {
     return await sql`SELECT * FROM get_miembros_acaucab_sin_usuario()`;
 }
@@ -542,10 +537,6 @@ export async function getMiembrosAcaucabSinUsuario() {
 // Funciones para obtener TODAS las entidades (para debugging)
 export async function getAllClientesNaturales() {
     return await sql`SELECT * FROM get_all_clientes_naturales()`;
-}
-
-export async function getAllClientesJuridicos() {
-    return await sql`SELECT * FROM get_all_clientes_juridicos()`;
 }
 
 export async function getAllMiembrosAcaucab() {
@@ -565,16 +556,28 @@ export async function createUsuarioWithEntidad(
     let result
     switch (tipoEntidad) {
       case 'empleado':
-        result = await sql`SELECT * FROM create_usuario_with_empleado(${email}, ${password}, ${Number.parseInt(entidadId)})`
+        if (!entidadId || isNaN(Number(entidadId))) {
+          throw new Error("El ID de la entidad no es válido para empleado");
+        }
+        result = await sql`SELECT * FROM create_usuario_with_empleado(${email}, ${password}, ${Number(entidadId)})`
         break
       case 'cliente_natural':
-        result = await sql`SELECT * FROM create_usuario_with_cliente_natural(${email}, ${password}, ${Number.parseInt(entidadId)})`
+        if (!entidadId || isNaN(Number(entidadId))) {
+          throw new Error("El ID de la entidad no es válido para cliente_natural");
+        }
+        result = await sql`SELECT * FROM create_usuario_with_cliente_natural(${email}, ${password}, ${Number(entidadId)})`
         break
       case 'cliente_juridico':
-        result = await sql`SELECT * FROM create_usuario_with_cliente_juridico(${email}, ${password}, ${Number.parseInt(entidadId)})`
+        if (!entidadId || isNaN(Number(entidadId))) {
+          throw new Error("El ID de la entidad no es válido para cliente_juridico");
+        }
+        result = await sql`SELECT * FROM create_usuario_with_cliente_juridico(${email}, ${password}, ${Number(entidadId)})`
         break
       case 'miembro_acaucab':
-        result = await sql`SELECT * FROM create_usuario_with_miembro_acaucab(${email}, ${password}, ${Number.parseInt(entidadId)})`
+        if (!entidadId || isNaN(Number(entidadId))) {
+          throw new Error("El ID de la entidad no es válido para miembro_acaucab");
+        }
+        result = await sql`SELECT * FROM create_usuario_with_miembro_acaucab(${email}, ${password}, ${Number(entidadId)})`
         break
       default:
         throw new Error(`Tipo de entidad no válido: ${tipoEntidad}`)

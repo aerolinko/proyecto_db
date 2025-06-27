@@ -131,8 +131,13 @@ export default function GestionUsuarios() {
         headers: { "Content-Type": "application/json" },
       })
       if (clientesJuridicosResponse.ok) {
-        const clientesJuridicosData = await clientesJuridicosResponse.json()
-        setClientesJuridicos(clientesJuridicosData.entidades || [])
+        const clientesJuridicosData = await clientesJuridicosResponse.json();
+        // Mapea para asegurar que cada entidad tiene el campo id correcto
+        const clientesJuridicosConId = (clientesJuridicosData.entidades || []).map((c: any) => ({
+          ...c,
+          id: c.cliente_id ? String(c.cliente_id) : c.id
+        }));
+        setClientesJuridicos(clientesJuridicosConId);
       }
 
       // Obtener miembros ACAUCAB
@@ -211,6 +216,9 @@ export default function GestionUsuarios() {
       alert("Por favor, completa todos los campos incluyendo la selección de entidad")
       return
     }
+
+    // Agrega este log para depuración
+    console.log('Valor de entidadId:', newUser.entidadId, 'Tipo:', typeof newUser.entidadId);
 
     try {
       const response = await fetch("/api/usuarios", {

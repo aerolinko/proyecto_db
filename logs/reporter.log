@@ -676,3 +676,365 @@ Error: Unable to find specified template (productosMasVendidos)
 2025-06-26T04:36:32.725Z - debug: OData query on scripts
 2025-06-26T04:36:32.731Z - debug: OData query on schedules
 2025-06-26T04:36:32.787Z - debug: OData query on templates
+2025-06-26T12:08:15.715Z - info: Initializing jsreport (version: 4.9.0, configuration file: jsreport.config.json, nodejs: 22.11.0)
+2025-06-26T12:08:15.729Z - info: Searching for available extensions in C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\
+2025-06-26T12:08:15.747Z - info: Extensions location cache C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json contains older information, crawling
+2025-06-26T12:08:19.235Z - info: Found 35 extension(s)
+2025-06-26T12:08:20.070Z - debug: Writing extension locations cache to C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json
+2025-06-26T12:08:20.072Z - debug: Discovered 35 extensions
+2025-06-26T12:08:20.137Z - debug: Extension authentication@4.2.3 is disabled, skipping
+2025-06-26T12:08:20.140Z - info: Using extension base@4.0.0
+2025-06-26T12:08:20.149Z - info: Using extension child-templates@4.1.0
+2025-06-26T12:08:20.172Z - info: Using extension cli@4.1.1
+2025-06-26T12:08:20.264Z - info: Using extension components@4.0.2
+2025-06-26T12:08:20.291Z - info: Using extension data@4.1.0
+2025-06-26T12:08:20.315Z - info: Using extension express@4.2.0
+2025-06-26T12:08:30.955Z - info: Using extension freeze@4.0.0
+2025-06-26T12:08:30.978Z - info: Using extension fs-store@4.1.1
+2025-06-26T12:08:33.992Z - info: Using extension handlebars@4.0.1
+2025-06-26T12:08:34.016Z - info: Using extension import-export@4.0.7
+2025-06-26T12:08:34.269Z - info: Using extension jsrender@4.0.0
+2025-06-26T12:08:34.282Z - info: Using extension licensing@4.0.5
+2025-06-26T12:08:34.895Z - info: Using extension localization@4.0.1
+2025-06-26T12:08:34.908Z - info: Using extension npm@4.0.0
+2025-06-26T12:08:34.938Z - info: Using extension pdf-utils@4.3.0
+2025-06-26T12:08:34.944Z - info: Using extension reports@4.1.4
+2025-06-26T12:08:34.981Z - info: Using extension tags@4.0.1
+2025-06-26T12:08:35.020Z - info: Using extension text@4.0.2
+2025-06-26T12:08:35.034Z - info: Using extension version-control@4.1.1
+2025-06-26T12:08:35.200Z - info: Using extension assets@4.2.2
+2025-06-26T12:08:35.398Z - info: Using extension authorization@4.1.0
+2025-06-26T12:08:35.488Z - debug: Extension authorization@4.1.0 was disabled
+2025-06-26T12:08:35.489Z - info: Using extension browser-client@4.1.0
+2025-06-26T12:08:35.567Z - info: Using extension chrome-pdf@4.2.0
+2025-06-26T12:08:35.597Z - debug: Chrome strategy is chrome-pool, numberOfWorkers: 1
+2025-06-26T12:08:35.597Z - debug: Chrome custom launch options are protocolTimeout=60000
+2025-06-26T12:08:35.598Z - info: Using extension docx@4.8.0
+2025-06-26T12:08:35.621Z - info: Using extension html-to-xlsx@4.2.1
+2025-06-26T12:08:38.817Z - info: html-to-xlsx detected chrome as available html engine
+2025-06-26T12:08:38.818Z - info: Using extension pptx@4.4.1
+2025-06-26T12:08:38.861Z - info: Using extension scheduling@4.1.0
+2025-06-26T12:08:39.553Z - info: Using extension scripts@4.2.0
+2025-06-26T12:08:39.557Z - info: Using extension static-pdf@4.1.0
+2025-06-26T12:08:39.570Z - info: Using extension studio@4.3.1
+2025-06-26T12:08:40.849Z - info: Using extension xlsx@4.4.1
+2025-06-26T12:08:40.859Z - info: Using extension public-templates@4.0.0
+2025-06-26T12:08:40.883Z - debug: Extension public-templates@4.0.0 was disabled
+2025-06-26T12:08:40.884Z - info: Using extension sample-template@4.0.1
+2025-06-26T12:08:40.890Z - info: Using extension studio-theme-dark@4.0.0
+2025-06-26T12:08:40.896Z - warn: options.allowLocalFilesAccess is deprecated, use options.trustUserCode instead
+2025-06-26T12:08:40.897Z - info: Using general timeout for rendering (reportTimeout: 60000)
+2025-06-26T12:08:40.897Z - info: Using fs provider for template store.
+2025-06-26T12:08:40.904Z - info: fs store is persisting using fs for C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\data
+2025-06-26T12:08:40.912Z - info: fs store is loading data
+2025-06-26T12:08:40.940Z - info: fs store is initialized successfully
+2025-06-26T12:08:40.946Z - debug: studio default theme is: light
+2025-06-26T12:08:40.957Z - info: Creating default express app.
+2025-06-26T12:08:41.744Z - info: jsreport server successfully started on http port: 5488
+2025-06-26T12:08:41.746Z - info: Verifying license key free
+2025-06-26T12:08:43.337Z - info: Starting one month enterprise trial
+2025-06-26T12:08:43.341Z - info: Initializing worker threads
+2025-06-26T12:08:43.341Z - debug: Extensions in workers: base, child-templates, components, data, express, handlebars, jsrender, localization, npm, pdf-utils, reports, text, version-control, assets, browser-client, chrome-pdf, docx, html-to-xlsx, pptx, scripts, static-pdf, studio, xlsx
+2025-06-26T12:08:48.171Z - info: 2 worker threads initialized in 4830ms
+2025-06-26T12:08:48.173Z - info: Starting temp files cleanup with 180000ms threshold
+2025-06-26T12:08:48.174Z - info: reporter initialized
+2025-06-26T12:09:40.941Z - warn: Cleaning fs journal failed, will reload Unexpected end of JSON input stack=SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at module.exports.parse (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\serializator\index.js:56:15)
+    at parse (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\customUtils.js:63:10)
+    at Object.clean (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\journal.js:199:24)
+    at async lock (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\customUtils.js:153:12)
+2025-06-26T13:21:03.675Z - debug: fs journal was not synced for a while, need full reload
+2025-06-26T13:21:04.213Z - info: fs store is loading data
+2025-06-26T14:47:02.402Z - info: Render request 1 queued for execution and waiting for available worker rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:02.591Z - info: Starting rendering request 1 rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:02.598Z - info: Rendering template { name: cuotasAfiliacion, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:02.599Z - debug: Inline data specified. rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:02.609Z - debug: Base url not specified, skipping its injection. rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:02.630Z - debug: Rendering engine jsrender rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:08.772Z - debug: Executing recipe chrome-pdf rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:16.994Z - debug: OData query on templates
+2025-06-26T14:47:17.022Z - debug: OData query on folders
+2025-06-26T14:47:17.026Z - debug: OData query on settings
+2025-06-26T14:47:17.032Z - debug: OData query on components
+2025-06-26T14:47:17.039Z - debug: OData query on data
+2025-06-26T14:47:17.047Z - debug: OData query on tags
+2025-06-26T14:47:17.054Z - debug: OData query on assets
+2025-06-26T14:47:17.068Z - debug: OData query on scripts
+2025-06-26T14:47:17.077Z - debug: OData query on schedules
+2025-06-26T14:47:17.142Z - debug: OData query on templates
+2025-06-26T14:47:20.310Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:20.467Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/c21c27ba-5620-4f7b-9ba2-4501d1028469-chrome-pdf.html rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:20.498Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/c21c27ba-5620-4f7b-9ba2-4501d1028469-chrome-pdf.html rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:20.531Z - debug: Running chrome with params {"printBackground":true,"timeout":53496,"margin":{}} rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:20.987Z - debug: Skipping storing report. rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:20.987Z - info: Rendering request 1 finished in 18608 ms rootId=fqd9fl11iiuirvp, id=fqd9fl11iiuirvp
+2025-06-26T14:47:21.313Z - info: Render request 2 queued for execution and waiting for available worker rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:21.457Z - info: Starting rendering request 2 rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:21.469Z - info: Rendering template { name: cuotasAfiliacion, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:21.470Z - debug: Inline data specified. rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:21.482Z - debug: Base url not specified, skipping its injection. rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:21.502Z - debug: Rendering engine jsrender rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:22.680Z - debug: Executing recipe chrome-pdf rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:23.422Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:23.748Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/6d2f6cb9-f57e-45b9-8e1e-01bb8474dbfd-chrome-pdf.html rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:23.805Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/6d2f6cb9-f57e-45b9-8e1e-01bb8474dbfd-chrome-pdf.html rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:23.828Z - debug: Running chrome with params {"printBackground":true,"timeout":58621,"margin":{}} rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:24.481Z - debug: Skipping storing report. rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T14:47:24.481Z - info: Rendering request 2 finished in 3170 ms rootId=983dus802u071mo, id=983dus802u071mo
+2025-06-26T15:05:11.343Z - info: Render request 3 queued for execution and waiting for available worker rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:11.487Z - info: Starting rendering request 3 rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:11.494Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:11.494Z - debug: Inline data specified. rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:11.504Z - debug: Base url not specified, skipping its injection. rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:11.512Z - debug: Rendering engine jsrender rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:11.615Z - debug: Executing recipe chrome-pdf rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:11.676Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:12.365Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/b1ffca01-b8e3-4666-9ba9-4a1686c8b895-chrome-pdf.html rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:12.441Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/b1ffca01-b8e3-4666-9ba9-4a1686c8b895-chrome-pdf.html rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:12.540Z - debug: Running chrome with params {"printBackground":true,"timeout":59687,"margin":{}} rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:13.031Z - debug: Skipping storing report. rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:05:13.031Z - info: Rendering request 3 finished in 1715 ms rootId=cho6nqelnatwil6, id=cho6nqelnatwil6
+2025-06-26T15:06:28.307Z - debug: OData query on templates
+2025-06-26T15:06:28.360Z - debug: OData query on settings
+2025-06-26T15:06:28.363Z - debug: OData query on folders
+2025-06-26T15:06:28.370Z - debug: OData query on components
+2025-06-26T15:06:28.377Z - debug: OData query on data
+2025-06-26T15:06:28.387Z - debug: OData query on tags
+2025-06-26T15:06:28.394Z - debug: OData query on assets
+2025-06-26T15:06:28.405Z - debug: OData query on scripts
+2025-06-26T15:06:28.413Z - debug: OData query on schedules
+2025-06-26T15:06:28.482Z - debug: OData query on templates
+2025-06-26T15:06:33.017Z - debug: OData query on templates
+2025-06-26T15:06:34.310Z - debug: OData query on templates
+2025-06-26T15:06:34.858Z - debug: OData query on templates
+2025-06-26T15:06:56.804Z - debug: OData update on templates
+2025-06-26T15:06:56.872Z - debug: OData query on templates
+2025-06-26T15:07:02.571Z - info: Render request 4 queued for execution and waiting for available worker rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:02.653Z - info: Starting rendering request 4 rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:02.659Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:02.659Z - debug: Inline data specified. rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:02.667Z - debug: Base url not specified, skipping its injection. rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:02.677Z - debug: Rendering engine jsrender rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:02.747Z - debug: Executing recipe chrome-pdf rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:02.787Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:03.347Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/c357ce1a-3a56-45ed-88a6-e93279ddc103-chrome-pdf.html rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:03.411Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/c357ce1a-3a56-45ed-88a6-e93279ddc103-chrome-pdf.html rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:03.500Z - debug: Running chrome with params {"printBackground":true,"timeout":59802,"margin":{}} rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:03.961Z - debug: Skipping storing report. rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:07:03.961Z - info: Rendering request 4 finished in 1403 ms rootId=v5u1ycz6hkjetj3, id=v5u1ycz6hkjetj3
+2025-06-26T15:08:46.728Z - debug: OData update on templates
+2025-06-26T15:08:46.806Z - debug: OData query on templates
+2025-06-26T15:08:49.767Z - info: Render request 5 queued for execution and waiting for available worker rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:49.867Z - info: Starting rendering request 5 rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:49.871Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:49.872Z - debug: Inline data specified. rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:49.881Z - debug: Base url not specified, skipping its injection. rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:49.896Z - debug: Rendering engine jsrender rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:49.957Z - debug: Executing recipe chrome-pdf rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:50.002Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:50.626Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/706b6427-eede-4025-8218-c1c870690e64-chrome-pdf.html rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:50.718Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/706b6427-eede-4025-8218-c1c870690e64-chrome-pdf.html rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:50.797Z - debug: Running chrome with params {"printBackground":true,"timeout":59781,"margin":{}} rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:51.328Z - debug: Skipping storing report. rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:51.328Z - info: Rendering request 5 finished in 1579 ms rootId=9phsqdls7zppiqj, id=9phsqdls7zppiqj
+2025-06-26T15:08:57.178Z - info: Render request 6 queued for execution and waiting for available worker rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.230Z - info: Starting rendering request 6 rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.234Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: true } rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.235Z - debug: Data item not defined for this template. rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.255Z - debug: Base url not specified, skipping its injection. rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.259Z - debug: Rendering engine jsrender rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.292Z - debug: Executing recipe chrome-pdf rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.307Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.537Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/e5f92337-7f66-4cd6-99ab-af3530239a7c-chrome-pdf.html rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.574Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/e5f92337-7f66-4cd6-99ab-af3530239a7c-chrome-pdf.html rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.586Z - debug: Running chrome with params {"printBackground":true,"timeout":59870,"margin":{}} rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.745Z - debug: Skipping storing report. rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:08:57.746Z - info: Rendering request 6 finished in 579 ms rootId=j60y13auhspedv6, id=j60y13auhspedv6
+2025-06-26T15:09:01.873Z - info: Render request 7 queued for execution and waiting for available worker rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:01.910Z - info: Starting rendering request 7 rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:01.910Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:01.911Z - debug: Inline data specified. rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:01.912Z - debug: Base url not specified, skipping its injection. rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:01.912Z - debug: Rendering engine jsrender rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:01.928Z - debug: Executing recipe chrome-pdf rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:01.932Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:02.070Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/273e7632-1c6b-429d-ab66-28a1b0e61d33-chrome-pdf.html rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:02.100Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/273e7632-1c6b-429d-ab66-28a1b0e61d33-chrome-pdf.html rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:02.142Z - debug: Running chrome with params {"printBackground":true,"timeout":59938,"margin":{}} rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:02.501Z - debug: Skipping storing report. rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:02.501Z - info: Rendering request 7 finished in 632 ms rootId=p2dek5m6f3btj6z, id=p2dek5m6f3btj6z
+2025-06-26T15:09:12.307Z - debug: OData update on templates
+2025-06-26T15:09:12.340Z - debug: OData query on templates
+2025-06-26T15:09:15.061Z - info: Render request 8 queued for execution and waiting for available worker rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.094Z - info: Starting rendering request 8 rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.094Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.094Z - debug: Inline data specified. rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.096Z - debug: Base url not specified, skipping its injection. rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.096Z - debug: Rendering engine jsrender rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.112Z - debug: Executing recipe chrome-pdf rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.118Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.291Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/61296af3-82dd-4429-ae7e-4ea6fc4e460c-chrome-pdf.html rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.321Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/61296af3-82dd-4429-ae7e-4ea6fc4e460c-chrome-pdf.html rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.352Z - debug: Running chrome with params {"printBackground":true,"timeout":59943,"margin":{}} rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.665Z - debug: Skipping storing report. rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:15.665Z - info: Rendering request 8 finished in 607 ms rootId=qq7nzgr6wo6rree, id=qq7nzgr6wo6rree
+2025-06-26T15:09:42.313Z - debug: OData update on templates
+2025-06-26T15:09:42.348Z - debug: OData query on templates
+2025-06-26T15:09:45.488Z - info: Render request 9 queued for execution and waiting for available worker rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:45.529Z - info: Starting rendering request 9 rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:45.530Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:45.530Z - debug: Inline data specified. rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:45.535Z - debug: Base url not specified, skipping its injection. rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:45.537Z - debug: Rendering engine jsrender rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:45.570Z - debug: Executing recipe chrome-pdf rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:45.581Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:45.937Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/9e36330a-474a-4a5d-8a9d-8a55f68f6b9f-chrome-pdf.html rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:46.000Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/9e36330a-474a-4a5d-8a9d-8a55f68f6b9f-chrome-pdf.html rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:46.094Z - debug: Running chrome with params {"printBackground":true,"timeout":59911,"margin":{}} rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:46.534Z - debug: Skipping storing report. rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:09:46.534Z - info: Rendering request 9 finished in 1049 ms rootId=xd2luipis0o5ags, id=xd2luipis0o5ags
+2025-06-26T15:10:01.658Z - info: Render request 10 queued for execution and waiting for available worker rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:01.756Z - info: Starting rendering request 10 rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:01.759Z - info: Rendering template { name: nominaDepartamento, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:01.759Z - debug: Inline data specified. rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:01.762Z - debug: Base url not specified, skipping its injection. rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:01.769Z - debug: Rendering engine jsrender rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:01.795Z - debug: Executing recipe chrome-pdf rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:01.809Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:02.102Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/d53cc5c8-75cb-4a72-98f5-1e4f7b0481b2-chrome-pdf.html rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:02.137Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/d53cc5c8-75cb-4a72-98f5-1e4f7b0481b2-chrome-pdf.html rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:02.187Z - debug: Running chrome with params {"printBackground":true,"timeout":59853,"margin":{}} rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:02.493Z - debug: Skipping storing report. rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:02.493Z - info: Rendering request 10 finished in 842 ms rootId=udnl2968pohp6gh, id=udnl2968pohp6gh
+2025-06-26T15:10:37.204Z - debug: OData update on templates
+2025-06-26T15:10:37.256Z - debug: OData query on templates
+2025-06-26T15:10:40.752Z - info: Render request 11 queued for execution and waiting for available worker rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:40.801Z - info: Starting rendering request 11 rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:40.803Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:40.803Z - debug: Inline data specified. rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:40.807Z - debug: Base url not specified, skipping its injection. rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:40.811Z - debug: Rendering engine jsrender rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:40.842Z - debug: Executing recipe chrome-pdf rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:40.869Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:41.257Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/535eab45-3b05-415a-92fb-719914656251-chrome-pdf.html rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:41.306Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/535eab45-3b05-415a-92fb-719914656251-chrome-pdf.html rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:41.358Z - debug: Running chrome with params {"printBackground":true,"timeout":59898,"margin":{}} rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:41.934Z - debug: Skipping storing report. rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:41.934Z - info: Rendering request 11 finished in 1190 ms rootId=a9bd3qhjdhur0fx, id=a9bd3qhjdhur0fx
+2025-06-26T15:10:42.007Z - warn: Failed persist profile UNKNOWN: unknown error, open 'C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\data\fs.version' errno=-4094, code=UNKNOWN, syscall=open, path=C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\data\fs.version, stack=Error: UNKNOWN: unknown error, open 'C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\data\fs.version'
+    at async open (node:internal/fs/promises:638:25)
+    at async Object.writeFile (node:internal/fs/promises:1208:14)
+    at async Object._writeToJournal (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\journal.js:178:7)
+    at async C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\provider.js:223:13
+    at async lock (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\customUtils.js:153:12)
+2025-06-26T15:11:00.283Z - debug: OData update on templates
+2025-06-26T15:11:00.319Z - debug: OData query on templates
+2025-06-26T15:11:02.684Z - info: Render request 12 queued for execution and waiting for available worker rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:02.730Z - info: Starting rendering request 12 rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:02.732Z - info: Rendering template { name: historialCompras, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:02.732Z - debug: Inline data specified. rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:02.735Z - debug: Base url not specified, skipping its injection. rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:02.743Z - debug: Rendering engine jsrender rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:02.791Z - debug: Executing recipe chrome-pdf rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:02.805Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:03.014Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/dbf0ca19-d8df-436d-baf5-982d6be51e26-chrome-pdf.html rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:03.041Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/dbf0ca19-d8df-436d-baf5-982d6be51e26-chrome-pdf.html rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:03.092Z - debug: Running chrome with params {"printBackground":true,"timeout":59885,"margin":{}} rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:03.411Z - debug: Skipping storing report. rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:11:03.411Z - info: Rendering request 12 finished in 731 ms rootId=vxq42iryrqge4rt, id=vxq42iryrqge4rt
+2025-06-26T15:28:35.948Z - debug: fs journal was not synced for a while, need full reload
+2025-06-26T15:28:36.073Z - info: fs store is loading data
+2025-06-26T15:46:41.980Z - debug: OData query on templates
+2025-06-26T15:46:42.015Z - debug: OData query on settings
+2025-06-26T15:46:42.027Z - debug: OData query on folders
+2025-06-26T15:46:42.035Z - debug: OData query on components
+2025-06-26T15:46:42.042Z - debug: OData query on data
+2025-06-26T15:46:42.052Z - debug: OData query on tags
+2025-06-26T15:46:42.059Z - debug: OData query on assets
+2025-06-26T15:46:42.068Z - debug: OData query on scripts
+2025-06-26T15:46:42.079Z - debug: OData query on schedules
+2025-06-26T15:46:42.166Z - debug: OData query on templates
+2025-06-26T16:08:48.613Z - debug: fs journal was not synced for a while, need full reload
+2025-06-26T16:08:49.034Z - info: fs store is loading data
+2025-06-26T16:48:00.732Z - debug: fs journal was not synced for a while, need full reload
+2025-06-26T16:48:00.734Z - info: fs store is loading data
+2025-06-26T16:56:28.671Z - debug: fs journal was not synced for a while, need full reload
+2025-06-26T16:56:28.983Z - info: fs store is loading data
+2025-06-26T17:11:31.085Z - debug: OData query on templates
+2025-06-26T17:11:31.106Z - debug: OData query on settings
+2025-06-26T17:11:31.123Z - debug: OData query on folders
+2025-06-26T17:11:31.135Z - debug: OData query on components
+2025-06-26T17:11:31.142Z - debug: OData query on data
+2025-06-26T17:11:31.147Z - debug: OData query on tags
+2025-06-26T17:11:31.154Z - debug: OData query on assets
+2025-06-26T17:11:31.161Z - debug: OData query on scripts
+2025-06-26T17:11:31.168Z - debug: OData query on schedules
+2025-06-26T17:11:31.220Z - debug: OData query on templates
+2025-06-26T17:28:49.905Z - debug: OData query on templates
+2025-06-26T17:28:49.930Z - debug: OData query on settings
+2025-06-26T17:28:49.935Z - debug: OData query on folders
+2025-06-26T17:28:49.943Z - debug: OData query on components
+2025-06-26T17:28:49.948Z - debug: OData query on data
+2025-06-26T17:28:49.955Z - debug: OData query on tags
+2025-06-26T17:28:49.961Z - debug: OData query on assets
+2025-06-26T17:28:49.972Z - debug: OData query on scripts
+2025-06-26T17:28:49.977Z - debug: OData query on schedules
+2025-06-26T17:28:50.033Z - debug: OData query on templates
+2025-06-26T17:29:36.123Z - info: Render request 13 queued for execution and waiting for available worker rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:36.281Z - info: Starting rendering request 13 rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:36.285Z - info: Rendering template { name: productosMasVendidos, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:36.286Z - debug: Inline data specified. rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:36.299Z - debug: Base url not specified, skipping its injection. rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:36.309Z - debug: Rendering engine jsrender rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:36.437Z - debug: Executing recipe chrome-pdf rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:37.588Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:37.781Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/6ee6dbbb-8ea0-4784-94c5-657ab2b97c5a-chrome-pdf.html rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:37.817Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/6ee6dbbb-8ea0-4784-94c5-657ab2b97c5a-chrome-pdf.html rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:37.841Z - debug: Running chrome with params {"printBackground":true,"timeout":59633,"margin":{}} rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:38.190Z - debug: Skipping storing report. rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:38.190Z - info: Rendering request 13 finished in 2101 ms rootId=ywsccu34hhxc35n, id=ywsccu34hhxc35n
+2025-06-26T17:29:47.436Z - debug: OData query on templates
+2025-06-26T17:30:54.212Z - info: Render request 14 queued for execution and waiting for available worker rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:54.315Z - info: Starting rendering request 14 rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:54.318Z - info: Rendering template { name: reposicionAnaqueles, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:54.319Z - debug: Inline data specified. rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:54.329Z - debug: Base url not specified, skipping its injection. rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:54.337Z - debug: Rendering engine jsrender rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:54.398Z - debug: Executing recipe chrome-pdf rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:56.225Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:56.614Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/1ade1799-9609-4312-90cc-52798c1df514-chrome-pdf.html rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:56.708Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/1ade1799-9609-4312-90cc-52798c1df514-chrome-pdf.html rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:56.776Z - debug: Running chrome with params {"printBackground":true,"timeout":59794,"margin":{}} rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:57.458Z - debug: Skipping storing report. rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:30:57.459Z - info: Rendering request 14 finished in 3260 ms rootId=45ps217gdtb101l, id=45ps217gdtb101l
+2025-06-26T17:31:30.942Z - info: Render request 15 queued for execution and waiting for available worker rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:30.986Z - info: Starting rendering request 15 rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:30.988Z - info: Rendering template { name: cuotasAfiliacion, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:30.988Z - debug: Inline data specified. rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:30.997Z - debug: Base url not specified, skipping its injection. rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:31.000Z - debug: Rendering engine jsrender rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:31.034Z - debug: Executing recipe chrome-pdf rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:31.049Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:31.358Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/9d2487b0-47de-4705-ad16-b1dfe900fa0c-chrome-pdf.html rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:31.411Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/9d2487b0-47de-4705-ad16-b1dfe900fa0c-chrome-pdf.html rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:31.471Z - debug: Running chrome with params {"printBackground":true,"timeout":59892,"margin":{}} rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:31.869Z - debug: Skipping storing report. rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:31:31.869Z - info: Rendering request 15 finished in 937 ms rootId=e0elcvzg5akj1sd, id=e0elcvzg5akj1sd
+2025-06-26T17:33:25.568Z - info: Render request 16 queued for execution and waiting for available worker rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:25.621Z - info: Starting rendering request 16 rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:25.624Z - info: Rendering template { name: nominaDepartamento, recipe: chrome-pdf, engine: jsrender, preview: false } rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:25.624Z - debug: Inline data specified. rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:25.627Z - debug: Base url not specified, skipping its injection. rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:25.633Z - debug: Rendering engine jsrender rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:25.679Z - debug: Executing recipe chrome-pdf rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:25.705Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:26.097Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/abc955c1-5b66-4f7c-b56e-f4e2d517ac19-chrome-pdf.html rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:26.152Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/abc955c1-5b66-4f7c-b56e-f4e2d517ac19-chrome-pdf.html rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:26.208Z - debug: Running chrome with params {"printBackground":true,"timeout":59869,"margin":{}} rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:26.610Z - debug: Skipping storing report. rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T17:33:26.610Z - info: Rendering request 16 finished in 1054 ms rootId=hzbrx409s9l1t6b, id=hzbrx409s9l1t6b
+2025-06-26T19:46:34.263Z - debug: fs journal was not synced for a while, need full reload
+2025-06-26T19:46:34.549Z - info: fs store is loading data
+2025-06-27T00:01:57.479Z - debug: fs journal was not synced for a while, need full reload
+2025-06-27T00:01:57.538Z - info: fs store is loading data

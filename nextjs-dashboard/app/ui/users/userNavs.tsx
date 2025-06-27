@@ -22,16 +22,11 @@ export default function UserNavs({ permissions }) {
     { path: `Reportes/InventarioResumen`, nombre: 'Inventario', icon: BuildingStorefrontIcon, id: 'consultar REPORTES' },
   ];
 
-  // Versión temporal: siempre mostrar todos los enlaces para debugging
+  // Filtrar enlaces solo por permiso exacto
   let filteredLinks = Links.filter(link =>
-      permissions.some((permission:any) => permission.descripcion === link.id)
+    permissions.some((permission:any) => permission.descripcion === link.id)
   );
   
-  // Comentar la línea de arriba y descomentar la de abajo cuando quieras volver a usar permisos
-  // let filteredLinks = Links.filter(link =>
-  //     permissions.some((permission:any) => permission.descripcion === link.id)
-  // );
-
   console.log('Permisos del usuario:', permissions);
   console.log('Enlaces filtrados:', filteredLinks);
 
