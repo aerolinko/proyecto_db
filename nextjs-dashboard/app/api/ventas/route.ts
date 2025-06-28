@@ -19,11 +19,10 @@ export async function POST(request: Request) {
         })
         console.log(convertedPayments);
 
-        const res = await saveVenta(montoTotal,foundClientId.cliente_id,foundClientId.tipo,cart,paymentMethods);
+        const ventaId = await saveVenta(montoTotal,foundClientId.cliente_id,foundClientId.tipo,cart,paymentMethods);
 
-        if(res) {
-
-            return NextResponse.json({ res }, { status: 200 });
+        if(ventaId) {
+            return NextResponse.json({ res: { ventaId } }, { status: 200 });
         }
         return NextResponse.json({ error: 'Venta Fallida' }, { status: 401 });
     }

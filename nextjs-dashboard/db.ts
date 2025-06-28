@@ -74,7 +74,7 @@ export async function getClientPaymentMethods(id: number,tipo:string) {
 
 export async function getNaturalClient(ced:number) {
     return await sql`SELECT * FROM buscarCliente('natural', ${ced})
-        AS (cliente_id integer, nombre varchar, cedula integer, direccion varchar, totalpuntos integer, rif varchar, apellido varchar);`;
+        AS (cliente_id integer, primer_nombre varchar, segundo_nombre varchar, cedula integer, direccion varchar, total_puntos integer, rif varchar, primer_apellido varchar, segundo_apellido varchar);`;
 }
 
 export async function getLegalClient(rif:string) {
@@ -99,7 +99,18 @@ export async function getAllProducts() {
 }
 
 export async function saveVenta(montoTotal:number,id:number,tipo:string,detalle:string,metodos:string) {
-    return await sql`CALL insertarVentaTiendaConDetalle(${montoTotal},${id},${tipo},${sql.json(detalle)},${sql.json(metodos)})`;
+    const result = await sql`CALL insertarVentaTiendaConDetalle(${montoTotal},${id},${tipo},${sql.json(detalle)},${sql.json(metodos)})`;
+    
+    // Obtener el ID de la venta recién creada
+    const ventaId = await sql`
+        SELECT venta_tienda_id 
+        FROM venta_tienda 
+        WHERE fk_cliente_natual = ${id} OR fk_cliente_juridico = ${id}
+        ORDER BY fecha DESC, venta_tienda_id DESC 
+        LIMIT 1
+    `;
+    
+    return ventaId[0]?.venta_tienda_id;
 }
 
 export async function getTasaDolar() {

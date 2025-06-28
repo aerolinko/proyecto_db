@@ -1087,31 +1087,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION buscarCliente(
-    p_tipo_cliente VARCHAR,
-    p_identificacion VARCHAR
-)
-    RETURNS SETOF record
-    LANGUAGE plpgsql
-AS $$
-BEGIN
-    IF p_tipo_cliente = 'natural' THEN
-        RETURN QUERY
-            SELECT n.cliente_id, n.primer_nombre, n.cedula, n.direccion, n.total_puntos, n.rif,n.primer_apellido
-            FROM cliente_natural n
-            WHERE n.cedula = p_identificacion::integer;
-
-    ELSIF p_tipo_cliente = 'juridico' THEN
-        RETURN QUERY
-            SELECT j.cliente_id, j.razon_social, j.rif, j.direccion, j.total_puntos
-            FROM cliente_juridico j
-            WHERE j.rif = p_identificacion;
-    END IF;
-
-    RETURN;
-END;
-$$;
-
 
 CREATE OR REPLACE PROCEDURE insertarVentaTiendaConDetalle(
     p_total INTEGER,
@@ -3024,5 +2999,30 @@ BEGIN
     AND (p_fecha_fin IS NULL OR vo.fecha_emision <= p_fecha_fin)
   ORDER BY vo.fecha_emision DESC
   LIMIT COALESCE(p_limite, 100);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION buscarCliente(
+    p_tipo_cliente VARCHAR,
+    p_identificacion VARCHAR
+)
+    RETURNS SETOF record
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_tipo_cliente = 'natural' THEN
+        RETURN QUERY
+            SELECT n.cliente_id, n.primer_nombre, n.segundo_nombre, n.cedula, n.direccion, n.total_puntos, n.rif, n.primer_apellido, n.segundo_apellido
+            FROM cliente_natural n
+            WHERE n.cedula = p_identificacion::integer;
+
+    ELSIF p_tipo_cliente = 'juridico' THEN
+        RETURN QUERY
+            SELECT j.cliente_id, j.razon_social, j.rif, j.direccion, j.total_puntos
+            FROM cliente_juridico j
+            WHERE j.rif = p_identificacion;
+    END IF;
+
+    RETURN;
 END;
 $$;
