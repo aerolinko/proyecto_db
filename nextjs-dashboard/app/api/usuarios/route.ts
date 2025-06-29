@@ -11,7 +11,8 @@ import {
   getClientesJuridicos,
   getMiembrosAcaucabSinUsuario,
   getEmpleados,
-  getAllClientesNaturales
+  getAllClientesNaturales,
+  getUsuarioById
 } from "@/db"
 
 export async function GET(request: NextRequest) {
@@ -26,15 +27,15 @@ export async function GET(request: NextRequest) {
 
     if (userId) {
       console.log("Buscando usuario por ID:", userId)
-      const usuarios = await getUsuarioWithEmpleadoById(userId)
+      const usuario = await getUsuarioById(userId)
 
-      if (usuarios.length === 0) {
+      if (!usuario) {
         return Response.json({ error: "Usuario no encontrado" }, { status: 404 })
       }
 
       return Response.json({
         message: "Usuario encontrado",
-        user: usuarios[0],
+        user: usuario,
       })
     }
 

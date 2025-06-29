@@ -625,5 +625,331 @@ export async function updateUsuarioWithEntidad(
 
 // Obtener todos los usuarios con información completa de todas las entidades
 export async function getAllUsuariosComplete() {
-  return await sql`SELECT * FROM get_all_usuarios_complete()`;
+  try {
+    console.log("=== getAllUsuariosComplete ===")
+    const result = await sql`SELECT * FROM get_all_usuarios_complete()`
+    console.log(`Usuarios completos obtenidos: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getAllUsuariosComplete:", error)
+    throw error
+  }
+}
+
+// Obtener un usuario específico por ID con cualquier tipo de entidad
+export async function getUsuarioById(id: string) {
+  try {
+    console.log("=== getUsuarioById ===")
+    console.log("ID recibido:", id)
+    
+    const userIdNum = parseInt(id);
+    if (isNaN(userIdNum)) {
+      throw new Error(`ID de usuario inválido: ${id}`);
+    }
+    
+    const result = await sql`
+      SELECT 
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fk_cliente_natural,
+        u.fk_cliente_juridico,
+        u.fk_miembro_acaucab,
+        u.fk_empleado,
+        -- Datos de empleado (solo columnas que existen)
+        e.empleado_id,
+        e.primer_nombre as emp_primer_nombre,
+        e.segundo_nombre as emp_segundo_nombre,
+        e.primer_apellido as emp_primer_apellido,
+        e.segundo_apellido as emp_segundo_apellido,
+        e.direccion as emp_direccion,
+        -- Datos de cliente natural
+        cn.cliente_id as cn_cliente_id,
+        cn.primer_nombre as cn_primer_nombre,
+        cn.segundo_nombre as cn_segundo_nombre,
+        cn.primer_apellido as cn_primer_apellido,
+        cn.segundo_apellido as cn_segundo_apellido,
+        cn.direccion as cn_direccion,
+        cn.total_puntos as cn_puntos,
+        -- Datos de cliente jurídico
+        cj.cliente_id as cj_cliente_id,
+        cj.razon_social,
+        cj.direccion as cj_direccion,
+        cj.total_puntos as cj_puntos,
+        -- Datos de miembro ACAUCAB
+        ma.miembro_id,
+        ma.razon_social as ma_razon_social,
+        ma.direccion as ma_direccion
+      FROM usuario u
+      LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+      LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+      LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+      LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+      WHERE u.usuario_id = ${userIdNum}
+    `;
+    
+    console.log(`Usuario encontrado: ${result.length} registros`)
+    
+    if (result.length === 0) {
+      return null;
+    }
+    
+    const user = result[0];
+    
+    // Determinar el tipo de entidad basándome en las claves foráneas
+    let tipoEntidad = '';
+    if (user.fk_empleado) {
+      tipoEntidad = 'empleado';
+    } else if (user.fk_cliente_natural) {
+      tipoEntidad = 'cliente_natural';
+    } else if (user.fk_cliente_juridico) {
+      tipoEntidad = 'cliente_juridico';
+    } else if (user.fk_miembro_acaucab) {
+      tipoEntidad = 'miembro_acaucab';
+    }
+    
+    // Construir el objeto de respuesta según el tipo de entidad
+    const response: any = {
+      id: user.usuario_id,
+      email: user.nombre_usuario,
+      tipo_entidad: tipoEntidad
+    };
+    
+    // Agregar datos según el tipo de entidad
+    if (tipoEntidad === 'empleado' && user.empleado_id) {
+      response.empleado = {
+        id: user.empleado_id,
+        primer_nombre: user.emp_primer_nombre,
+        segundo_nombre: user.emp_segundo_nombre,
+        primer_apellido: user.emp_primer_apellido,
+        segundo_apellido: user.emp_segundo_apellido,
+        telefono: '', // Los teléfonos están en tabla separada TELEFONO
+        direccion: user.emp_direccion,
+        puntos: 0 // Los empleados no tienen puntos
+      };
+    } else if (tipoEntidad === 'cliente_natural' && user.cn_cliente_id) {
+      response.cliente_natural = {
+        id: user.cn_cliente_id,
+        primer_nombre: user.cn_primer_nombre,
+        segundo_nombre: user.cn_segundo_nombre,
+        primer_apellido: user.cn_primer_apellido,
+        segundo_apellido: user.cn_segundo_apellido,
+        telefono: '', // Los teléfonos están en tabla separada TELEFONO
+        direccion: user.cn_direccion,
+        puntos: user.cn_puntos
+      };
+    } else if (tipoEntidad === 'cliente_juridico' && user.cj_cliente_id) {
+      response.cliente_juridico = {
+        id: user.cj_cliente_id,
+        razon_social: user.razon_social,
+        telefono: '', // Los teléfonos están en tabla separada TELEFONO
+        direccion: user.cj_direccion,
+        puntos: user.cj_puntos
+      };
+    } else if (tipoEntidad === 'miembro_acaucab' && user.miembro_id) {
+      response.miembro_acaucab = {
+        id: user.miembro_id,
+        primer_nombre: '', // Los miembros ACAUCAB no tienen nombres individuales
+        segundo_nombre: '',
+        primer_apellido: '',
+        segundo_apellido: '',
+        telefono: '', // Los teléfonos están en tabla separada TELEFONO
+        direccion: user.ma_direccion,
+        puntos: 0 // Los miembros ACAUCAB no tienen puntos
+      };
+    }
+    
+    console.log("Usuario procesado:", response);
+    return response;
+  } catch (error) {
+    console.error("Error en getUsuarioById:", error)
+    throw error
+  }
+}
+
+// Funciones para ventas online
+export async function getVentasOnlineByUserId(userId: string) {
+  try {
+    console.log("=== getVentasOnlineByUserId ===")
+    console.log("userId recibido:", userId)
+    
+    // Convertir userId a número
+    const userIdNum = parseInt(userId);
+    if (isNaN(userIdNum)) {
+      throw new Error(`userId inválido: ${userId}`);
+    }
+    
+    const result = await sql`
+      SELECT 
+        vo.venta_online_id,
+        vo.fecha_emision,
+        vo.fecha_estimada,
+        vo.fecha_entrega,
+        vo.total,
+        vo.direccion,
+        COALESCE(e.nombre, 'Pendiente') as estado
+      FROM VENTA_ONLINE vo
+      LEFT JOIN ESTADO_VENTA_ONLINE evo ON vo.venta_online_id = evo.fk_venta_online
+      LEFT JOIN ESTADO e ON evo.fk_estado = e.estado_id
+      WHERE vo.fk_usuario = ${userIdNum}
+      ORDER BY vo.fecha_emision DESC
+    `;
+    console.log(`Ventas online encontradas: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getVentasOnlineByUserId:", error)
+    throw error
+  }
+}
+
+export async function getDetallesVentaOnline(ventaOnlineId: number) {
+  try {
+    console.log("=== getDetallesVentaOnline ===")
+    const result = await sql`
+      SELECT 
+        dvo.detalle_venta_online_id,
+        c.nombre as nombre_cerveza,
+        CONCAT(p.cap_volumen, 'ml ', p.material) as presentacion,
+        dvo.precio_unitario,
+        dvo.cantidad,
+        (dvo.precio_unitario * dvo.cantidad) as subtotal
+      FROM DETALLE_VENTA_ONLINE dvo
+      JOIN ALMACEN_CERVEZA ac ON dvo.fk_almacen_cerveza = ac.almacen_cerveza_id
+      JOIN CERVEZA_PRESENTACION cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+      JOIN CERVEZA c ON cp.fk_cerveza = c.cerveza_id
+      JOIN PRESENTACION p ON cp.fk_presentacion = p.presentacion_id
+      WHERE dvo.fk_venta_online = ${ventaOnlineId}
+    `;
+    console.log(`Detalles encontrados: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getDetallesVentaOnline:", error)
+    throw error
+  }
+}
+
+export async function createVentaOnline(userId: string, total: number, direccion: string) {
+  try {
+    console.log("=== createVentaOnline ===")
+    console.log("Parámetros recibidos:", { userId, total, direccion })
+    
+    // Convertir userId a número
+    const userIdNum = parseInt(userId);
+    if (isNaN(userIdNum)) {
+      throw new Error(`userId inválido: ${userId}`);
+    }
+    
+    // Obtener el lugar por defecto
+    const lugarResult = await sql`SELECT lugar_id FROM LUGAR LIMIT 1`;
+    const lugarId = lugarResult[0]?.lugar_id || 1;
+    console.log("Lugar ID obtenido:", lugarId);
+
+    // Calcular fecha estimada de entrega (3 días después)
+    const fechaEstimada = new Date();
+    fechaEstimada.setDate(fechaEstimada.getDate() + 3);
+    const fechaEstimadaStr = fechaEstimada.toISOString().split('T')[0];
+    console.log("Fecha estimada:", fechaEstimadaStr);
+
+    console.log("Ejecutando INSERT con valores:", {
+      direccion,
+      fechaEstimada: fechaEstimadaStr,
+      total: total * 100,
+      lugarId,
+      userIdNum
+    });
+
+    const result = await sql`
+      INSERT INTO VENTA_ONLINE (
+        direccion, 
+        fecha_emision, 
+        fecha_estimada, 
+        total, 
+        fk_lugar, 
+        fk_usuario
+      ) VALUES (
+        ${direccion},
+        CURRENT_DATE,
+        ${fechaEstimadaStr},
+        ${total * 100}, -- Convertir a centavos
+        ${lugarId},
+        ${userIdNum}
+      ) RETURNING venta_online_id
+    `;
+    
+    const ventaId = result[0]?.venta_online_id;
+    console.log("Venta creada con ID:", ventaId);
+    return ventaId;
+  } catch (error) {
+    console.error("Error en createVentaOnline:", error)
+    throw error
+  }
+}
+
+export async function createDetalleVentaOnline(ventaOnlineId: number, almacenCervezaId: number, precioUnitario: number, cantidad: number) {
+  try {
+    console.log("=== createDetalleVentaOnline ===")
+    const result = await sql`
+      INSERT INTO DETALLE_VENTA_ONLINE (
+        fk_almacen_cerveza,
+        fk_venta_online,
+        precio_unitario,
+        cantidad
+      ) VALUES (
+        ${almacenCervezaId},
+        ${ventaOnlineId},
+        ${precioUnitario * 100}, -- Convertir a centavos
+        ${cantidad}
+      )
+    `;
+    console.log("Detalle de venta creado");
+    return result;
+  } catch (error) {
+    console.error("Error en createDetalleVentaOnline:", error)
+    throw error
+  }
+}
+
+export async function createEstadoVentaOnline(ventaOnlineId: number) {
+  try {
+    console.log("=== createEstadoVentaOnline ===")
+    
+    // Buscar estado "Pendiente"
+    const estadoResult = await sql`SELECT estado_id FROM ESTADO WHERE nombre = 'Pendiente' LIMIT 1`;
+    const estadoId = estadoResult[0]?.estado_id || 1;
+
+    const result = await sql`
+      INSERT INTO ESTADO_VENTA_ONLINE (
+        fecha_inicio,
+        fk_estado,
+        fk_venta_online
+      ) VALUES (
+        CURRENT_DATE,
+        ${estadoId},
+        ${ventaOnlineId}
+      )
+    `;
+    console.log("Estado de venta creado");
+    return result;
+  } catch (error) {
+    console.error("Error en createEstadoVentaOnline:", error)
+    throw error
+  }
+}
+
+export async function findAlmacenCervezaByProductName(productName: string) {
+  try {
+    console.log("=== findAlmacenCervezaByProductName ===")
+    const result = await sql`
+      SELECT ac.almacen_cerveza_id
+      FROM ALMACEN_CERVEZA ac
+      JOIN CERVEZA_PRESENTACION cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+      JOIN CERVEZA c ON cp.fk_cerveza = c.cerveza_id
+      WHERE c.nombre ILIKE ${'%' + productName.split(' ')[0] + '%'}
+      LIMIT 1
+    `;
+    console.log("Almacen cerveza encontrado:", result[0]?.almacen_cerveza_id);
+    return result[0]?.almacen_cerveza_id;
+  } catch (error) {
+    console.error("Error en findAlmacenCervezaByProductName:", error)
+    throw error
+  }
 }

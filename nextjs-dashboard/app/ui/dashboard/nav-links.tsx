@@ -3,6 +3,8 @@
 import {
   HomeIcon,
   UserIcon,
+  ShoppingBagIcon,
+  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link'
 import { usePathname } from 'next/navigation';
@@ -12,6 +14,8 @@ import clsx from 'clsx'
 export default function NavLinks({currentUser}) {
   const links = [
     { name: 'Menú Principal', href: `/${currentUser.usuario_id}/dashboard`, icon: HomeIcon },
+    { name: 'Tienda Online', href: `/${currentUser.usuario_id}/tienda-online/catalogo`, icon: ShoppingBagIcon },
+    { name: 'Órdenes', href: `/${currentUser.usuario_id}/ordenes`, icon: ClipboardDocumentListIcon },
     { name: 'Perfil', href: `/${currentUser.usuario_id}/profile`, icon: UserIcon },
   ];
   const pathname = usePathname();

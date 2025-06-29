@@ -1,19 +1,12 @@
+"use client";
+
 import Link from 'next/link';
 import NavLinks from '@/app/ui/dashboard/nav-links';
 import AcaucabLogo from '@/app/ui/acme-logo';
 import { PowerIcon } from '@heroicons/react/24/outline';
-import {cookies} from "next/headers";
-import {redirect} from "next/navigation";
-import {signOut} from "@/app/api/login/route";
+import { signOut } from "@/app/api/login/route";
 
-
-export default async function SideNav() {
-    const cookieStore = await cookies();
-    const userCookie =  cookieStore.get('user');
-    if (!userCookie) {
-        redirect('/');
-    }
-    const currentUser = JSON.parse(userCookie.value);
+export default function SideNav({ currentUser }: { currentUser: any }) {
   return (
     <div className="flex h-full flex-col px-3 py-4 md:px-2">
       <Link
