@@ -3136,15 +3136,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION get_detalles_venta_online(venta_online_id INTEGER)
-RETURNS TABLE (
-    detalle_venta_online_id INTEGER,
-    nombre_cerveza VARCHAR,
-    presentacion VARCHAR,
-    precio_unitario INTEGER,
-    cantidad INTEGER,
+CREATE OR REPLACE FUNCTION get_detalles_venta_online(p_venta_online_id INTEGER)
+RETURNS TABLE(
+    detalle_venta_online_id INTEGER, 
+    nombre_cerveza VARCHAR, 
+    presentacion VARCHAR, 
+    precio_unitario INTEGER, 
+    cantidad INTEGER, 
     subtotal INTEGER
-) AS $$
+)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     RETURN QUERY
     SELECT DISTINCT
@@ -3159,10 +3161,10 @@ BEGIN
     JOIN CERVEZA_PRESENTACION cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
     JOIN CERVEZA c ON cp.fk_cerveza = c.cerveza_id
     JOIN PRESENTACION p ON cp.fk_presentacion = p.presentacion_id
-    WHERE dvo.fk_venta_online = get_detalles_venta_online.venta_online_id
+    WHERE dvo.fk_venta_online = p_venta_online_id  -- ← Usar el parámetro renombrado
     ORDER BY dvo.detalle_venta_online_id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 
 CREATE OR REPLACE FUNCTION get_usuario_by_id_complete(p_usuario_id INTEGER)

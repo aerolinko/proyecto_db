@@ -2594,17 +2594,17 @@ INSERT INTO BENEFICIO (nombre, descripcion) VALUES
                                                 ('Vacaciones Extendidas', 'Semanas adicionales de vacaciones.'),
                                                 ('Guardería', 'Subsidio o servicio de guardería para hijos de empleados.');
 
-INSERT INTO PREMIACION (nombre, fecha, hora_inicio, hora_fin) VALUES
-                                                                  ('Mejor Lager del Año', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Mejor IPA Artesanal', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Innovación en Receta', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Cerveza Más Popular', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Maestro Cervecero Destacado', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Mejor Stand del Festival', '2025-07-16', '12:00:00', '13:00:00'),
-                                                                  ('Reconocimiento a la Trayectoria', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Cerveza de Trigo Favorita', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Mejor Diseño de Etiqueta', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Premio Especial del Jurado', '2025-11-15', '19:00:00', '21:00:00');
+INSERT INTO PREMIACION (nombre, fecha, hora_inicio, hora_fin, tipo) VALUES
+('Mejor Lager del Año', '2025-11-15', '19:00:00', '21:00:00', 'Cata'),
+('Mejor IPA Artesanal', '2025-11-15', '19:00:00', '21:00:00', 'Cata'),
+('Innovación en Receta', '2025-11-15', '19:00:00', '21:00:00', 'Innovación'),
+('Cerveza Más Popular', '2025-11-15', '19:00:00', '21:00:00', 'Popularidad'),
+('Maestro Cervecero Destacado', '2025-11-15', '19:00:00', '21:00:00', 'Reconocimiento'),
+('Mejor Stand del Festival', '2025-07-16', '12:00:00', '13:00:00', 'Exposición'),
+('Reconocimiento a la Trayectoria', '2025-11-15', '19:00:00', '21:00:00', 'Trayectoria'),
+('Cerveza de Trigo Favorita', '2025-11-15', '19:00:00', '21:00:00', 'Cata'),
+('Mejor Diseño de Etiqueta', '2025-11-15', '19:00:00', '21:00:00', 'Diseño'),
+('Premio Especial del Jurado', '2025-11-15', '19:00:00', '21:00:00', 'Especial');
 
 INSERT INTO ESTADO_REPOSICION_ANAQUEL (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel) VALUES
                                                                                                       ('2025-05-28', null, 8, 1),
