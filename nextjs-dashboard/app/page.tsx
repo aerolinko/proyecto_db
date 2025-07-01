@@ -8,12 +8,119 @@ import Link from "next/link"
 export default function LandingPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [email, setEmail] = useState("")
+    const [showAfiliacionModal, setShowAfiliacionModal] = useState(false)
+    const [formData, setFormData] = useState({
+        rif: "",
+        cedula: "",
+        primerNombre: "",
+        segundoNombre: "",
+        primerApellido: "",
+        segundoApellido: "",
+        direccion: "",
+        codigoTelefono: "58",
+        numeroTelefono: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+    })
+    const [isLoading, setIsLoading] = useState(false)
+    const [message, setMessage] = useState("")
 
     const handleNewsletterSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         console.log("Newsletter signup:", email)
         setEmail("")
         alert("¡Gracias por suscribirte a nuestro DiarioDeUnaCerveza!")
+    }
+
+    const handleAfiliacionSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsLoading(true)
+        setMessage("")
+
+        // Validaciones básicas
+        if (formData.password !== formData.confirmPassword) {
+            setMessage("Las contraseñas no coinciden")
+            setIsLoading(false)
+            return
+        }
+
+        if (!formData.rif || !formData.cedula || !formData.primerNombre || !formData.primerApellido) {
+            setMessage("Por favor complete todos los campos obligatorios")
+            setIsLoading(false)
+            return
+        }
+
+        try {
+            const response = await fetch('/api/afiliacion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    rif: formData.rif,
+                    cedula: parseInt(formData.cedula),
+                    primerNombre: formData.primerNombre,
+                    segundoNombre: formData.segundoNombre,
+                    primerApellido: formData.primerApellido,
+                    segundoApellido: formData.segundoApellido,
+                    direccion: formData.direccion,
+                    fkLugar: 1, // Por defecto
+                    codigoTelefono: parseInt(formData.codigoTelefono),
+                    numeroTelefono: parseInt(formData.numeroTelefono),
+                    email: formData.email,
+                    password: formData.password
+                }),
+            })
+
+            const result = await response.json()
+
+            if (response.ok) {
+                setMessage("¡Afiliación exitosa! Su carnet digital ha sido generado.")
+                // Limpiar formulario
+                setFormData({
+                    rif: "",
+                    cedula: "",
+                    primerNombre: "",
+                    segundoNombre: "",
+                    primerApellido: "",
+                    segundoApellido: "",
+                    direccion: "",
+                    codigoTelefono: "58",
+                    numeroTelefono: "",
+                    email: "",
+                    password: "",
+                    confirmPassword: ""
+                })
+                // Cerrar modal después de 3 segundos
+                setTimeout(() => {
+                    setShowAfiliacionModal(false)
+                    setMessage("")
+                }, 3000)
+            } else {
+                const errorMessage = result.error || "Error en la afiliación"
+                setMessage(errorMessage)
+                
+                // Si es un error de cliente existente, no cerrar el modal
+                if (response.status === 409) {
+                    // Mantener el modal abierto para que el usuario pueda corregir los datos
+                    console.log("Cliente ya existe, manteniendo modal abierto")
+                }
+            }
+        } catch (error) {
+            console.error("Error:", error)
+            setMessage("Error de conexión. Intente nuevamente.")
+        }
+
+        setIsLoading(false)
+    }
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }))
     }
 
     return (
@@ -52,7 +159,10 @@ export default function LandingPage() {
                                     Iniciar Sesión
                                 </button>
                             </Link>
-                            <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                            <button 
+                                onClick={() => setShowAfiliacionModal(true)}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                            >
                                 Afiliarse
                             </button>
                         </div>
@@ -98,7 +208,10 @@ export default function LandingPage() {
                                             Iniciar Sesión
                                         </button>
                                     </Link>
-                                    <button className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                                    <button 
+                                        onClick={() => setShowAfiliacionModal(true)}
+                                        className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                                    >
                                         Afiliarse
                                     </button>
                                 </div>
@@ -124,7 +237,10 @@ export default function LandingPage() {
                             con excelencia en precio, calidad y variedad para hoteles, restaurantes y comercios afiliados.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button className="inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors">
+                            <button 
+                                onClick={() => setShowAfiliacionModal(true)}
+                                className="inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+                            >
                                 Afiliarse Ahora
                                 <span className="ml-2">→</span>
                             </button>
@@ -584,6 +700,270 @@ export default function LandingPage() {
                     </div>
                 </div>
             </footer>
+
+            {/* Modal de Afiliación */}
+            {showAfiliacionModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Afiliación a ACAUCAB</h2>
+                                <button
+                                    onClick={() => setShowAfiliacionModal(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {message && (
+                                <div className={`p-4 mb-4 rounded-md ${message.includes('exitoso') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {message}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleAfiliacionSubmit} className="space-y-4">
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            RIF * <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="rif"
+                                            value={formData.rif}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="V-12345678-9"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Cédula * <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="cedula"
+                                            value={formData.cedula}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="12345678"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Primer Nombre * <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="primerNombre"
+                                            value={formData.primerNombre}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Juan"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Segundo Nombre
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="segundoNombre"
+                                            value={formData.segundoNombre}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Carlos"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Primer Apellido * <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="primerApellido"
+                                            value={formData.primerApellido}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Pérez"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Segundo Apellido
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="segundoApellido"
+                                            value={formData.segundoApellido}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="García"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Dirección * <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="direccion"
+                                        value={formData.direccion}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Av. Principal #123, Caracas"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Código de País
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="codigoTelefono"
+                                            value={formData.codigoTelefono}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="58"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Número de Teléfono * <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="numeroTelefono"
+                                            value={formData.numeroTelefono}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="4121234567"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Email * <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="juan@email.com"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Contraseña * <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Mínimo 8 caracteres"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Confirmar Contraseña * <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="confirmPassword"
+                                            value={formData.confirmPassword}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Repita la contraseña"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="bg-blue-50 p-4 rounded-md">
+                                    <h4 className="font-medium text-blue-900 mb-2">Beneficios de la Afiliación:</h4>
+                                    <ul className="text-sm text-blue-800 space-y-1">
+                                        <li>• Acceso a catálogo completo de cervezas artesanales</li>
+                                        <li>• Precios mayoristas especiales</li>
+                                        <li>• Carnet digital con código QR</li>
+                                        <li>• Sistema de puntos y recompensas</li>
+                                        <li>• Membresía por 1 año</li>
+                                    </ul>
+                                </div>
+
+                                <div className="flex justify-end space-x-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAfiliacionModal(false)}
+                                        className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    {message && message.includes('ya existe') && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFormData({
+                                                    rif: "",
+                                                    cedula: "",
+                                                    primerNombre: "",
+                                                    segundoNombre: "",
+                                                    primerApellido: "",
+                                                    segundoApellido: "",
+                                                    direccion: "",
+                                                    codigoTelefono: "58",
+                                                    numeroTelefono: "",
+                                                    email: "",
+                                                    password: "",
+                                                    confirmPassword: ""
+                                                })
+                                                setMessage("")
+                                            }}
+                                            className="px-4 py-2 text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                                        >
+                                            Limpiar Formulario
+                                        </button>
+                                    )}
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50"
+                                    >
+                                        {isLoading ? "Procesando..." : "Afiliarse"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
