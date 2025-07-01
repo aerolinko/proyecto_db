@@ -83,6 +83,7 @@ CREATE TABLE PREMIACION(
                            fecha DATE NOT NULL,
                            hora_inicio time NOT NULL,
                            hora_fin time NOT NULL,
+                           tipo varchar(50) NOT NULL,
                            constraint pk_premiacion_id primary key (premiacion_id)
 );
 
