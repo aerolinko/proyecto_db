@@ -168,3 +168,140 @@
 2025-06-29T15:47:15.790Z - debug: Running chrome with params {"printBackground":true,"timeout":59682,"margin":{}} rootId=rayqambmjexvmqn, id=rayqambmjexvmqn
 2025-06-29T15:47:16.185Z - debug: Skipping storing report. rootId=rayqambmjexvmqn, id=rayqambmjexvmqn
 2025-06-29T15:47:16.185Z - info: Rendering request 3 finished in 1543 ms rootId=rayqambmjexvmqn, id=rayqambmjexvmqn
+2025-07-01T00:00:17.598Z - info: Initializing jsreport (version: 4.9.0, configuration file: jsreport.config.json, nodejs: 22.11.0)
+2025-07-01T00:00:17.610Z - info: Searching for available extensions in C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\
+2025-07-01T00:00:17.635Z - info: Extensions location cache C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json contains older information, crawling
+2025-07-01T00:00:27.282Z - info: Found 35 extension(s)
+2025-07-01T00:00:28.422Z - debug: Writing extension locations cache to C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json
+2025-07-01T00:00:28.426Z - debug: Discovered 35 extensions
+2025-07-01T00:00:28.492Z - debug: Extension authentication@4.2.3 is disabled, skipping
+2025-07-01T00:00:28.494Z - info: Using extension base@4.0.0
+2025-07-01T00:00:28.515Z - info: Using extension child-templates@4.1.0
+2025-07-01T00:00:28.536Z - info: Using extension cli@4.1.1
+2025-07-01T00:00:28.620Z - info: Using extension components@4.0.2
+2025-07-01T00:00:28.653Z - info: Using extension data@4.1.0
+2025-07-01T00:00:28.673Z - info: Using extension express@4.2.0
+2025-07-01T00:00:40.223Z - info: Using extension freeze@4.0.0
+2025-07-01T00:00:40.250Z - info: Using extension fs-store@4.1.1
+2025-07-01T00:00:43.987Z - info: Using extension handlebars@4.0.1
+2025-07-01T00:00:44.010Z - info: Using extension import-export@4.0.7
+2025-07-01T00:00:44.260Z - info: Using extension jsrender@4.0.0
+2025-07-01T00:00:44.275Z - info: Using extension licensing@4.0.5
+2025-07-01T00:00:45.040Z - info: Using extension localization@4.0.1
+2025-07-01T00:00:45.057Z - info: Using extension npm@4.0.0
+2025-07-01T00:00:45.088Z - info: Using extension pdf-utils@4.3.0
+2025-07-01T00:00:45.114Z - info: Using extension reports@4.1.4
+2025-07-01T00:00:45.150Z - info: Using extension tags@4.0.1
+2025-07-01T00:00:45.192Z - info: Using extension text@4.0.2
+2025-07-01T00:00:45.209Z - info: Using extension version-control@4.1.1
+2025-07-01T00:00:45.365Z - info: Using extension assets@4.2.2
+2025-07-01T00:00:45.607Z - info: Using extension authorization@4.1.0
+2025-07-01T00:00:45.708Z - debug: Extension authorization@4.1.0 was disabled
+2025-07-01T00:00:45.709Z - info: Using extension browser-client@4.1.0
+2025-07-01T00:00:45.801Z - info: Using extension chrome-pdf@4.2.0
+2025-07-01T00:00:45.829Z - debug: Chrome strategy is chrome-pool, numberOfWorkers: 1
+2025-07-01T00:00:45.830Z - debug: Chrome custom launch options are protocolTimeout=60000
+2025-07-01T00:00:45.830Z - info: Using extension docx@4.8.0
+2025-07-01T00:00:45.860Z - info: Using extension html-to-xlsx@4.2.1
+2025-07-01T00:00:51.686Z - info: html-to-xlsx detected chrome as available html engine
+2025-07-01T00:00:51.687Z - info: Using extension pptx@4.4.1
+2025-07-01T00:00:51.753Z - info: Using extension scheduling@4.1.0
+2025-07-01T00:00:52.466Z - info: Using extension scripts@4.2.0
+2025-07-01T00:00:52.486Z - info: Using extension static-pdf@4.1.0
+2025-07-01T00:00:52.511Z - info: Using extension studio@4.3.1
+2025-07-01T00:00:54.486Z - info: Using extension xlsx@4.4.1
+2025-07-01T00:00:54.510Z - info: Using extension public-templates@4.0.0
+2025-07-01T00:00:54.539Z - debug: Extension public-templates@4.0.0 was disabled
+2025-07-01T00:00:54.540Z - info: Using extension sample-template@4.0.1
+2025-07-01T00:00:54.578Z - info: Using extension studio-theme-dark@4.0.0
+2025-07-01T00:00:54.621Z - warn: options.allowLocalFilesAccess is deprecated, use options.trustUserCode instead
+2025-07-01T00:00:54.622Z - info: Using general timeout for rendering (reportTimeout: 60000)
+2025-07-01T00:00:54.622Z - info: Using fs provider for template store.
+2025-07-01T00:00:54.635Z - info: fs store is persisting using fs for C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\data
+2025-07-01T00:00:54.651Z - info: fs store is loading data
+2025-07-01T00:00:54.883Z - info: fs store is initialized successfully
+2025-07-01T00:00:54.890Z - debug: studio default theme is: light
+2025-07-01T00:00:54.903Z - info: Creating default express app.
+2025-07-01T00:00:55.738Z - info: jsreport server successfully started on http port: 5488
+2025-07-01T00:00:55.740Z - info: Verifying license key free
+2025-07-01T00:00:57.038Z - info: Using enterprise trial license
+2025-07-01T00:00:57.045Z - info: Initializing worker threads
+2025-07-01T00:00:57.046Z - debug: Extensions in workers: base, child-templates, components, data, express, handlebars, jsrender, localization, npm, pdf-utils, reports, text, version-control, assets, browser-client, chrome-pdf, docx, html-to-xlsx, pptx, scripts, static-pdf, studio, xlsx
+2025-07-01T00:01:02.623Z - info: 2 worker threads initialized in 5578ms
+2025-07-01T00:01:02.625Z - info: Starting temp files cleanup with 180000ms threshold
+2025-07-01T00:01:02.626Z - info: reporter initialized
+2025-07-01T00:01:54.902Z - warn: Cleaning fs journal failed, will reload Unexpected end of JSON input stack=SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at module.exports.parse (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\serializator\index.js:56:15)
+    at parse (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\customUtils.js:63:10)
+    at Object.clean (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\journal.js:199:24)
+    at async lock (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-fs-store\lib\customUtils.js:153:12)
+2025-07-01T00:02:18.395Z - debug: OData query on templates
+2025-07-01T00:02:18.433Z - debug: OData query on settings
+2025-07-01T00:02:18.439Z - debug: OData query on folders
+2025-07-01T00:02:18.446Z - debug: OData query on components
+2025-07-01T00:02:18.454Z - debug: OData query on data
+2025-07-01T00:02:18.460Z - debug: OData query on tags
+2025-07-01T00:02:18.469Z - debug: OData query on assets
+2025-07-01T00:02:18.479Z - debug: OData query on scripts
+2025-07-01T00:02:18.487Z - debug: OData query on schedules
+2025-07-01T00:02:18.612Z - debug: OData query on templates
+2025-07-01T00:02:18.673Z - debug: OData query on profiles
+2025-07-01T00:02:18.701Z - debug: OData query on profiles
+2025-07-01T00:02:18.728Z - debug: OData query on profiles
+2025-07-01T00:02:18.739Z - debug: OData query on profiles
+2025-07-01T00:02:18.745Z - debug: OData query on profiles
+2025-07-01T00:02:18.752Z - debug: OData query on profiles
+2025-07-01T00:02:18.757Z - debug: OData query on templates
+2025-07-01T00:03:10.995Z - info: Render request 1 queued for execution and waiting for available worker rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:11.106Z - info: Starting rendering request 1 rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:11.113Z - info: Rendering template { name: Factura ACAUCAB, recipe: chrome-pdf, engine: handlebars, preview: false } rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:11.113Z - debug: Inline data specified. rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:11.124Z - debug: Base url not specified, skipping its injection. rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:11.129Z - debug: Rendering engine handlebars rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:17.474Z - debug: Executing recipe chrome-pdf rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:28.867Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:28.998Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/c6d4f87b-973a-4f1b-bf53-b9a035c59c0d-chrome-pdf.html rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:29.022Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/c6d4f87b-973a-4f1b-bf53-b9a035c59c0d-chrome-pdf.html rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:29.048Z - debug: Running chrome with params {"printBackground":true,"timeout":53385,"margin":{}} rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:29.362Z - debug: Skipping storing report. rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:03:29.362Z - info: Rendering request 1 finished in 18381 ms rootId=ak4ldh20zvhxzlj, id=ak4ldh20zvhxzlj
+2025-07-01T00:17:32.367Z - info: Render request 2 queued for execution and waiting for available worker rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:32.467Z - info: Starting rendering request 2 rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:32.471Z - info: Rendering template { name: Factura ACAUCAB, recipe: chrome-pdf, engine: handlebars, preview: false } rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:32.473Z - debug: Inline data specified. rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:32.482Z - debug: Base url not specified, skipping its injection. rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:32.491Z - debug: Rendering engine handlebars rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:33.608Z - debug: Executing recipe chrome-pdf rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:34.707Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:34.943Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/491aaee3-6b75-4dff-83a7-62d2f8572429-chrome-pdf.html rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:34.970Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/491aaee3-6b75-4dff-83a7-62d2f8572429-chrome-pdf.html rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:34.992Z - debug: Running chrome with params {"printBackground":true,"timeout":58728,"margin":{}} rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:35.499Z - debug: Skipping storing report. rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T00:17:35.499Z - info: Rendering request 2 finished in 3147 ms rootId=qr1acsr2y9jto5c, id=qr1acsr2y9jto5c
+2025-07-01T01:10:53.179Z - info: Render request 3 queued for execution and waiting for available worker rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:53.307Z - info: Starting rendering request 3 rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:53.312Z - info: Rendering template { name: Factura ACAUCAB, recipe: chrome-pdf, engine: handlebars, preview: false } rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:53.312Z - debug: Inline data specified. rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:53.321Z - debug: Base url not specified, skipping its injection. rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:53.334Z - debug: Rendering engine handlebars rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:53.434Z - debug: Executing recipe chrome-pdf rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:53.498Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:54.155Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/f8ebb438-8a18-454b-8d74-a3a2525c5642-chrome-pdf.html rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:54.224Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/f8ebb438-8a18-454b-8d74-a3a2525c5642-chrome-pdf.html rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:54.277Z - debug: Running chrome with params {"printBackground":true,"timeout":59709,"margin":{}} rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:54.604Z - debug: Skipping storing report. rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:10:54.604Z - info: Rendering request 3 finished in 1447 ms rootId=cnip3kbfapg48j9, id=cnip3kbfapg48j9
+2025-07-01T01:21:57.231Z - info: Render request 4 queued for execution and waiting for available worker rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:57.343Z - info: Starting rendering request 4 rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:57.347Z - info: Rendering template { name: Factura ACAUCAB, recipe: chrome-pdf, engine: handlebars, preview: false } rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:57.347Z - debug: Inline data specified. rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:57.351Z - debug: Base url not specified, skipping its injection. rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:57.357Z - debug: Rendering engine handlebars rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:57.413Z - debug: Executing recipe chrome-pdf rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:57.458Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:57.987Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/7c93af22-0377-4b9a-bf36-6faad4825053-chrome-pdf.html rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:58.049Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/7c93af22-0377-4b9a-bf36-6faad4825053-chrome-pdf.html rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:58.099Z - debug: Running chrome with params {"printBackground":true,"timeout":59800,"margin":{}} rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:58.440Z - debug: Skipping storing report. rootId=2tt633atp3wirds, id=2tt633atp3wirds
+2025-07-01T01:21:58.440Z - info: Rendering request 4 finished in 1218 ms rootId=2tt633atp3wirds, id=2tt633atp3wirds

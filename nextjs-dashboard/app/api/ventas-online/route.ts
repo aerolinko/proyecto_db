@@ -30,6 +30,11 @@ export async function GET(request: NextRequest) {
       ventas.map(async (venta) => {
         const productos = await getDetallesVentaOnline(venta.venta_online_id);
 
+        // Eliminar duplicados basados en detalle_venta_online_id
+        const productosUnicos = productos.filter((producto, index, self) => 
+          index === self.findIndex(p => p.detalle_venta_online_id === producto.detalle_venta_online_id)
+        );
+
         return {
           venta_online_id: venta.venta_online_id,
           fecha_emision: venta.fecha_emision,
@@ -38,7 +43,7 @@ export async function GET(request: NextRequest) {
           total: venta.total / 100, // Convertir de centavos a dólares
           direccion: venta.direccion,
           estado: venta.estado,
-          productos: productos.map(p => ({
+          productos: productosUnicos.map(p => ({
             ...p,
             precio_unitario: p.precio_unitario / 100, // Convertir de centavos a dólares
             subtotal: p.subtotal / 100 // Convertir de centavos a dólares

@@ -1537,37 +1537,6 @@ as
     end;
     $$;
 
-create or replace function obtenerordenesanaquel()
-    returns TABLE(reposicion_anaquel_id integer, fecha varchar, productos varchar,estado varchar)
-    language sql
-as
-$$
-SELECT ra.reposicion_anaquel_id, to_char(ra.fecha,'DD-MM-YYYY') as productos, string_agg(c.nombre||' '||p.cap_volumen::varchar||'ml', ', ') as productos, e.nombre
-FROM reposicion_anaquel ra, estado_reposicion_anaquel era, anaquel_cerveza ac, cerveza_presentacion pc, cerveza c,
-     presentacion p, estado e, detalle_reposicion_anaquel dra
-where ra.reposicion_anaquel_id = era.fk_reposicion_anaquel and era.fk_estado = e.estado_id and dra.fk_reposicion_anaquel = ra.reposicion_anaquel_id
-    and dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id and pc.cerveza_presentacion_id = ac.fk_cerveza_presentacion and
-        p.presentacion_id = pc.fk_presentacion and pc.fk_cerveza = c.cerveza_id and era.fecha_fin is null
-    group by ra.reposicion_anaquel_id, ra.fecha, e.nombre
-
-$$;
-
-create or replace procedure cambiarEstadoRepAnaquel(cambio varchar, id integer)
-    language plpgsql
-as
-$$
-declare
-    Nuevoestado_id integer;
-begin
-    select into Nuevoestado_id e.estado_id from estado e
-    where e.nombre=cambio;
-    update estado_reposicion_anaquel set fecha_fin = current_date
-    where fk_reposicion_anaquel=id;
-    insert into estado_reposicion_anaquel (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel)
-    values (current_date,null,Nuevoestado_id,id);
-end;
-$$;
-
 
 CREATE OR REPLACE FUNCTION get_stock_almacen()
 RETURNS TABLE(
@@ -3024,5 +2993,278 @@ BEGIN
     END IF;
 
     RETURN;
+END;
+$$;
+create function create_venta_online(user_id integer, total_amount integer, delivery_address character varying) returns integer
+    language plpgsql
+as
+$$
+DECLARE
+    new_venta_id INTEGER;
+    lugar_id INTEGER;
+    fecha_estimada DATE;
+BEGIN
+    -- Obtener el lugar por defecto
+    SELECT l.lugar_id INTO lugar_id FROM LUGAR l LIMIT 1;
+    IF lugar_id IS NULL THEN
+        lugar_id := 1;
+    END IF;
+
+    -- Calcular fecha estimada de entrega (3 días después)
+    fecha_estimada := CURRENT_DATE + INTERVAL '3 days';
+
+    -- Insertar la venta online
+    INSERT INTO VENTA_ONLINE (
+        direccion,
+        fecha_emision,
+        fecha_estimada,
+        total,
+        fk_lugar,
+        fk_usuario
+    ) VALUES (
+        delivery_address,
+        CURRENT_DATE,
+        fecha_estimada,
+        total_amount,
+        lugar_id,
+        user_id
+    ) RETURNING venta_online_id INTO new_venta_id;
+
+    RETURN new_venta_id;
+END;
+$$;
+
+
+-- Crear detalle de venta online
+CREATE OR REPLACE FUNCTION create_detalle_venta_online(
+    venta_online_id INTEGER,
+    almacen_cerveza_id INTEGER,
+    precio_unitario INTEGER,
+    cantidad INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO DETALLE_VENTA_ONLINE (
+        fk_almacen_cerveza,
+        fk_venta_online,
+        precio_unitario,
+        cantidad
+    ) VALUES (
+        almacen_cerveza_id,
+        venta_online_id,
+        precio_unitario,
+        cantidad
+    );
+END;
+$$ LANGUAGE plpgsql;
+create function create_estado_venta_online(venta_online_id integer) returns void
+    language plpgsql
+as
+$$
+DECLARE
+    estado_id INTEGER;
+BEGIN
+    -- Buscar estado "Pendiente"
+    SELECT e.estado_id INTO estado_id FROM ESTADO e WHERE nombre = 'Pendiente' LIMIT 1;
+    IF estado_id IS NULL THEN
+        estado_id := 1;
+    END IF;
+
+    INSERT INTO ESTADO_VENTA_ONLINE (
+        fecha_inicio,
+        fk_estado,
+        fk_venta_online
+    ) VALUES (
+        CURRENT_DATE,
+        estado_id,
+        venta_online_id
+    );
+END;
+$$;
+
+
+
+-- Encontrar almacén cerveza por nombre de producto
+CREATE OR REPLACE FUNCTION find_almacen_cerveza_by_product_name(product_name VARCHAR)
+RETURNS INTEGER AS $$
+DECLARE
+    almacen_id INTEGER;
+BEGIN
+    SELECT ac.almacen_cerveza_id INTO almacen_id
+    FROM ALMACEN_CERVEZA ac
+    JOIN CERVEZA_PRESENTACION cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+    JOIN CERVEZA c ON cp.fk_cerveza = c.cerveza_id
+    WHERE c.nombre ILIKE '%' || split_part(product_name, ' ', 1) || '%'
+    LIMIT 1;
+    
+    RETURN almacen_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_ventas_online_by_user_id(user_id INTEGER)
+RETURNS TABLE (
+    venta_online_id INTEGER,
+    fecha_emision DATE,
+    fecha_estimada DATE,
+    fecha_entrega DATE,
+    total INTEGER,
+    direccion VARCHAR,
+    estado VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        vo.venta_online_id,
+        vo.fecha_emision,
+        vo.fecha_estimada,
+        vo.fecha_entrega,
+        vo.total,
+        vo.direccion,
+        COALESCE(latest_estado.nombre, 'Pendiente') as estado
+    FROM VENTA_ONLINE vo
+    LEFT JOIN (
+        SELECT DISTINCT ON (evo.fk_venta_online) 
+            evo.fk_venta_online,
+            e.nombre
+        FROM ESTADO_VENTA_ONLINE evo
+        JOIN ESTADO e ON evo.fk_estado = e.estado_id
+        ORDER BY evo.fk_venta_online, evo.fecha_inicio DESC
+    ) latest_estado ON vo.venta_online_id = latest_estado.fk_venta_online
+    WHERE vo.fk_usuario = user_id
+    ORDER BY vo.fecha_emision DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_detalles_venta_online(venta_online_id INTEGER)
+RETURNS TABLE (
+    detalle_venta_online_id INTEGER,
+    nombre_cerveza VARCHAR,
+    presentacion VARCHAR,
+    precio_unitario INTEGER,
+    cantidad INTEGER,
+    subtotal INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        dvo.detalle_venta_online_id,
+        c.nombre::VARCHAR as nombre_cerveza,
+        (p.cap_volumen::VARCHAR || 'ml ' || p.material)::VARCHAR as presentacion,
+        dvo.precio_unitario,
+        dvo.cantidad,
+        (dvo.precio_unitario * dvo.cantidad) as subtotal
+    FROM DETALLE_VENTA_ONLINE dvo
+    JOIN ALMACEN_CERVEZA ac ON dvo.fk_almacen_cerveza = ac.almacen_cerveza_id
+    JOIN CERVEZA_PRESENTACION cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+    JOIN CERVEZA c ON cp.fk_cerveza = c.cerveza_id
+    JOIN PRESENTACION p ON cp.fk_presentacion = p.presentacion_id
+    WHERE dvo.fk_venta_online = get_detalles_venta_online.venta_online_id
+    ORDER BY dvo.detalle_venta_online_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION get_usuario_by_id_complete(p_usuario_id INTEGER)
+RETURNS TABLE (
+    -- Información básica del usuario
+    usuario_id INTEGER,
+    nombre_usuario VARCHAR,
+    fecha_creacion DATE,
+    
+    -- Claves foráneas para identificar el tipo de entidad
+    fk_empleado INTEGER,
+    fk_cliente_natural INTEGER,
+    fk_cliente_juridico INTEGER,
+    fk_miembro_acaucab INTEGER,
+    
+    -- Información de empleado (si aplica)
+    empleado_id INTEGER,
+    emp_primer_nombre VARCHAR,
+    emp_segundo_nombre VARCHAR,
+    emp_primer_apellido VARCHAR,
+    emp_segundo_apellido VARCHAR,
+    emp_direccion VARCHAR,
+    
+    -- Información de cliente natural (si aplica)
+    cn_cliente_id INTEGER,
+    cn_primer_nombre VARCHAR,
+    cn_segundo_nombre VARCHAR,
+    cn_primer_apellido VARCHAR,
+    cn_segundo_apellido VARCHAR,
+    cn_direccion VARCHAR,
+    cn_total_puntos INTEGER,
+    
+    -- Información de cliente jurídico (si aplica)
+    cj_cliente_id INTEGER,
+    cj_razon_social VARCHAR,
+    cj_direccion VARCHAR,
+    cj_total_puntos INTEGER,
+    
+    -- Información de miembro ACAUCAB (si aplica)
+    ma_miembro_id INTEGER,
+    ma_razon_social VARCHAR,
+    ma_direccion VARCHAR,
+    
+    -- Campo calculado para identificar el tipo de entidad
+    tipo_entidad VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        
+        -- Claves foráneas
+        u.fk_empleado,
+        u.fk_cliente_natural,
+        u.fk_cliente_juridico,
+        u.fk_miembro_acaucab,
+        
+        -- Datos de empleado
+        e.empleado_id,
+        e.primer_nombre as emp_primer_nombre,
+        e.segundo_nombre as emp_segundo_nombre,
+        e.primer_apellido as emp_primer_apellido,
+        e.segundo_apellido as emp_segundo_apellido,
+        e.direccion as emp_direccion,
+        
+        -- Datos de cliente natural
+        cn.cliente_id as cn_cliente_id,
+        cn.primer_nombre as cn_primer_nombre,
+        cn.segundo_nombre as cn_segundo_nombre,
+        cn.primer_apellido as cn_primer_apellido,
+        cn.segundo_apellido as cn_segundo_apellido,
+        cn.direccion as cn_direccion,
+        cn.total_puntos as cn_total_puntos,
+        
+        -- Datos de cliente jurídico
+        cj.cliente_id as cj_cliente_id,
+        cj.razon_social as cj_razon_social,
+        cj.direccion as cj_direccion,
+        cj.total_puntos as cj_total_puntos,
+        
+        -- Datos de miembro ACAUCAB
+        ma.miembro_id as ma_miembro_id,
+        ma.razon_social as ma_razon_social,
+        ma.direccion as ma_direccion,
+        
+        -- Determinar el tipo de entidad
+        CASE 
+            WHEN u.fk_empleado IS NOT NULL THEN 'empleado'
+            WHEN u.fk_cliente_natural IS NOT NULL THEN 'cliente_natural'
+            WHEN u.fk_cliente_juridico IS NOT NULL THEN 'cliente_juridico'
+            WHEN u.fk_miembro_acaucab IS NOT NULL THEN 'miembro_acaucab'
+            ELSE 'sin_entidad'
+        END as tipo_entidad
+        
+    FROM usuario u
+    LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+    LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+    LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+    LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+    WHERE u.usuario_id = p_usuario_id;
 END;
 $$;

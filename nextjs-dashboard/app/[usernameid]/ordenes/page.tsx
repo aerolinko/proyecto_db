@@ -77,6 +77,10 @@ export default function Ordenes({ params }) {
     order.estado.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Debug: Verificar órdenes
+  console.log('Orders:', orders);
+  console.log('Filtered Orders:', filteredOrders);
+
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case 'entregado':
@@ -176,8 +180,8 @@ export default function Ordenes({ params }) {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredOrders.map((order) => (
-                  <div key={order.venta_online_id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                {filteredOrders.map((order, index) => (
+                  <div key={`order-${order.venta_online_id}-${index}`} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                       {/* Order Info */}
                       <div className="flex-1">
@@ -290,8 +294,8 @@ export default function Ordenes({ params }) {
               <div>
                 <h3 className="font-semibold text-gray-800 mb-4">Productos</h3>
                 <div className="space-y-3">
-                  {selectedOrder.productos.map((item) => (
-                    <div key={item.detalle_venta_online_id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  {selectedOrder.productos.map((item, index) => (
+                    <div key={`${item.detalle_venta_online_id}-${item.nombre_cerveza}-${index}`} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                       <div className="flex-1">
                         <h4 className="font-medium text-gray-800">{item.nombre_cerveza}</h4>
                         <p className="text-sm text-gray-600">{item.presentacion}ml</p>
