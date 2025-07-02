@@ -599,3 +599,63 @@ export async function findAlmacenCervezaByProductName(productName: string) {
     throw error
   }
 }
+
+// ===== FUNCIONES PARA INDICADORES DE CLIENTES =====
+
+// Obtener número de clientes nuevos vs recurrentes en un período
+export async function getClientesNuevosVsRecurrentes(fechaInicio?: string, fechaFin?: string) {
+  try {
+    console.log("=== getClientesNuevosVsRecurrentes ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    const result = await sql`SELECT * FROM get_clientes_nuevos_vs_recurrentes(${fechaInicio || null}, ${fechaFin || null})`;
+    console.log(`Indicadores de clientes nuevos vs recurrentes obtenidos:`, result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Error en getClientesNuevosVsRecurrentes:", error);
+    throw error;
+  }
+}
+
+// Obtener tasa de retención de clientes en un período
+export async function getTasaRetencionClientes(fechaInicio?: string, fechaFin?: string) {
+  try {
+    console.log("=== getTasaRetencionClientes ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    const result = await sql`SELECT * FROM get_tasa_retencion_clientes(${fechaInicio || null}, ${fechaFin || null})`;
+    console.log(`Tasa de retención de clientes obtenida:`, result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Error en getTasaRetencionClientes:", error);
+    throw error;
+  }
+}
+
+// Obtener todos los indicadores de clientes en una sola función
+export async function getIndicadoresClientes(fechaInicio?: string, fechaFin?: string) {
+  try {
+    console.log("=== getIndicadoresClientes ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    const [clientesNuevosVsRecurrentes, tasaRetencion] = await Promise.all([
+      getClientesNuevosVsRecurrentes(fechaInicio, fechaFin),
+      getTasaRetencionClientes(fechaInicio, fechaFin)
+    ]);
+
+    const indicadores = {
+      clientes_nuevos_vs_recurrentes: clientesNuevosVsRecurrentes,
+      tasa_retencion: tasaRetencion,
+      periodo: {
+        fecha_inicio: fechaInicio || 'Últimos 30 días',
+        fecha_fin: fechaFin || 'Hoy'
+      }
+    };
+
+    console.log("Indicadores de clientes completos:", indicadores);
+    return indicadores;
+  } catch (error) {
+    console.error("Error en getIndicadoresClientes:", error);
+    throw error;
+  }
+}

@@ -324,6 +324,56 @@ export default function Reportes() {
                   </div>
                 </div>
               ))}
+              
+              {/* Enlace a Indicadores de Clientes */}
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-green-500">
+                <a href="./Reportes/IndicadoresClientes" className="block">
+                  <div className="flex items-center mb-4">
+                    <span className="text-3xl mr-3">👥</span>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Indicadores de Clientes</h3>
+                      <p className="text-sm text-gray-600">Dashboard con métricas de clientes nuevos vs recurrentes y tasa de retención</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <ChartBarIcon className="h-4 w-4 mr-1" />
+                      <span>Ver Dashboard</span>
+                    </div>
+                    <div className="flex space-x-1">
+                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                        Dashboard
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              {/* Enlace a Indicadores de Inventario y Operaciones */}
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-blue-500">
+                <a href="./Reportes/IndicadoresInventarioOperaciones" className="block">
+                  <div className="flex items-center mb-4">
+                    <span className="text-3xl mr-3">📦</span>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Indicadores de Inventario y Operaciones</h3>
+                      <p className="text-sm text-gray-600">Rotación de inventario, tasa de ruptura de stock y ventas por empleado</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <ChartBarIcon className="h-4 w-4 mr-1" />
+                      <span>Ver Dashboard</span>
+                    </div>
+                    <div className="flex space-x-1">
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                        Dashboard
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              </div>
             </div>
 
             {reportesFiltrados.length === 0 && (
