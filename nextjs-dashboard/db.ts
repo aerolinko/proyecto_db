@@ -555,7 +555,7 @@ export async function createVentaOnline(userId: string, total: number, direccion
       throw new Error(`userId inválido: ${userId}`);
     }
 
-    const result = await sql`SELECT create_venta_online(${userIdNum}, ${total * 100}, ${direccion})`;
+    const result = await sql`SELECT create_venta_online(${userIdNum}, ${total.toFixed(0) * 100}, ${direccion})`;
     const ventaId = result[0]?.create_venta_online;
     console.log("Venta creada con ID:", ventaId);
     return ventaId;
