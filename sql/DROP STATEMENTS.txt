@@ -156,7 +156,10 @@ drop function obtenerrolpermisos(integer) cascade;
 
 drop function obtenerusuario(varchar, varchar) cascade;
 
+drop function obtenerusuariocompleto(varchar, varchar) cascade;
+
 drop function obtenerpermisosusuario(integer) cascade;
+drop function obtenerpermisosusuariocompleto(integer) cascade;
 
 drop procedure insertarrolpermisos(integer, text[]) cascade;
 
