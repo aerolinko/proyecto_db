@@ -20,7 +20,7 @@ const sql = postgres({
     database: 'postgres',
     username: 'postgres',
     password: '1602',
-    connection: { options: '-c search_path=schema_name' }
+    connection: { options: '-c search_path=schema_name_2' }
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
 });

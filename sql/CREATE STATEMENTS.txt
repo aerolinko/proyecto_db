@@ -3750,3 +3750,33 @@ $$ LANGUAGE plpgsql;
 
 -- Obtener estadísticas generales
 -- SELECT * FROM obtener_estadisticas_catalogo(); 
+
+create procedure crear_evento(IN p_nombre character varying, IN p_capacidad integer, IN p_direccion character varying, IN p_entrada_paga boolean, IN p_fecha_inicio date, IN p_fecha_fin date, IN p_estacionamiento boolean, IN p_numero_entradas integer, IN p_precio_entradas integer, IN p_tipo_evento_id integer, IN p_lugar_id integer)
+    language plpgsql
+as
+$$
+DECLARE
+    v_evento_id INTEGER;
+BEGIN
+    -- Validaciones básicas
+    IF p_fecha_inicio >= p_fecha_fin THEN
+        RAISE EXCEPTION 'La fecha de inicio debe ser anterior a la fecha de fin';
+    END IF;
+
+    IF p_capacidad <= 0 THEN
+        RAISE EXCEPTION 'La capacidad debe ser mayor a 0';
+    END IF;
+
+    -- Insertar evento
+    INSERT INTO EVENTO (
+        nombre, capacidad, direccion, entrada_paga, fecha_inicio, fecha_fin,
+        estacionamiento, numero_entradas, precio_entradas, fk_tipo_evento, fk_lugar
+    ) VALUES (
+        p_nombre, p_capacidad, p_direccion, p_entrada_paga, p_fecha_inicio, p_fecha_fin,
+        p_estacionamiento, p_numero_entradas, p_precio_entradas, p_tipo_evento_id, p_lugar_id
+    ) RETURNING evento_id INTO v_evento_id;
+
+    RAISE NOTICE 'Evento creado exitosamente con ID: %', v_evento_id;
+END;
+$$;
+

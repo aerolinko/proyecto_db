@@ -129,6 +129,19 @@ export default function GestionEventos() {
   const [modalType, setModalType] = useState<'cervezas' | 'empleados' | 'proveedores' | 'catalogo'>('cervezas');
   const [loadingModal, setLoadingModal] = useState(false);
   const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null);
+  const [formData, setFormData] = useState({
+    nombre: '',
+    capacidad: '',
+    direccion: '',
+    entrada_paga: false,
+    fecha_inicio: '',
+    fecha_fin: '',
+    estacionamiento: false,
+    numero_entradas: '',
+    precio_entradas: '',
+    fk_tipo_evento: '',
+    fk_lugar: ''
+  });
 
   // Cargar datos iniciales
   useEffect(() => {
