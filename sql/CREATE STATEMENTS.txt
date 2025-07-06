@@ -929,6 +929,49 @@ SELECT p.descripcion,p.permiso_id FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PE
     ru.fk_usuario=id AND r.rol_id=ru.fk_rol AND rp.fk_rol=r.rol_id AND rp.fk_permiso=p.permiso_id
 $$;
 
+-- Nueva función para obtener permisos de usuario que maneje clientes y empleados
+CREATE OR REPLACE FUNCTION obtenerPermisosUsuarioCompleto(id integer)
+    RETURNS TABLE(
+        descripcion varchar(50),
+        permiso_id integer
+    )
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Primero intentar obtener permisos de roles (para empleados)
+    RETURN QUERY
+    SELECT p.descripcion, p.permiso_id 
+    FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PERMISO p  
+    WHERE ru.fk_usuario = id AND r.rol_id = ru.fk_rol AND rp.fk_rol = r.rol_id AND rp.fk_permiso = p.permiso_id;
+    
+    -- Si no hay permisos de roles, verificar si es un cliente y asignar permisos básicos
+    IF NOT FOUND THEN
+        -- Verificar si el usuario es un cliente (natural, jurídico o miembro ACAUCAB)
+        IF EXISTS (
+            SELECT 1 FROM USUARIO u 
+            WHERE u.usuario_id = id AND (
+                u.fk_cliente_natural IS NOT NULL OR 
+                u.fk_cliente_juridico IS NOT NULL OR 
+                u.fk_miembro_acaucab IS NOT NULL
+            )
+        ) THEN
+            -- Asignar permisos básicos para clientes (tienda online)
+            RETURN QUERY
+            SELECT p.descripcion, p.permiso_id
+            FROM PERMISO p
+            WHERE p.descripcion IN (
+                'consultar VENTA_ONLINE',
+                'crear VENTA_ONLINE',
+                'consultar DETALLE_VENTA_ONLINE',
+                'crear DETALLE_VENTA_ONLINE',
+                'consultar ESTADO_VENTA_ONLINE',
+                'crear ESTADO_VENTA_ONLINE'
+            );
+        END IF;
+    END IF;
+END;
+$$;
+
 CREATE PROCEDURE insertarRolPermisos(
     p_rol_id INTEGER,
     p_permiso_descripciones TEXT[]
@@ -3269,5 +3312,172 @@ BEGIN
     LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
     LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
     WHERE u.usuario_id = p_usuario_id;
+END;
+$$;
+
+
+
+-- Función obtenerUsuarioCompleto
+CREATE OR REPLACE FUNCTION obtenerUsuarioCompleto(nom varchar, pass varchar)
+    RETURNS TABLE(
+        usuario_id integer,
+        nombre_usuario varchar(50),
+        fecha_creacion date,
+        tipo_entidad varchar(20),
+        cedula integer,
+        primer_nombre varchar(50),
+        segundo_nombre varchar(50),
+        primer_apellido varchar(50),
+        segundo_apellido varchar(50),
+        direccion varchar(255),
+        fecha_contrato text,
+        cargo_nombre varchar(50),
+        razon_social varchar(100),
+        rif varchar(20),
+        denominacion_comercial varchar(100),
+        total_puntos integer
+    )
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Buscar empleados
+    RETURN QUERY
+    SELECT
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        'empleado'::varchar as tipo_entidad,
+        e.cedula,
+        e.primer_nombre,
+        e.segundo_nombre,
+        e.primer_apellido,
+        e.segundo_apellido,
+        e.direccion,
+        TO_CHAR(e.fecha_contrato, 'DD-MM-YYYY') as fecha_contrato,
+        c.nombre as cargo_nombre,
+        NULL::varchar as razon_social,
+        NULL::varchar as rif,
+        NULL::varchar as denominacion_comercial,
+        0 as total_puntos
+    FROM USUARIO u
+    JOIN EMPLEADO e ON u.fk_empleado = e.empleado_id
+    LEFT JOIN DEPARTAMENTO_EMPLEADO de ON e.empleado_id = de.fk_empleado
+    LEFT JOIN CARGO c ON de.fk_cargo = c.cargo_id
+    WHERE u.nombre_usuario = nom AND u.hash_contrasena = pass AND u.fk_empleado IS NOT NULL
+
+    UNION ALL
+
+    -- Buscar clientes naturales
+    SELECT
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        'cliente_natural'::varchar as tipo_entidad,
+        cn.cedula,
+        cn.primer_nombre,
+        cn.segundo_nombre,
+        cn.primer_apellido,
+        cn.segundo_apellido,
+        cn.direccion,
+        NULL::text as fecha_contrato,
+        NULL::varchar as cargo_nombre,
+        NULL::varchar as razon_social,
+        NULL::varchar as rif,
+        NULL::varchar as denominacion_comercial,
+        cn.total_puntos
+    FROM USUARIO u
+    JOIN CLIENTE_NATURAL cn ON u.fk_cliente_natural = cn.cliente_id
+    WHERE u.nombre_usuario = nom AND u.hash_contrasena = pass AND u.fk_cliente_natural IS NOT NULL
+
+    UNION ALL
+
+    -- Buscar clientes jurídicos
+    SELECT
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        'cliente_juridico'::varchar as tipo_entidad,
+        NULL::integer as cedula,
+        NULL::varchar as primer_nombre,
+        NULL::varchar as segundo_nombre,
+        NULL::varchar as primer_apellido,
+        NULL::varchar as segundo_apellido,
+        cj.direccion,
+        NULL::text as fecha_contrato,
+        NULL::varchar as cargo_nombre,
+        cj.razon_social,
+        cj.rif,
+        NULL::varchar as denominacion_comercial,
+        cj.total_puntos as total_puntos
+    FROM USUARIO u
+    JOIN CLIENTE_JURIDICO cj ON u.fk_cliente_juridico = cj.cliente_id
+    WHERE u.nombre_usuario = nom AND u.hash_contrasena = pass AND u.fk_cliente_juridico IS NOT NULL
+
+    UNION ALL
+
+    -- Buscar miembros ACAUCAB
+    SELECT
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        'miembro_acaucab'::varchar as tipo_entidad,
+        NULL::integer as cedula,
+        NULL::varchar as primer_nombre,
+        NULL::varchar as segundo_nombre,
+        NULL::varchar as primer_apellido,
+        NULL::varchar as segundo_apellido,
+        ma.direccion,
+        NULL::text as fecha_contrato,
+        NULL::varchar as cargo_nombre,
+        ma.razon_social,
+        ma.rif,
+        ma.denominacion_comercial,
+        0 as total_puntos
+    FROM USUARIO u
+    JOIN MIEMBRO_ACAUCAB ma ON u.fk_miembro_acaucab = ma.miembro_id
+    WHERE u.nombre_usuario = nom AND u.hash_contrasena = pass AND u.fk_miembro_acaucab IS NOT NULL;
+END;
+$$;
+
+-- Función obtenerPermisosUsuarioCompleto
+CREATE OR REPLACE FUNCTION obtenerPermisosUsuarioCompleto(id integer)
+    RETURNS TABLE(
+        descripcion varchar(50),
+        permiso_id integer
+    )
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Primero intentar obtener permisos de roles (para empleados)
+    RETURN QUERY
+    SELECT p.descripcion, p.permiso_id
+    FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PERMISO p
+    WHERE ru.fk_usuario = id AND r.rol_id = ru.fk_rol AND rp.fk_rol = r.rol_id AND rp.fk_permiso = p.permiso_id;
+
+    -- Si no hay permisos de roles, verificar si es un cliente y asignar permisos básicos
+    IF NOT FOUND THEN
+        -- Verificar si el usuario es un cliente (natural, jurídico o miembro ACAUCAB)
+        IF EXISTS (
+            SELECT 1 FROM USUARIO u
+            WHERE u.usuario_id = id AND (
+                u.fk_cliente_natural IS NOT NULL OR
+                u.fk_cliente_juridico IS NOT NULL OR
+                u.fk_miembro_acaucab IS NOT NULL
+            )
+        ) THEN
+            -- Asignar permisos básicos para clientes (tienda online)
+            RETURN QUERY
+            SELECT p.descripcion, p.permiso_id
+            FROM PERMISO p
+            WHERE p.descripcion IN (
+                'consultar VENTA_ONLINE',
+                'crear VENTA_ONLINE',
+                'consultar DETALLE_VENTA_ONLINE',
+                'crear DETALLE_VENTA_ONLINE',
+                'consultar ESTADO_VENTA_ONLINE',
+                'crear ESTADO_VENTA_ONLINE'
+            );
+        END IF;
+    END IF;
 END;
 $$;

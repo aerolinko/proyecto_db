@@ -19,8 +19,8 @@ const sql = postgres({
     port: 5432,
     database: 'postgres',
     username: 'postgres',
-    password: '0511',
-    //connection: { options: '-c search_path=schema_name' }
+    password: '1602',
+    connection: { options: '-c search_path=schema_name' }
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
 });
@@ -79,7 +79,7 @@ export async function getLegalClient(rif:string) {
 }
 
 export async function getUser(nombre:string,pass:string) {
-    return await sql`SELECT * FROM obtenerUsuario(${nombre},${pass})`;
+    return await sql`SELECT * FROM obtenerUsuarioCompleto(${nombre},${pass})`;
 }
 
 export async function saveNewCard(cliente_tipo:string,id:number,tipo:string,numero:number,fechaExp:Date|null,banco:string) {
@@ -87,7 +87,7 @@ export async function saveNewCard(cliente_tipo:string,id:number,tipo:string,nume
 }
 
 export async function getUserPermissions(id:number) {
-    return await sql`SELECT * FROM obtenerPermisosUsuario(${id})`;
+    return await sql`SELECT * FROM obtenerPermisosUsuarioCompleto(${id})`;
 }
 
 export async function getAllProducts() {
@@ -441,7 +441,7 @@ export async function getUsuarioById(id: string) {
       throw new Error(`ID de usuario inválido: ${id}`);
     }
     
-    // Usar el stored procedure
+    // Usar el stored procedure para obtener datos del usuario
     const result = await sql`SELECT * FROM get_usuario_by_id_complete(${userIdNum})`;
     
     console.log(`Usuario encontrado: ${result.length} registros`)
@@ -452,11 +452,19 @@ export async function getUsuarioById(id: string) {
     
     const user = result[0];
     
+    // Obtener permisos del usuario (nombre correcto de la función)
+    const permisosResult = await sql`SELECT * FROM obtenerPermisosUsuarioCompleto(${userIdNum})`;
+    const permisos = permisosResult.map((p: any) => ({
+      permiso_id: p.permiso_id,
+      descripcion: p.descripcion
+    }));
+    
     // Construir el objeto de respuesta según el tipo de entidad
     const response: any = {
-      id: user.usuario_id,
+      usuario_id: user.usuario_id,
       email: user.nombre_usuario,
-      tipo_entidad: user.tipo_entidad
+      tipo_entidad: user.tipo_entidad,
+      permisos: permisos
     };
     
     // Agregar datos según el tipo de entidad
@@ -555,7 +563,7 @@ export async function createVentaOnline(userId: string, total: number, direccion
       throw new Error(`userId inválido: ${userId}`);
     }
 
-    const result = await sql`SELECT create_venta_online(${userIdNum}, ${total.toFixed(0) * 100}, ${direccion})`;
+    const result = await sql`SELECT create_venta_online(${userIdNum}, ${Math.round(total) * 100}, ${direccion})`;
     const ventaId = result[0]?.create_venta_online;
     console.log("Venta creada con ID:", ventaId);
     return ventaId;

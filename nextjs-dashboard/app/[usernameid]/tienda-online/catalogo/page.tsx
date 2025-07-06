@@ -6,7 +6,10 @@ import {
   PlusIcon, 
   MinusIcon,
   MagnifyingGlassIcon,
-  StarIcon
+  StarIcon,
+  FunnelIcon,
+  XMarkIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import Link from 'next/link';
@@ -21,7 +24,40 @@ interface Product {
   image?: string;
   rating?: number;
   description?: string;
+  category?: string;
+  provider?: string;
+  isOnSale?: boolean;
+  originalPrice?: number;
+  discount?: number;
 }
+
+// Categorías de cerveza
+const beerCategories = [
+  'Todas',
+  'IPA',
+  'Stout',
+  'Porter',
+  'Pilsner',
+  'Amber Ale',
+  'Weizen',
+  'Dubbel',
+  'Golden Strong',
+  'Barley Wine',
+  'Bock',
+  'Pale Ale',
+  'Saison'
+];
+
+// Proveedores
+const providers = [
+  'Todos',
+  'Cervecería Lago Ángel',
+  'Benitz',
+  'Dos Leones',
+  'Mito Brewhouse',
+  'Barricas',
+  'Aldarra'
+];
 
 // Imágenes de cervezas locales
 const beerImages = [
@@ -31,7 +67,7 @@ const beerImages = [
   '/cervezas/STOUT.png',
   '/cervezas/DUBBEL.png',
   '/cervezas/AMBER.png',
-  '/cervezas/PILSNER.png', // Repetir para más productos si es necesario
+  '/cervezas/PILSNER.png',
   '/cervezas/IPA.png',
   '/cervezas/WEIZEN.png',
   '/cervezas/STOUT.png',
@@ -57,6 +93,14 @@ export default function CatalogoCervezas({ params }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showCart, setShowCart] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Filtros
+  const [selectedCategory, setSelectedCategory] = useState('Todas');
+  const [selectedProvider, setSelectedProvider] = useState('Todos');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [showOnlyOnSale, setShowOnlyOnSale] = useState(false);
+  const [sortBy, setSortBy] = useState('name'); // name, price, rating
 
   // Extraer el userId de la ruta actual
   let userId = '';
@@ -84,7 +128,6 @@ export default function CatalogoCervezas({ params }) {
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart);
-        // Verificar que los productos del carrito aún existen en la lista actual
         const validCart = parsedCart.filter((cartItem: Product) => 
           products.some(product => product.id === cartItem.id)
         );
@@ -93,7 +136,7 @@ export default function CatalogoCervezas({ params }) {
         console.error('Error loading cart from localStorage:', error);
       }
     }
-  }, [products, userId]); // Dependencia en products para asegurar que se cargue después de obtener los productos
+  }, [products, userId]);
 
   const showMessage = useCallback((type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -109,17 +152,30 @@ export default function CatalogoCervezas({ params }) {
       const data = await response.json();
       
       if (data.result) {
-        const transformedProducts = data.result.map((item: any, index: number) => ({
-          id: item.anaquel_cerveza_id,
-          name: item.nombre,
-          price: parseFloat(item.precio_unitario),
-          stock: item.cantidad,
-          presentation: item.cap_volumen,
-          quantity: 0,
-          image: getBeerImage(item.nombre),
-          rating: Math.floor(Math.random() * 2) + 4, // Rating aleatorio entre 4-5
-          description: beerDescriptions[index % beerDescriptions.length]
-        }));
+        const transformedProducts = data.result.map((item: any, index: number) => {
+          const category = getBeerCategory(item.nombre);
+          const provider = getBeerProvider(item.nombre);
+          const isOnSale = Math.random() > 0.7; // 30% de probabilidad de estar en oferta
+          const originalPrice = isOnSale ? parseFloat(item.precio_unitario) * 1.2 : parseFloat(item.precio_unitario);
+          const discount = isOnSale ? 20 : 0;
+          
+          return {
+            id: item.anaquel_cerveza_id,
+            name: item.nombre,
+            price: parseFloat(item.precio_unitario),
+            stock: item.cantidad,
+            presentation: item.cap_volumen,
+            quantity: 0,
+            image: getBeerImage(item.nombre),
+            rating: Math.floor(Math.random() * 2) + 4,
+            description: beerDescriptions[index % beerDescriptions.length],
+            category,
+            provider,
+            isOnSale,
+            originalPrice,
+            discount
+          };
+        });
         setProducts(transformedProducts);
       }
     } catch (error) {
@@ -129,72 +185,74 @@ export default function CatalogoCervezas({ params }) {
     }
   };
 
+  // Función para determinar la categoría de la cerveza
+  const getBeerCategory = (beerName: string): string => {
+    const name = beerName.toLowerCase();
+    
+    if (name.includes('ipa') || name.includes('pale ale')) return 'IPA';
+    if (name.includes('stout')) return 'Stout';
+    if (name.includes('porter')) return 'Porter';
+    if (name.includes('pilsner') || name.includes('clásica')) return 'Pilsner';
+    if (name.includes('amber')) return 'Amber Ale';
+    if (name.includes('weizen') || name.includes('blanca')) return 'Weizen';
+    if (name.includes('dubbel') || name.includes('abadía')) return 'Dubbel';
+    if (name.includes('golden')) return 'Golden Strong';
+    if (name.includes('barley')) return 'Barley Wine';
+    if (name.includes('bock')) return 'Bock';
+    if (name.includes('saison')) return 'Saison';
+    
+    return 'Pale Ale'; // Categoría por defecto
+  };
+
+  // Función para determinar el proveedor
+  const getBeerProvider = (beerName: string): string => {
+    const name = beerName.toLowerCase();
+    
+    if (name.includes('lago ángel') || name.includes('demonio')) return 'Cervecería Lago Ángel';
+    if (name.includes('benitz')) return 'Benitz';
+    if (name.includes('dos leones')) return 'Dos Leones';
+    if (name.includes('mito') || name.includes('candileja')) return 'Mito Brewhouse';
+    if (name.includes('barricas')) return 'Barricas';
+    if (name.includes('aldarra') || name.includes('mantuana')) return 'Aldarra';
+    
+    return 'Otros';
+  };
+
   // Función para asignar la imagen correcta según el nombre de la cerveza
   const getBeerImage = (beerName: string) => {
     const name = beerName.toLowerCase();
     
-    // Asignación específica por nombre de cerveza
-    if (name.includes('pilsner clásica dorada')) {
-      return '/cervezas/PILSNER.png';
-    } else if (name.includes('ipa del pacífico amarga')) {
-      return '/cervezas/IPA.png';
-    } else if (name.includes('weizen blanca tradicional')) {
-      return '/cervezas/WEIZEN.png';
-    } else if (name.includes('stout irlandesa cremosa')) {
-      return '/cervezas/STOUT.png';
-    } else if (name.includes('dubbel belga de abadía')) {
-      return '/cervezas/DUBBEL.png';
-    } else if (name.includes('amber ale americana')) {
-      return '/cervezas/AMBER.png';
-    } else if (name.includes('bock fuerte de invierno')) {
-      return '/cervezas/BOCK.png';
-    } else if (name.includes('porter oscura robusta')) {
-      return '/cervezas/PORTER.png';
-    } else if (name.includes('golden strong belga clara')) {
-      return '/cervezas/GOLDEN.png';
-    } else if (name.includes('barley wine envejecida')) {
-      return '/cervezas/BARLEY.png';
-    } else if (name.includes('destilo')) {
-      return '/cervezas/DESTILO.png';
-    } else if (name.includes('dos leones latin american pale ale')) {
-      return '/cervezas/DOS LEONES.png';
-    } else if (name.includes('benitz pale ale')) {
-      return '/cervezas/BENITZ.png';
-    } else if (name.includes('mito brewhouse candileja de abadía')) {
-      return '/cervezas/MITO.png';
-    } else if (name.includes('cervecería lago ángel o demonio')) {
-      return '/cervezas/LAGO ANGEL.png';
-    } else if (name.includes('barricas saison belga')) {
-      return '/cervezas/BARRICAS.png';
-    } else if (name.includes('aldarra mantuana')) {
-      return '/cervezas/ALDARRA.png';
-    } else {
-      // Fallback por tipo de cerveza si no coincide el nombre exacto
-      if (name.includes('pilsner') || name.includes('clásica') || name.includes('dorada')) {
-        return '/cervezas/PILSNER.png';
-      } else if (name.includes('ipa') || name.includes('amarga') || name.includes('pale')) {
-        return '/cervezas/IPA.png';
-      } else if (name.includes('weizen') || name.includes('blanca') || name.includes('trigo')) {
-        return '/cervezas/WEIZEN.png';
-      } else if (name.includes('stout') || name.includes('irlandesa') || name.includes('cremosa')) {
-        return '/cervezas/STOUT.png';
-      } else if (name.includes('dubbel') || name.includes('belga') || name.includes('abadía')) {
-        return '/cervezas/DUBBEL.png';
-      } else if (name.includes('amber') || name.includes('americana')) {
-        return '/cervezas/AMBER.png';
-      } else if (name.includes('bock')) {
-        return '/cervezas/BOCK.png';
-      } else if (name.includes('porter')) {
-        return '/cervezas/PORTER.png';
-      } else if (name.includes('golden')) {
-        return '/cervezas/GOLDEN.png';
-      } else if (name.includes('barley')) {
-        return '/cervezas/BARLEY.png';
-      } else {
-        // Imagen por defecto
-        return '/cervezas/PILSNER.png';
-      }
-    }
+    if (name.includes('pilsner clásica dorada')) return '/cervezas/PILSNER.png';
+    if (name.includes('ipa del pacífico amarga')) return '/cervezas/IPA.png';
+    if (name.includes('weizen blanca tradicional')) return '/cervezas/WEIZEN.png';
+    if (name.includes('stout irlandesa cremosa')) return '/cervezas/STOUT.png';
+    if (name.includes('dubbel belga de abadía')) return '/cervezas/DUBBEL.png';
+    if (name.includes('amber ale americana')) return '/cervezas/AMBER.png';
+    if (name.includes('bock fuerte de invierno')) return '/cervezas/BOCK.png';
+    if (name.includes('porter oscura robusta')) return '/cervezas/PORTER.png';
+    if (name.includes('golden strong belga clara')) return '/cervezas/GOLDEN.png';
+    if (name.includes('barley wine envejecida')) return '/cervezas/BARLEY.png';
+    if (name.includes('destilo')) return '/cervezas/DESTILO.png';
+    if (name.includes('dos leones latin american pale ale')) return '/cervezas/DOS LEONES.png';
+    if (name.includes('benitz pale ale')) return '/cervezas/BENITZ.png';
+    if (name.includes('mito brewhouse candileja de abadía')) return '/cervezas/MITO.png';
+    if (name.includes('cervecería lago ángel o demonio')) return '/cervezas/LAGO ANGEL.png';
+    if (name.includes('barricas saison belga')) return '/cervezas/BARRICAS.png';
+    if (name.includes('aldarra mantuana')) return '/cervezas/ALDARRA.png';
+    
+    // Fallback por tipo de cerveza
+    if (name.includes('pilsner') || name.includes('clásica') || name.includes('dorada')) return '/cervezas/PILSNER.png';
+    if (name.includes('ipa') || name.includes('amarga') || name.includes('pale')) return '/cervezas/IPA.png';
+    if (name.includes('weizen') || name.includes('blanca') || name.includes('trigo')) return '/cervezas/WEIZEN.png';
+    if (name.includes('stout') || name.includes('irlandesa') || name.includes('cremosa')) return '/cervezas/STOUT.png';
+    if (name.includes('dubbel') || name.includes('belga') || name.includes('abadía')) return '/cervezas/DUBBEL.png';
+    if (name.includes('amber') || name.includes('americana')) return '/cervezas/AMBER.png';
+    if (name.includes('bock')) return '/cervezas/BOCK.png';
+    if (name.includes('porter')) return '/cervezas/PORTER.png';
+    if (name.includes('golden')) return '/cervezas/GOLDEN.png';
+    if (name.includes('barley')) return '/cervezas/BARLEY.png';
+    
+    return '/cervezas/PILSNER.png';
   };
 
   const handleAddToCart = useCallback((productId: number, quantity: number) => {
@@ -225,15 +283,57 @@ export default function CatalogoCervezas({ params }) {
     }
   }, [products, showMessage]);
 
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) {
-      return products;
+  // Filtrado y ordenamiento de productos
+  const filteredAndSortedProducts = useMemo(() => {
+    let filtered = products;
+
+    // Filtro por búsqueda
+    if (searchTerm) {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+        product.category?.toLowerCase().includes(lowerCaseSearchTerm) ||
+        product.provider?.toLowerCase().includes(lowerCaseSearchTerm)
+      );
     }
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    return products.filter(product =>
-      product.name.toLowerCase().includes(lowerCaseSearchTerm)
+
+    // Filtro por categoría
+    if (selectedCategory !== 'Todas') {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+
+    // Filtro por proveedor
+    if (selectedProvider !== 'Todos') {
+      filtered = filtered.filter(product => product.provider === selectedProvider);
+    }
+
+    // Filtro por rango de precio
+    filtered = filtered.filter(product => 
+      product.price >= priceRange.min && product.price <= priceRange.max
     );
-  }, [products, searchTerm]);
+
+    // Filtro por ofertas
+    if (showOnlyOnSale) {
+      filtered = filtered.filter(product => product.isOnSale);
+    }
+
+    // Ordenamiento
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'price':
+          return a.price - b.price;
+        case 'price-desc':
+          return b.price - a.price;
+        case 'rating':
+          return (b.rating || 0) - (a.rating || 0);
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+
+    return filtered;
+  }, [products, searchTerm, selectedCategory, selectedProvider, priceRange, showOnlyOnSale, sortBy]);
 
   const total = useMemo(() => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -248,6 +348,15 @@ export default function CatalogoCervezas({ params }) {
     localStorage.removeItem(`tienda-cart-${userId}`);
     showMessage('success', 'Carrito limpiado exitosamente.');
   }, [userId, showMessage]);
+
+  const clearFilters = useCallback(() => {
+    setSelectedCategory('Todas');
+    setSelectedProvider('Todos');
+    setPriceRange({ min: 0, max: 1000 });
+    setShowOnlyOnSale(false);
+    setSortBy('name');
+    setSearchTerm('');
+  }, []);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -269,7 +378,7 @@ export default function CatalogoCervezas({ params }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 font-sans">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-blue-200">
           {/* Header Section */}
           <div className="bg-blue-700 p-6 text-white relative">
@@ -325,7 +434,7 @@ export default function CatalogoCervezas({ params }) {
                                     <PlusIcon className="w-3 h-3" />
                                   </button>
                                 </div>
-                                <p className="font-medium text-blue-800 text-sm">${(item.price * item.quantity).toFixed(2)}</p>
+                                <p className="font-medium text-blue-800 text-sm">Bs. {(item.price * item.quantity).toFixed(2)}</p>
                               </div>
                             </div>
                           ))}
@@ -333,7 +442,7 @@ export default function CatalogoCervezas({ params }) {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex justify-between items-center mb-4">
                             <span className="font-semibold text-gray-800">Total:</span>
-                            <span className="font-bold text-lg text-blue-800">${total.toFixed(2)}</span>
+                            <span className="font-bold text-lg text-blue-800">Bs. {total.toFixed(2)}</span>
                           </div>
                           <div className="flex gap-2">
                             <button
@@ -366,17 +475,144 @@ export default function CatalogoCervezas({ params }) {
             </div>
           )}
 
-          {/* Search Bar */}
+          {/* Search and Filters Bar */}
           <div className="px-6 pt-4">
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar cervezas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
-              />
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Search Bar */}
+              <div className="flex-1 relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar cervezas, categorías o proveedores..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
+                />
+              </div>
+
+              {/* Filters Button */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <FunnelIcon className="w-5 h-5" />
+                  Filtros
+                </button>
+
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-2 px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                  Limpiar
+                </button>
+              </div>
+            </div>
+
+            {/* Filters Panel */}
+            {showFilters && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Categoría */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    >
+                      {beerCategories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Proveedor */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Proveedor</label>
+                    <select
+                      value={selectedProvider}
+                      onChange={(e) => setSelectedProvider(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    >
+                      {providers.map(provider => (
+                        <option key={provider} value={provider}>{provider}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                                     {/* Rango de Precio */}
+                   <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-2">Precio: Bs. {priceRange.min} - Bs. {priceRange.max}</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        value={priceRange.min}
+                        onChange={(e) => setPriceRange(prev => ({ ...prev, min: Number(e.target.value) }))}
+                        className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Max"
+                        value={priceRange.max}
+                        onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+                        className="w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Ordenamiento */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ordenar por</label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    >
+                      <option value="name">Nombre A-Z</option>
+                      <option value="price">Precio: Menor a Mayor</option>
+                      <option value="price-desc">Precio: Mayor a Menor</option>
+                      <option value="rating">Mejor Valoración</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Ofertas Checkbox */}
+                <div className="mt-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={showOnlyOnSale}
+                      onChange={(e) => setShowOnlyOnSale(e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <TagIcon className="w-4 h-4 text-red-500" />
+                    <span className="text-sm font-medium text-gray-700">Solo ofertas</span>
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Results Summary */}
+          <div className="px-6 pt-4">
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-gray-600">
+                Mostrando {filteredAndSortedProducts.length} de {products.length} productos
+              </p>
+              <div className="flex gap-2 text-sm">
+                {selectedCategory !== 'Todas' && (
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">Categoría: {selectedCategory}</span>
+                )}
+                {selectedProvider !== 'Todos' && (
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded">Proveedor: {selectedProvider}</span>
+                )}
+                {showOnlyOnSale && (
+                  <span className="bg-red-100 text-red-800 px-2 py-1 rounded">Solo ofertas</span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -384,17 +620,24 @@ export default function CatalogoCervezas({ params }) {
           <div className="p-6">
             <h2 className="text-xl font-bold text-blue-800 mb-4">Cervezas Disponibles</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[600px] overflow-y-auto p-2">
-              {filteredProducts.length === 0 ? (
+              {filteredAndSortedProducts.length === 0 ? (
                 <p className="col-span-full text-center text-gray-600 py-8">
-                  No hay productos disponibles que coincidan con la búsqueda.
+                  No hay productos disponibles que coincidan con los filtros aplicados.
                 </p>
               ) : (
-                filteredProducts.map((product) => {
+                filteredAndSortedProducts.map((product) => {
                   const cartItem = cart.find(item => item.id === product.id);
                   const currentQuantity = cartItem?.quantity || 0;
                   
                   return (
-                    <div key={product.id} className="bg-white p-3 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100">
+                    <div key={product.id} className="bg-white p-3 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100 relative">
+                      {/* Sale Badge */}
+                      {product.isOnSale && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold z-10">
+                          -{product.discount}%
+                        </div>
+                      )}
+
                       {/* Product Image */}
                       <div className="relative mb-3">
                         <img
@@ -420,12 +663,28 @@ export default function CatalogoCervezas({ params }) {
                             {renderStars(product.rating || 4)}
                           </div>
                         </div>
+                        
+                        {/* Category and Provider */}
+                        <div className="flex gap-1 mb-1">
+                          <span className="bg-blue-100 text-blue-800 text-xs px-1 py-0.5 rounded">{product.category}</span>
+                          <span className="bg-green-100 text-green-800 text-xs px-1 py-0.5 rounded">{product.provider}</span>
+                        </div>
+                        
                         <p className="text-gray-600 text-xs mb-1 line-clamp-2">
                           {product.description}
                         </p>
-                        <p className="text-gray-700 mt-1">
-                          <span className="font-semibold text-sm">${product.price.toFixed(2)}</span>
-                        </p>
+                        
+                                                 {/* Price */}
+                         <div className="flex items-center gap-2">
+                           {product.isOnSale ? (
+                             <>
+                               <span className="text-gray-400 text-xs line-through">Bs. {product.originalPrice?.toFixed(2)}</span>
+                               <span className="font-semibold text-sm text-red-600">Bs. {product.price.toFixed(2)}</span>
+                             </>
+                           ) : (
+                             <span className="font-semibold text-sm text-gray-700">Bs. {product.price.toFixed(2)}</span>
+                           )}
+                         </div>
                       </div>
 
                       {/* Quantity Controls */}
@@ -453,15 +712,15 @@ export default function CatalogoCervezas({ params }) {
                         </div>
 
                         <button
-                          onClick={() => handleAddToCart(product.id, currentQuantity === 0 ? 1 : 0)}
+                          onClick={() => handleAddToCart(product.id, currentQuantity === 0 ? 1 : currentQuantity)}
                           disabled={product.stock === 0}
-                          className={`w-full px-4 py-3 rounded text-base font-semibold text-white transition-colors duration-200 ${
-                            product.stock > 0
-                              ? 'bg-blue-600 hover:bg-blue-700'
-                              : 'bg-gray-400 cursor-not-allowed'
+                          className={`w-full py-2 px-4 rounded-lg font-medium transition-colors duration-200 ${
+                            product.stock === 0
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
                           }`}
                         >
-                          {currentQuantity > 0 ? 'Eliminar del Carrito' : 'Agregar al Carrito'}
+                          {product.stock === 0 ? 'Agotado' : currentQuantity === 0 ? 'Agregar al Carrito' : 'Actualizar Cantidad'}
                         </button>
                       </div>
                     </div>
