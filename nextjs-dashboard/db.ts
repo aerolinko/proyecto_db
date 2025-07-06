@@ -19,8 +19,8 @@ const sql = postgres({
     port: 5432,
     database: 'postgres',
     username: 'postgres',
-    password: '1602',
-    connection: { options: '-c search_path=schema_name' }
+    password: '0511',
+    // connection: { options: '-c search_path=schema_name' }
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
 });
