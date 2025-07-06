@@ -51,7 +51,8 @@ export async function GET(request: NextRequest) {
           nombre: order.cliente_nombre,
           telefono: order.cliente_telefono,
           email: order.cliente_email
-        }
+        },
+        productos: [{}]
       };
     });
     
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
           WHERE dvo.fk_venta_online = ${order.venta_online_id}
         `;
 
-        order.productos = productosResult.rows.map(producto => ({
+        order.productos = productosResult.map(producto => ({
           detalle_venta_online_id: producto.detalle_venta_online_id,
           nombre_cerveza: producto.nombre_cerveza,
           presentacion: producto.presentacion,
