@@ -28,10 +28,6 @@ const sql = postgres({
 
 
 
-export async function getAllLugares() {
-    return await sql`SELECT * FROM LUGAR`;
-}
-
 export async function getAllPermisos(){
     return await sql`SELECT * FROM obtenerPermisos()`;
 }
@@ -74,7 +70,7 @@ export async function getClientPaymentMethods(id: number,tipo:string) {
 
 export async function getNaturalClient(ced:number) {
     return await sql`SELECT * FROM buscarCliente('natural', ${ced})
-        AS (cliente_id integer, nombre varchar, cedula integer, direccion varchar, totalpuntos integer, rif varchar, apellido varchar);`;
+        AS (cliente_id integer, primer_nombre varchar, segundo_nombre varchar, cedula integer, direccion varchar, total_puntos integer, rif varchar, primer_apellido varchar, segundo_apellido varchar);`;
 }
 
 export async function getLegalClient(rif:string) {
@@ -83,7 +79,7 @@ export async function getLegalClient(rif:string) {
 }
 
 export async function getUser(nombre:string,pass:string) {
-    return await sql`SELECT * FROM obtenerUsuario(${nombre},${pass})`;
+    return await sql`SELECT * FROM obtenerUsuarioCompleto(${nombre},${pass})`;
 }
 
 export async function saveNewCard(cliente_tipo:string,id:number,tipo:string,numero:number,fechaExp:Date|null,banco:string) {
@@ -91,7 +87,7 @@ export async function saveNewCard(cliente_tipo:string,id:number,tipo:string,nume
 }
 
 export async function getUserPermissions(id:number) {
-    return await sql`SELECT * FROM obtenerPermisosUsuario(${id})`;
+    return await sql`SELECT * FROM obtenerPermisosUsuarioCompleto(${id})`;
 }
 
 export async function getAllProducts() {
@@ -99,7 +95,18 @@ export async function getAllProducts() {
 }
 
 export async function saveVenta(montoTotal:number,id:number,tipo:string,detalle:string,metodos:string) {
-    return await sql`CALL insertarVentaTiendaConDetalle(${montoTotal},${id},${tipo},${sql.json(detalle)},${sql.json(metodos)})`;
+    const result = await sql`CALL insertarVentaTiendaConDetalle(${montoTotal},${id},${tipo},${sql.json(detalle)},${sql.json(metodos)})`;
+    
+    // Obtener el ID de la venta recién creada
+    const ventaId = await sql`
+        SELECT venta_tienda_id 
+        FROM venta_tienda 
+        WHERE fk_cliente_natual = ${id} OR fk_cliente_juridico = ${id}
+        ORDER BY fecha DESC, venta_tienda_id DESC 
+        LIMIT 1
+    `;
+    
+    return ventaId[0]?.venta_tienda_id;
 }
 
 export async function getTasaDolar() {
@@ -125,56 +132,13 @@ export async function updateOrdenesAnaquel(id:number,cambio:string) {
 export async function getEmpleados(){
     try {
         console.log("=== getEmpleados ===")
-        
-        // Intentar usar la función SQL primero
-        try {
-            const result = await sql`SELECT * FROM get_empleados()`
-            console.log(`Empleados obtenidos con función SQL: ${result.length} registros`)
-            return result
-        } catch (functionError) {
-            console.warn("Error con función get_empleados(), intentando consulta directa:", functionError)
-            
-            // Fallback: consulta directa a la tabla
-            const directResult = await sql`
-                SELECT 
-                    empleado_id::TEXT as id,
-                    cedula,
-                    primer_nombre,
-                    primer_apellido,
-                    COALESCE(segundo_nombre, '')::VARCHAR as segundo_nombre,
-                    COALESCE(segundo_apellido, '')::VARCHAR as segundo_apellido,
-                    direccion,
-                    fecha_contrato,
-                    fk_lugar,
-                    CONCAT(primer_nombre, ' ', primer_apellido)::VARCHAR as nombre_completo,
-                    TRIM(CONCAT(
-                        primer_nombre, ' ', 
-                        COALESCE(segundo_nombre, ''), ' ', 
-                        primer_apellido, ' ', 
-                        COALESCE(segundo_apellido, '')
-                    ))::VARCHAR as nombre_completo_full
-                FROM empleado
-                ORDER BY primer_nombre, primer_apellido
-            `
-            console.log(`Empleados obtenidos con consulta directa: ${directResult.length} registros`)
-            return directResult
-        }
+        const result = await sql`SELECT * FROM get_empleados()`
+        console.log(`Empleados obtenidos: ${result.length} registros`)
+        return result
     } catch (error) {
         console.error("Error en getEmpleados:", error)
         throw error
     }
-}
-
-// Funciones para operaciones CRUD de usuarios con empleados
-export async function getAllUsuariosWithEmpleados() {
-  try {
-    const result = await sql`SELECT * FROM get_all_usuarios_with_empleados()`
-    console.log(`Usuarios con empleados obtenidos: ${result.length} registros`)
-    return result
-  } catch (error) {
-    console.error("Error getting all usuarios with empleados:", error)
-    throw error
-  }
 }
 
 export async function getUsuarioWithEmpleadoById(id: string) {
@@ -199,28 +163,6 @@ export async function getUsuarioWithEmpleadoByEmail(email: string) {
   }
 }
 
-export async function createUsuarioWithEmpleado(email: string, password: string, empleadoId: string) {
-  try {
-    const result = await sql`SELECT * FROM create_usuario_with_empleado(${email}, ${password}, ${Number.parseInt(empleadoId)})`
-    console.log(`Usuario creado con empleado: ${result.length} registros`)
-    return result[0]
-  } catch (error) {
-    console.error("Error creating usuario with empleado:", error)
-    throw error
-  }
-}
-
-export async function updateUsuarioWithEmpleado(id: string, email: string, password?: string, empleadoId?: string) {
-  try {
-    const result = await sql`SELECT * FROM update_usuario_with_empleado(${Number.parseInt(id)}, ${email}, ${password || null}, ${empleadoId ? Number.parseInt(empleadoId) : null})`
-    console.log(`Usuario actualizado con empleado: ${result.length} registros`)
-    return result[0]
-  } catch (error) {
-    console.error("Error updating usuario with empleado:", error)
-    throw error
-  }
-}
-
 export async function deleteUsuarioById(id: string) {
   try {
     const result = await sql`SELECT * FROM delete_usuario_by_id(${Number.parseInt(id)})`
@@ -231,186 +173,6 @@ export async function deleteUsuarioById(id: string) {
     throw error
   }
 }
-
-export async function getReportUsuarios(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
-  try {
-    console.log("=== getReportUsuarios ===")
-    console.log("Parámetros:", { fechaInicio, fechaFin })
-
-    let query
-    if (fechaInicio && fechaFin) {
-      query = sql`
-        SELECT 
-          u.usuario_id,
-          u.nombre_usuario,
-          u.fecha_creacion,
-          e.primer_nombre,
-          e.primer_apellido,
-          e.cedula,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo
-        FROM usuario u
-        LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
-        WHERE u.fecha_creacion BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
-        ORDER BY u.fecha_creacion DESC
-      `
-    } else {
-      query = sql`
-        SELECT 
-          u.usuario_id,
-          u.nombre_usuario,
-          u.fecha_creacion,
-          e.primer_nombre,
-          e.primer_apellido,
-          e.cedula,
-          CONCAT(e.primer_nombre, ' ', e.primer_apellido) as nombre_completo
-        FROM usuario u
-        LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
-        ORDER BY u.fecha_creacion DESC
-        LIMIT 1000
-      `
-    }
-
-    const result = await query
-    console.log(`Usuarios encontrados: ${result.length}`)
-    return result
-  } catch (error) {
-    console.error("Error en getReportUsuarios:", error)
-    throw error
-  }
-}
-
-export async function getReportEmpleados(lugarId?: number): Promise<any[]> {
-  try {
-    console.log("=== getReportEmpleados ===")
-    console.log("Parámetros:", { lugarId })
-
-    let query
-    if (lugarId) {
-      query = sql`
-        SELECT 
-          e.empleado_id,
-          e.cedula,
-          e.primer_nombre,
-          e.primer_apellido,
-          e.segundo_nombre,
-          e.segundo_apellido,
-          e.direccion,
-          e.fecha_contrato,
-          l.nombre as lugar_nombre
-        FROM empleado e
-        LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
-        WHERE e.fk_lugar = ${lugarId}
-        ORDER BY e.primer_nombre, e.primer_apellido
-      `
-    } else {
-      query = sql`
-        SELECT 
-          e.empleado_id,
-          e.cedula,
-          e.primer_nombre,
-          e.primer_apellido,
-          e.segundo_nombre,
-          e.segundo_apellido,
-          e.direccion,
-          e.fecha_contrato,
-          l.nombre as lugar_nombre
-        FROM empleado e
-        LEFT JOIN lugar l ON e.fk_lugar = l.lugar_id
-        ORDER BY e.primer_nombre, e.primer_apellido
-        LIMIT 1000
-      `
-    }
-
-    const result = await query
-    console.log(`Empleados encontrados: ${result.length}`)
-    return result
-  } catch (error) {
-    console.error("Error en getReportEmpleados:", error)
-    throw error
-  }
-}
-
-export async function getReportVentas(fechaInicio?: string, fechaFin?: string): Promise<any[]> {
-  try {
-    console.log("=== getReportVentas ===")
-    console.log("Parámetros:", { fechaInicio, fechaFin })
-
-    let query
-    if (fechaInicio && fechaFin) {
-      query = sql`
-        SELECT 
-          v.venta_id,
-          v.fecha_venta,
-          v.monto_total,
-          v.tipo_cliente,
-          CASE 
-            WHEN v.tipo_cliente = 'natural' THEN CONCAT(cn.nombre, ' ', cn.apellido)
-            WHEN v.tipo_cliente = 'juridico' THEN cj.razon_social
-            ELSE 'Cliente no identificado'
-          END as cliente_nombre
-        FROM venta v
-        LEFT JOIN cliente_natural cn ON v.fk_cliente_natural = cn.cliente_natural_id
-        LEFT JOIN cliente_juridico cj ON v.fk_cliente_juridico = cj.cliente_juridico_id
-        WHERE v.fecha_venta BETWEEN ${fechaInicio}::date AND ${fechaFin}::date
-        ORDER BY v.fecha_venta DESC
-      `
-    } else {
-      query = sql`
-        SELECT 
-          v.venta_id,
-          v.fecha_venta,
-          v.monto_total,
-          v.tipo_cliente,
-          CASE 
-            WHEN v.tipo_cliente = 'natural' THEN CONCAT(cn.nombre, ' ', cn.apellido)
-            WHEN v.tipo_cliente = 'juridico' THEN cj.razon_social
-            ELSE 'Cliente no identificado'
-          END as cliente_nombre
-        FROM venta v
-        LEFT JOIN cliente_natural cn ON v.fk_cliente_natural = cn.cliente_natural_id
-        LEFT JOIN cliente_juridico cj ON v.fk_cliente_juridico = cj.cliente_juridico_id
-        ORDER BY v.fecha_venta DESC
-        LIMIT 1000
-      `
-    }
-
-    const result = await query
-    console.log(`Ventas encontradas: ${result.length}`)
-    return result
-  } catch (error) {
-    console.error("Error en getReportVentas:", error)
-    throw error
-  }
-}
-
-export async function getReportRoles(): Promise<any[]> {
-  try {
-    console.log("=== getReportRoles ===")
-
-    const query = sql`
-      SELECT 
-        r.rol_id,
-        r.nombre_rol,
-        r.descripcion_rol,
-        COUNT(rp.fk_permiso) as total_permisos
-      FROM rol r
-      LEFT JOIN rol_permiso rp ON r.rol_id = rp.fk_rol
-      GROUP BY r.rol_id, r.nombre_rol, r.descripcion_rol
-      ORDER BY r.nombre_rol
-    `
-
-    const result = await query
-    console.log(`Roles encontrados: ${result.length}`)
-    return result
-  } catch (error) {
-    console.error("Error en getReportRoles:", error)
-    throw error
-  }
-}
-
-
-
-
 
 export default sql
 
@@ -483,15 +245,39 @@ export async function getHistorialComprasClienteJuridico(
 
 
 export async function getStockAlmacen() {
-  return await sql`SELECT * FROM get_stock_almacen()`;
+  try {
+    console.log("=== getStockAlmacen ===")
+    const result = await sql`SELECT * FROM get_stock_almacen()`;
+    console.log(`Stock almacén obtenido: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getStockAlmacen:", error)
+    throw error
+  }
 }
 
 export async function getStockAnaquel() {
-  return await sql`SELECT * FROM get_stock_anaquel()`;
+  try {
+    console.log("=== getStockAnaquel ===")
+    const result = await sql`SELECT * FROM get_stock_anaquel()`;
+    console.log(`Stock anaquel obtenido: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getStockAnaquel:", error)
+    throw error
+  }
 }
 
 export async function getStockGeneral() {
-  return await sql`SELECT * FROM get_stock_general()`;
+  try {
+    console.log("=== getStockGeneral ===")
+    const result = await sql`SELECT * FROM get_stock_general()`;
+    console.log(`Stock general obtenido: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getStockGeneral:", error)
+    throw error
+  }
 }
 
 // ===== FUNCIÓN QUE USA STORED PROCEDURE PARA REPOSICIÓN DE ANAQUELES =====
@@ -515,12 +301,369 @@ export async function getReposicionAnaquelesSP(fechaInicio?: string, fechaFin?: 
 export async function getClientesJuridicos() {
   try {
     console.log("=== getClientesJuridicos ===")
-    
     const result = await sql`SELECT * FROM get_clientes_juridicos()`
-    console.log(`Clientes jurídicos obtenidos: ${result.length} registros`)
-    return result
+    console.log("RESULTADO CLIENTES JURIDICOS:", result);
+    return result;
   } catch (error) {
     console.error("Error en getClientesJuridicos:", error)
     throw error
+  }
+}
+
+// Funciones para obtener entidades sin usuarios asignados
+export async function getClientesNaturalesSinUsuario() {
+  try {
+    console.log("=== getClientesNaturalesSinUsuario ===")
+    const result = await sql`SELECT * FROM get_clientes_naturales_sin_usuario()`;
+    console.log(`Clientes naturales sin usuario obtenidos: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getClientesNaturalesSinUsuario:", error)
+    throw error
+  }
+}
+
+export async function getMiembrosAcaucabSinUsuario() {
+  try {
+    console.log("=== getMiembrosAcaucabSinUsuario ===")
+    const result = await sql`SELECT * FROM get_miembros_acaucab_sin_usuario()`;
+    console.log(`Miembros ACAUCAB sin usuario obtenidos: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getMiembrosAcaucabSinUsuario:", error)
+    throw error
+  }
+}
+
+// Funciones para obtener TODAS las entidades (para debugging)
+export async function getAllClientesNaturales() {
+  try {
+    console.log("=== getAllClientesNaturales ===")
+    const result = await sql`SELECT * FROM get_all_clientes_naturales()`;
+    console.log(`Todos los clientes naturales obtenidos: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getAllClientesNaturales:", error)
+    throw error
+  }
+}
+
+// Nuevas funciones para crear usuarios con diferentes tipos de entidades
+export async function createUsuarioWithEntidad(
+  email: string, 
+  password: string, 
+  tipoEntidad: 'empleado' | 'cliente_natural' | 'cliente_juridico' | 'miembro_acaucab',
+  entidadId: string
+) {
+  try {
+    console.log(`Creando usuario con ${tipoEntidad}:`, { email, tipoEntidad, entidadId })
+    
+    let result
+    switch (tipoEntidad) {
+      case 'empleado':
+        if (!entidadId || isNaN(Number(entidadId))) {
+          throw new Error("El ID de la entidad no es válido para empleado");
+        }
+        result = await sql`SELECT * FROM create_usuario_with_empleado(${email}, ${password}, ${Number(entidadId)})`
+        break
+      case 'cliente_natural':
+        if (!entidadId || isNaN(Number(entidadId))) {
+          throw new Error("El ID de la entidad no es válido para cliente_natural");
+        }
+        result = await sql`SELECT * FROM create_usuario_with_cliente_natural(${email}, ${password}, ${Number(entidadId)})`
+        break
+      case 'cliente_juridico':
+        if (!entidadId || isNaN(Number(entidadId))) {
+          throw new Error("El ID de la entidad no es válido para cliente_juridico");
+        }
+        result = await sql`SELECT * FROM create_usuario_with_cliente_juridico(${email}, ${password}, ${Number(entidadId)})`
+        break
+      case 'miembro_acaucab':
+        if (!entidadId || isNaN(Number(entidadId))) {
+          throw new Error("El ID de la entidad no es válido para miembro_acaucab");
+        }
+        result = await sql`SELECT * FROM create_usuario_with_miembro_acaucab(${email}, ${password}, ${Number(entidadId)})`
+        break
+      default:
+        throw new Error(`Tipo de entidad no válido: ${tipoEntidad}`)
+    }
+    
+    console.log(`Usuario creado con ${tipoEntidad}: ${result.length} registros`)
+    return result[0]
+  } catch (error) {
+    console.error(`Error creating usuario with ${tipoEntidad}:`, error)
+    throw error
+  }
+}
+
+export async function updateUsuarioWithEntidad(
+  id: string, 
+  email: string, 
+  password?: string, 
+  tipoEntidad?: 'empleado' | 'cliente_natural' | 'cliente_juridico' | 'miembro_acaucab',
+  entidadId?: string
+) {
+  try {
+    console.log(`Actualizando usuario:`, { id, email, tipoEntidad, entidadId })
+    
+    // Usar la función unificada que no permite cambiar la entidad
+    const result = await sql`SELECT * FROM update_usuario_with_entidad(${Number.parseInt(id)}, ${email}, ${password || null})`
+    
+    console.log(`Usuario actualizado: ${result.length} registros`)
+    return result[0]
+  } catch (error) {
+    console.error("Error updating usuario:", error)
+    throw error
+  }
+}
+
+// Obtener todos los usuarios con información completa de todas las entidades
+export async function getAllUsuariosComplete() {
+  try {
+    console.log("=== getAllUsuariosComplete ===")
+    const result = await sql`SELECT * FROM get_all_usuarios_complete()`
+    console.log(`Usuarios completos obtenidos: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getAllUsuariosComplete:", error)
+    throw error
+  }
+}
+
+// Obtener un usuario específico por ID con cualquier tipo de entidad
+export async function getUsuarioById(id: string) {
+  try {
+    console.log("=== getUsuarioById ===")
+    console.log("ID recibido:", id)
+    
+    const userIdNum = parseInt(id);
+    if (isNaN(userIdNum)) {
+      throw new Error(`ID de usuario inválido: ${id}`);
+    }
+    
+    // Usar el stored procedure para obtener datos del usuario
+    const result = await sql`SELECT * FROM get_usuario_by_id_complete(${userIdNum})`;
+    
+    console.log(`Usuario encontrado: ${result.length} registros`)
+    
+    if (result.length === 0) {
+      return null;
+    }
+    
+    const user = result[0];
+    
+    // Obtener permisos del usuario (nombre correcto de la función)
+    const permisosResult = await sql`SELECT * FROM obtenerPermisosUsuarioCompleto(${userIdNum})`;
+    const permisos = permisosResult.map((p: any) => ({
+      permiso_id: p.permiso_id,
+      descripcion: p.descripcion
+    }));
+    
+    // Construir el objeto de respuesta según el tipo de entidad
+    const response: any = {
+      usuario_id: user.usuario_id,
+      email: user.nombre_usuario,
+      tipo_entidad: user.tipo_entidad,
+      permisos: permisos
+    };
+    
+    // Agregar datos según el tipo de entidad
+    if (user.tipo_entidad === 'empleado' && user.empleado_id) {
+      response.empleado = {
+        id: user.empleado_id,
+        primer_nombre: user.emp_primer_nombre,
+        segundo_nombre: user.emp_segundo_nombre,
+        primer_apellido: user.emp_primer_apellido,
+        segundo_apellido: user.emp_segundo_apellido,
+        telefono: '', // Los teléfonos están en tabla separada TELEFONO
+        direccion: user.emp_direccion,
+        puntos: 0 // Los empleados no tienen puntos
+      };
+    } else if (user.tipo_entidad === 'cliente_natural' && user.cn_cliente_id) {
+      response.cliente_natural = {
+        id: user.cn_cliente_id,
+        primer_nombre: user.cn_primer_nombre,
+        segundo_nombre: user.cn_segundo_nombre,
+        primer_apellido: user.cn_primer_apellido,
+        segundo_apellido: user.cn_segundo_apellido,
+        telefono: '', // Los teléfonos están en tabla separada TELEFONO
+        direccion: user.cn_direccion,
+        puntos: user.cn_total_puntos
+      };
+    } else if (user.tipo_entidad === 'cliente_juridico' && user.cj_cliente_id) {
+      response.cliente_juridico = {
+        id: user.cj_cliente_id,
+        razon_social: user.cj_razon_social,
+        telefono: '', // Los teléfonos están en tabla separada TELEFONO
+        direccion: user.cj_direccion,
+        puntos: user.cj_total_puntos
+      };
+    } else if (user.tipo_entidad === 'miembro_acaucab' && user.ma_miembro_id) {
+      response.miembro_acaucab = {
+        id: user.ma_miembro_id,
+        primer_nombre: '', // Los miembros ACAUCAB no tienen nombres individuales
+        segundo_nombre: '',
+        primer_apellido: '',
+        segundo_apellido: '',
+        telefono: '', // Los teléfonos están en tabla separada TELEFONO
+        direccion: user.ma_direccion,
+        puntos: 0 // Los miembros ACAUCAB no tienen puntos
+      };
+    }
+    
+    console.log("Usuario procesado:", response);
+    return response;
+  } catch (error) {
+    console.error("Error en getUsuarioById:", error)
+    throw error
+  }
+}
+
+// Funciones para ventas online
+export async function getVentasOnlineByUserId(userId: string) {
+  try {
+    console.log("=== getVentasOnlineByUserId ===")
+    console.log("userId recibido:", userId)
+    
+    // Convertir userId a número
+    const userIdNum = parseInt(userId);
+    if (isNaN(userIdNum)) {
+      throw new Error(`userId inválido: ${userId}`);
+    }
+    
+    const result = await sql`SELECT * FROM get_ventas_online_by_user_id(${userIdNum})`;
+    console.log(`Ventas online encontradas: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getVentasOnlineByUserId:", error)
+    throw error
+  }
+}
+
+export async function getDetallesVentaOnline(ventaOnlineId: number) {
+  try {
+    console.log("=== getDetallesVentaOnline ===")
+    const result = await sql`SELECT * FROM get_detalles_venta_online(${ventaOnlineId})`;
+    console.log(`Detalles encontrados: ${result.length}`)
+    return result
+  } catch (error) {
+    console.error("Error en getDetallesVentaOnline:", error)
+    throw error
+  }
+}
+
+export async function createVentaOnline(userId: string, total: number, direccion: string) {
+  try {
+    console.log("=== createVentaOnline ===")
+    console.log("Parámetros recibidos:", { userId, total, direccion })
+    
+    // Convertir userId a número
+    const userIdNum = parseInt(userId);
+    if (isNaN(userIdNum)) {
+      throw new Error(`userId inválido: ${userId}`);
+    }
+
+    const result = await sql`SELECT create_venta_online(${userIdNum}, ${Math.round(total) * 100}, ${direccion})`;
+    const ventaId = result[0]?.create_venta_online;
+    console.log("Venta creada con ID:", ventaId);
+    return ventaId;
+  } catch (error) {
+    console.error("Error en createVentaOnline:", error)
+    throw error
+  }
+}
+
+export async function createDetalleVentaOnline(ventaOnlineId: number, almacenCervezaId: number, precioUnitario: number, cantidad: number) {
+  try {
+    console.log("=== createDetalleVentaOnline ===")
+    await sql`SELECT create_detalle_venta_online(${ventaOnlineId}, ${almacenCervezaId}, ${precioUnitario * 100}, ${cantidad})`;
+    console.log("Detalle de venta creado");
+  } catch (error) {
+    console.error("Error en createDetalleVentaOnline:", error)
+    throw error
+  }
+}
+
+export async function createEstadoVentaOnline(ventaOnlineId: number) {
+  try {
+    console.log("=== createEstadoVentaOnline ===")
+    await sql`SELECT create_estado_venta_online(${ventaOnlineId})`;
+    console.log("Estado de venta creado");
+  } catch (error) {
+    console.error("Error en createEstadoVentaOnline:", error)
+    throw error
+  }
+}
+
+export async function findAlmacenCervezaByProductName(productName: string) {
+  try {
+    console.log("=== findAlmacenCervezaByProductName ===")
+    const result = await sql`SELECT find_almacen_cerveza_by_product_name(${productName})`;
+    const almacenId = result[0]?.find_almacen_cerveza_by_product_name;
+    console.log("Almacen cerveza encontrado:", almacenId);
+    return almacenId;
+  } catch (error) {
+    console.error("Error en findAlmacenCervezaByProductName:", error)
+    throw error
+  }
+}
+
+// ===== FUNCIONES PARA INDICADORES DE CLIENTES =====
+
+// Obtener número de clientes nuevos vs recurrentes en un período
+export async function getClientesNuevosVsRecurrentes(fechaInicio?: string, fechaFin?: string) {
+  try {
+    console.log("=== getClientesNuevosVsRecurrentes ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    const result = await sql`SELECT * FROM get_clientes_nuevos_vs_recurrentes(${fechaInicio || null}, ${fechaFin || null})`;
+    console.log(`Indicadores de clientes nuevos vs recurrentes obtenidos:`, result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Error en getClientesNuevosVsRecurrentes:", error);
+    throw error;
+  }
+}
+
+// Obtener tasa de retención de clientes en un período
+export async function getTasaRetencionClientes(fechaInicio?: string, fechaFin?: string) {
+  try {
+    console.log("=== getTasaRetencionClientes ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    const result = await sql`SELECT * FROM get_tasa_retencion_clientes(${fechaInicio || null}, ${fechaFin || null})`;
+    console.log(`Tasa de retención de clientes obtenida:`, result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Error en getTasaRetencionClientes:", error);
+    throw error;
+  }
+}
+
+// Obtener todos los indicadores de clientes en una sola función
+export async function getIndicadoresClientes(fechaInicio?: string, fechaFin?: string) {
+  try {
+    console.log("=== getIndicadoresClientes ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    const [clientesNuevosVsRecurrentes, tasaRetencion] = await Promise.all([
+      getClientesNuevosVsRecurrentes(fechaInicio, fechaFin),
+      getTasaRetencionClientes(fechaInicio, fechaFin)
+    ]);
+
+    const indicadores = {
+      clientes_nuevos_vs_recurrentes: clientesNuevosVsRecurrentes,
+      tasa_retencion: tasaRetencion,
+      periodo: {
+        fecha_inicio: fechaInicio || 'Últimos 30 días',
+        fecha_fin: fechaFin || 'Hoy'
+      }
+    };
+
+    console.log("Indicadores de clientes completos:", indicadores);
+    return indicadores;
+  } catch (error) {
+    console.error("Error en getIndicadoresClientes:", error);
+    throw error;
   }
 }

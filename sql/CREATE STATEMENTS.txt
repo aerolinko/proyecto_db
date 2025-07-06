@@ -83,6 +83,7 @@ CREATE TABLE PREMIACION(
                            fecha DATE NOT NULL,
                            hora_inicio time NOT NULL,
                            hora_fin time NOT NULL,
+                           tipo varchar(50) NOT NULL,
                            constraint pk_premiacion_id primary key (premiacion_id)
 );
 
@@ -928,6 +929,49 @@ SELECT p.descripcion,p.permiso_id FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PE
     ru.fk_usuario=id AND r.rol_id=ru.fk_rol AND rp.fk_rol=r.rol_id AND rp.fk_permiso=p.permiso_id
 $$;
 
+-- Nueva función para obtener permisos de usuario que maneje clientes y empleados
+CREATE OR REPLACE FUNCTION obtenerPermisosUsuarioCompleto(id integer)
+    RETURNS TABLE(
+        descripcion varchar(50),
+        permiso_id integer
+    )
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Primero intentar obtener permisos de roles (para empleados)
+    RETURN QUERY
+    SELECT p.descripcion, p.permiso_id 
+    FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PERMISO p  
+    WHERE ru.fk_usuario = id AND r.rol_id = ru.fk_rol AND rp.fk_rol = r.rol_id AND rp.fk_permiso = p.permiso_id;
+    
+    -- Si no hay permisos de roles, verificar si es un cliente y asignar permisos básicos
+    IF NOT FOUND THEN
+        -- Verificar si el usuario es un cliente (natural, jurídico o miembro ACAUCAB)
+        IF EXISTS (
+            SELECT 1 FROM USUARIO u 
+            WHERE u.usuario_id = id AND (
+                u.fk_cliente_natural IS NOT NULL OR 
+                u.fk_cliente_juridico IS NOT NULL OR 
+                u.fk_miembro_acaucab IS NOT NULL
+            )
+        ) THEN
+            -- Asignar permisos básicos para clientes (tienda online)
+            RETURN QUERY
+            SELECT p.descripcion, p.permiso_id
+            FROM PERMISO p
+            WHERE p.descripcion IN (
+                'consultar VENTA_ONLINE',
+                'crear VENTA_ONLINE',
+                'consultar DETALLE_VENTA_ONLINE',
+                'crear DETALLE_VENTA_ONLINE',
+                'consultar ESTADO_VENTA_ONLINE',
+                'crear ESTADO_VENTA_ONLINE'
+            );
+        END IF;
+    END IF;
+END;
+$$;
+
 CREATE PROCEDURE insertarRolPermisos(
     p_rol_id INTEGER,
     p_permiso_descripciones TEXT[]
@@ -1081,31 +1125,6 @@ BEGIN
             SELECT mpd.metodo_pago_id, 'debito'::varchar, mpd.numero, mpd.banco
             FROM metodo_pago_debito mpd
             WHERE mpd.fk_cliente_juridico = p_id;
-    END IF;
-
-    RETURN;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION buscarCliente(
-    p_tipo_cliente VARCHAR,
-    p_identificacion VARCHAR
-)
-    RETURNS SETOF record
-    LANGUAGE plpgsql
-AS $$
-BEGIN
-    IF p_tipo_cliente = 'natural' THEN
-        RETURN QUERY
-            SELECT n.cliente_id, n.primer_nombre, n.cedula, n.direccion, n.total_puntos, n.rif,n.primer_apellido
-            FROM cliente_natural n
-            WHERE n.cedula = p_identificacion::integer;
-
-    ELSIF p_tipo_cliente = 'juridico' THEN
-        RETURN QUERY
-            SELECT j.cliente_id, j.razon_social, j.rif, j.direccion, j.total_puntos
-            FROM cliente_juridico j
-            WHERE j.rif = p_identificacion;
     END IF;
 
     RETURN;
@@ -1562,37 +1581,6 @@ as
     end;
     $$;
 
-create or replace function obtenerordenesanaquel()
-    returns TABLE(reposicion_anaquel_id integer, fecha varchar, productos varchar,estado varchar)
-    language sql
-as
-$$
-SELECT ra.reposicion_anaquel_id, to_char(ra.fecha,'DD-MM-YYYY') as productos, string_agg(c.nombre||' '||p.cap_volumen::varchar||'ml', ', ') as productos, e.nombre
-FROM reposicion_anaquel ra, estado_reposicion_anaquel era, anaquel_cerveza ac, cerveza_presentacion pc, cerveza c,
-     presentacion p, estado e, detalle_reposicion_anaquel dra
-where ra.reposicion_anaquel_id = era.fk_reposicion_anaquel and era.fk_estado = e.estado_id and dra.fk_reposicion_anaquel = ra.reposicion_anaquel_id
-    and dra.fk_anaquel_cerveza = ac.anaquel_cerveza_id and pc.cerveza_presentacion_id = ac.fk_cerveza_presentacion and
-        p.presentacion_id = pc.fk_presentacion and pc.fk_cerveza = c.cerveza_id and era.fecha_fin is null
-    group by ra.reposicion_anaquel_id, ra.fecha, e.nombre
-
-$$;
-
-create or replace procedure cambiarEstadoRepAnaquel(cambio varchar, id integer)
-    language plpgsql
-as
-$$
-declare
-    Nuevoestado_id integer;
-begin
-    select into Nuevoestado_id e.estado_id from estado e
-    where e.nombre=cambio;
-    update estado_reposicion_anaquel set fecha_fin = current_date
-    where fk_reposicion_anaquel=id;
-    insert into estado_reposicion_anaquel (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel)
-    values (current_date,null,Nuevoestado_id,id);
-end;
-$$;
-
 
 CREATE OR REPLACE FUNCTION get_stock_almacen()
 RETURNS TABLE(
@@ -1851,106 +1839,44 @@ where ra.reposicion_anaquel_id = era.fk_reposicion_anaquel and era.fk_estado = e
 $$;
 
 CREATE OR REPLACE FUNCTION get_clientes_juridicos()
-RETURNS TABLE (
-  cliente_id INTEGER,
-  razon_social VARCHAR,
-  denominacion_comercial VARCHAR,
-  rif VARCHAR,
-  capital NUMERIC,
-  total_compras BIGINT,
-  monto_total_compras NUMERIC
-)
-LANGUAGE plpgsql
-AS $$
+RETURNS TABLE(
+    cliente_id integer,
+    razon_social varchar,
+    denominacion_comercial varchar,
+    rif varchar,
+    capital integer,
+    direccion varchar,
+    total_puntos integer,
+    total_compras integer,
+    monto_total_compras numeric
+) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     cj.cliente_id,
     cj.razon_social,
     cj.denominacion_comercial,
     cj.rif,
     cj.capital,
-    COUNT(DISTINCT vo.venta_online_id) as total_compras,
-    COALESCE(SUM(vo.total), 0) as monto_total_compras
-  FROM CLIENTE_JURIDICO cj
-  LEFT JOIN USUARIO u ON cj.cliente_id = u.fk_cliente_juridico
-  LEFT JOIN VENTA_ONLINE vo ON u.usuario_id = vo.fk_usuario
-  GROUP BY 
+    cj.direccion,
+    cj.total_puntos,
+    COUNT(DISTINCT vo.venta_online_id)::integer as total_compras,
+    COALESCE(SUM(vo.total), 0)::numeric as monto_total_compras
+  FROM cliente_juridico cj
+  LEFT JOIN usuario u ON cj.cliente_id = u.fk_cliente_juridico
+  LEFT JOIN venta_online vo ON u.usuario_id = vo.fk_usuario
+  GROUP BY
     cj.cliente_id,
     cj.razon_social,
     cj.denominacion_comercial,
     cj.rif,
-    cj.capital
-  ORDER BY 
+    cj.capital,
+    cj.direccion,
+    cj.total_puntos
+  ORDER BY
     cj.razon_social;
 END;
-$$;
-
-CREATE OR REPLACE FUNCTION get_nomina_departamento(
-  p_fecha_inicio DATE DEFAULT NULL,
-  p_fecha_fin DATE DEFAULT NULL,
-  p_limite INTEGER DEFAULT 100
-)
-RETURNS TABLE (
-  departamento_id INTEGER,
-  nombre_departamento VARCHAR,
-  cargo_id INTEGER,
-  nombre_cargo VARCHAR,
-  empleado_id INTEGER,
-  cedula INTEGER,
-  nombre_completo VARCHAR,
-  fecha_contrato DATE,
-  salario_base INTEGER,  -- Cambiado de NUMERIC a INTEGER
-  total_beneficios INTEGER,  -- Cambiado de NUMERIC a INTEGER
-  costo_total INTEGER,  -- Cambiado de NUMERIC a INTEGER
-  fecha_inicio_cargo DATE,
-  fecha_fin_cargo DATE,
-  estado_empleado VARCHAR
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    d.departamento_id,
-    d.nombre::VARCHAR as nombre_departamento,
-    c.cargo_id,
-    c.nombre::VARCHAR as nombre_cargo,
-    e.empleado_id,
-    e.cedula,
-    CONCAT(
-      e.primer_nombre, ' ',
-      COALESCE(e.segundo_nombre, ''), ' ',
-      e.primer_apellido, ' ',
-      COALESCE(e.segundo_apellido, '')
-    )::VARCHAR as nombre_completo,
-    e.fecha_contrato,
-    de.salario::INTEGER as salario_base,  -- Cast explícito a INTEGER
-    COALESCE(SUM(be.monto), 0)::INTEGER as total_beneficios,  -- Cast explícito a INTEGER
-    (de.salario + COALESCE(SUM(be.monto), 0))::INTEGER as costo_total,  -- Cast explícito a INTEGER
-    de.fecha_inicio as fecha_inicio_cargo,
-    de.fecha_fin as fecha_fin_cargo,
-    CASE 
-      WHEN de.fecha_fin IS NULL OR de.fecha_fin >= CURRENT_DATE THEN 'ACTIVO'
-      ELSE 'INACTIVO'
-    END::VARCHAR as estado_empleado
-  FROM DEPARTAMENTO d
-  INNER JOIN DEPARTAMENTO_EMPLEADO de ON d.departamento_id = de.fk_departamento
-  INNER JOIN EMPLEADO e ON de.fk_empleado = e.empleado_id
-  INNER JOIN CARGO c ON de.fk_cargo = c.cargo_id
-  LEFT JOIN BENEFICIO_EMPLEADO be ON e.empleado_id = be.fk_empleado
-  WHERE (p_fecha_inicio IS NULL OR de.fecha_inicio >= p_fecha_inicio)
-    AND (p_fecha_fin IS NULL OR de.fecha_inicio <= p_fecha_fin)
-    AND (de.fecha_fin IS NULL OR de.fecha_fin >= CURRENT_DATE)
-  GROUP BY 
-    d.departamento_id, d.nombre, c.cargo_id, c.nombre,
-    e.empleado_id, e.cedula, e.primer_nombre, e.segundo_nombre, e.primer_apellido, e.segundo_apellido,
-    e.fecha_contrato, de.salario, de.fecha_inicio, de.fecha_fin
-  ORDER BY d.nombre, c.nombre, e.primer_apellido, e.primer_nombre
-  LIMIT p_limite;
-END;
-$$;
-
+$$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION get_cuotas_afiliacion_pendientes(
   p_fecha_inicio DATE DEFAULT NULL,
   p_fecha_fin DATE DEFAULT NULL,
@@ -1968,6 +1894,8 @@ RETURNS TABLE (
   ultimo_pago_monto INTEGER,
   meses_pendientes INTEGER,
   monto_pendiente INTEGER,
+  monto_total_pagado INTEGER,
+  deuda_final INTEGER,
   contacto_nombre VARCHAR,
   contacto_telefono VARCHAR,
   contacto_email VARCHAR,
@@ -1977,39 +1905,72 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
   RETURN QUERY
+  WITH calculos_membresia AS (
+    SELECT 
+      ma.miembro_id,
+      ma.razon_social,
+      ma.rif,
+      u.fecha_creacion as fecha_afiliacion,
+      mem.monto::INTEGER as cuota_mensual,
+      mem.fecha_vencimiento,
+      CASE 
+        WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
+        ELSE 'VENCIDO'
+      END::VARCHAR as estado_afiliacion,
+      MAX(p.fecha) FILTER (WHERE p.fk_membresia IS NOT NULL) as ultimo_pago_fecha,
+      MAX(p.monto) FILTER (WHERE p.fk_membresia IS NOT NULL)::INTEGER as ultimo_pago_monto,
+      COALESCE(SUM(p.monto) FILTER (WHERE p.fk_membresia IS NOT NULL), 0)::INTEGER as monto_total_pagado,
+      CONCAT(pc.primer_nombre, ' ', pc.primer_apellido)::VARCHAR as contacto_nombre,
+      CONCAT(t.codigo, '-', t.numero)::VARCHAR as contacto_telefono,
+      CONCAT(ce.usuario, '@', ce.dominio)::VARCHAR as contacto_email,
+      ma.direccion,
+      -- Cálculo preciso de meses pendientes
+      CASE 
+        WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 
+          -- Para activos: meses desde afiliación hasta hoy
+          GREATEST(0, (DATE '2025-06-26' - u.fecha_creacion) / 30)
+        ELSE 
+          -- Para vencidos: meses desde afiliación hasta vencimiento
+          GREATEST(0, (mem.fecha_vencimiento - u.fecha_creacion) / 30)
+      END::INTEGER as meses_pendientes
+    FROM miembro_acaucab ma
+    INNER JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+    INNER JOIN membresia mem ON u.usuario_id = mem.fk_usuario
+    LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia
+    LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
+    LEFT JOIN telefono t ON ma.miembro_id = t.fk_miembro_acaucab
+    LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
+    WHERE ma.miembro_id IS NOT NULL
+      AND (p_fecha_inicio IS NULL OR u.fecha_creacion >= p_fecha_inicio)
+      AND (p_fecha_fin IS NULL OR u.fecha_creacion <= p_fecha_fin)
+    GROUP BY 
+      ma.miembro_id, ma.razon_social, ma.rif, ma.direccion, 
+      u.fecha_creacion, mem.fecha_vencimiento, mem.monto, pc.primer_nombre, pc.primer_apellido,
+      t.codigo, t.numero, ce.usuario, ce.dominio
+  )
   SELECT 
-    ma.miembro_id,
-    ma.razon_social,
-    ma.rif,
-    u.fecha_creacion as fecha_afiliacion,
-    mem.monto::INTEGER as cuota_mensual,
-    mem.fecha_vencimiento,
-    CASE 
-      WHEN mem.fecha_vencimiento >= CURRENT_DATE THEN 'ACTIVO'
-      ELSE 'VENCIDO'
-    END::VARCHAR as estado_afiliacion,
-    MAX(p.fecha) as ultimo_pago_fecha,
-    MAX(p.monto)::INTEGER as ultimo_pago_monto,
-    GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion))))::INTEGER as meses_pendientes,
-    (mem.monto * GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion)))))::INTEGER as monto_pendiente,
-    CONCAT(pc.primer_nombre, ' ', pc.primer_apellido)::VARCHAR as contacto_nombre,
-    CONCAT(t.codigo, '-', t.numero)::VARCHAR as contacto_telefono,
-    CONCAT(ce.usuario, ce.dominio)::VARCHAR as contacto_email,
-    ma.direccion
-  FROM miembro_acaucab ma
-  LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
-  LEFT JOIN membresia mem ON u.usuario_id = mem.fk_usuario
-  LEFT JOIN pago p ON mem.membresia_id = p.fk_membresia
-  LEFT JOIN personal_contacto pc ON ma.miembro_id = pc.fk_miembro_acaucab
-  LEFT JOIN telefono t ON ma.miembro_id = t.fk_miembro_acaucab
-  LEFT JOIN correo_electronico ce ON ma.miembro_id = ce.fk_miembro_acaucab
-  WHERE ma.miembro_id IS NOT NULL
-  GROUP BY 
-    ma.miembro_id, ma.razon_social, ma.rif, ma.direccion, 
-    u.fecha_creacion, mem.fecha_vencimiento, mem.monto, pc.primer_nombre, pc.primer_apellido,
-    t.codigo, t.numero, ce.usuario, ce.dominio
-  HAVING GREATEST(0, EXTRACT(MONTH FROM AGE(CURRENT_DATE, COALESCE(MAX(p.fecha), u.fecha_creacion)))) >= 1
-  ORDER BY meses_pendientes DESC, monto_pendiente DESC
+    cm.miembro_id,
+    cm.razon_social,
+    cm.rif,
+    cm.fecha_afiliacion,
+    cm.cuota_mensual,
+    cm.fecha_vencimiento,
+    cm.estado_afiliacion,
+    cm.ultimo_pago_fecha,
+    cm.ultimo_pago_monto,
+    cm.meses_pendientes,
+    (cm.cuota_mensual * cm.meses_pendientes)::INTEGER as monto_pendiente,
+    cm.monto_total_pagado,
+    (cm.cuota_mensual * cm.meses_pendientes - cm.monto_total_pagado)::INTEGER as deuda_final,
+    cm.contacto_nombre,
+    cm.contacto_telefono,
+    cm.contacto_email,
+    cm.direccion
+  FROM calculos_membresia cm
+  WHERE 
+    cm.meses_pendientes > 0 
+    AND (cm.cuota_mensual * cm.meses_pendientes - cm.monto_total_pagado) > 0
+  ORDER BY deuda_final DESC, meses_pendientes DESC
   LIMIT p_limite;
 END;
 $$;
@@ -2026,7 +1987,8 @@ RETURNS TABLE (
   fecha_contrato DATE,
   fk_lugar INTEGER,
   nombre_completo VARCHAR,
-  nombre_completo_full VARCHAR
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
 )
 LANGUAGE plpgsql
 AS $$
@@ -2043,8 +2005,10 @@ BEGIN
     fecha_contrato,
     fk_lugar,
     CONCAT(primer_nombre, ' ', primer_apellido)::VARCHAR as nombre_completo,
-    CONCAT(primer_nombre, ' ', COALESCE(segundo_nombre, ''), ' ', primer_apellido, ' ', COALESCE(segundo_apellido, ''))::VARCHAR as nombre_completo_full
-  FROM empleado
+    CONCAT(primer_nombre, ' ', COALESCE(segundo_nombre, ''), ' ', primer_apellido, ' ', COALESCE(segundo_apellido, ''))::VARCHAR as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM empleado e
+  LEFT JOIN usuario u ON e.empleado_id = u.fk_empleado
   ORDER BY primer_nombre, primer_apellido;
 END;
 $$;
@@ -2149,36 +2113,209 @@ BEGIN
 END;
 $$;
 
--- 4. Crear usuario con empleado
-CREATE OR REPLACE FUNCTION create_usuario_with_empleado(p_email VARCHAR, p_password VARCHAR, p_empleado_id INTEGER)
+-- 6. Eliminar usuario por ID
+CREATE OR REPLACE FUNCTION delete_usuario_by_id(p_id INTEGER)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Eliminar usuario y retornar información
+  RETURN QUERY
+  DELETE FROM usuario
+  WHERE usuario_id = p_id 
+  RETURNING usuario_id::TEXT as id, nombre_usuario as email;
+END;
+$$;
+
+-- ===== STORED PROCEDURES PARA GESTIÓN DE USUARIOS =====
+
+-- Obtener TODOS los clientes naturales (para debugging)
+CREATE OR REPLACE FUNCTION get_all_clientes_naturales()
+RETURNS TABLE (
+  id TEXT,
+  cedula INTEGER,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  segundo_nombre VARCHAR,
+  segundo_apellido VARCHAR,
+  direccion VARCHAR,
+  rif VARCHAR,
+  total_puntos INTEGER,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cn.cliente_id::TEXT as id,
+    cn.cedula,
+    cn.primer_nombre,
+    cn.primer_apellido,
+    cn.segundo_nombre,
+    cn.segundo_apellido,
+    cn.direccion,
+    cn.rif,
+    cn.total_puntos,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as nombre_completo,
+    CONCAT(cn.primer_nombre, ' ', COALESCE(cn.segundo_nombre, ''), ' ', cn.primer_apellido, ' ', COALESCE(cn.segundo_apellido, ''))::VARCHAR as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM cliente_natural cn
+  LEFT JOIN usuario u ON cn.cliente_id = u.fk_cliente_natural
+  ORDER BY cn.primer_nombre, cn.primer_apellido;
+END;
+$$;
+
+-- Obtener TODOS los clientes jurídicos (para debugging)
+CREATE OR REPLACE FUNCTION get_all_clientes_juridicos()
+RETURNS TABLE (
+  id TEXT,
+  rif VARCHAR,
+  razon_social VARCHAR,
+  denominacion_comercial VARCHAR,
+  capital integer,
+  direccion VARCHAR,
+  total_puntos INTEGER,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cj.cliente_id::TEXT as id,
+    cj.rif,
+    cj.razon_social,
+    cj.denominacion_comercial,
+    cj.capital,
+    cj.direccion,
+    cj.total_puntos,
+    cj.razon_social as nombre_completo,
+    cj.razon_social as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM cliente_juridico cj
+  LEFT JOIN usuario u ON cj.cliente_id = u.fk_cliente_juridico
+  ORDER BY cj.razon_social;
+END;
+$$;
+
+-- Obtener TODOS los miembros ACAUCAB (para debugging)
+CREATE OR REPLACE FUNCTION get_all_miembros_acaucab()
+RETURNS TABLE (
+  id TEXT,
+  rif VARCHAR,
+  razon_social VARCHAR,
+  denominacion_comercial VARCHAR,
+  direccion VARCHAR,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    ma.miembro_id::TEXT as id,
+    ma.rif,
+    ma.razon_social,
+    ma.denominacion_comercial,
+    ma.direccion,
+    ma.razon_social as nombre_completo,
+    ma.razon_social as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM miembro_acaucab ma
+  LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+  ORDER BY ma.razon_social;
+END;
+$$;
+
+create function create_usuario_with_empleado(p_email character varying, p_password character varying, p_empleado_id integer)
+    returns TABLE(id text, email character varying, fecha_creacion date, empleado_id text, primer_nombre character varying, primer_apellido character varying, cedula integer, empleado_nombre character varying)
+    language plpgsql
+as
+$$
+BEGIN
+  -- Verificar que el empleado existe
+  IF NOT EXISTS (SELECT 1 FROM empleado e WHERE e.empleado_id = p_empleado_id) THEN
+    RAISE EXCEPTION 'El empleado seleccionado no existe';
+  END IF;
+
+  -- Verificar que el email no esté registrado
+  IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
+    RAISE EXCEPTION 'El email ya está registrado';
+  END IF;
+  -- Insertar usuario
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_empleado, fecha_creacion)
+  VALUES (p_email, p_password, p_empleado_id, CURRENT_DATE);
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT
+    u.usuario_id::TEXT as id,
+    u.nombre_usuario as email,
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    e.primer_nombre,
+    e.primer_apellido,
+    e.cedula,
+    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  WHERE u.nombre_usuario = p_email;
+END;
+$$;
+
+
+-- Crear usuario con cliente natural
+CREATE OR REPLACE FUNCTION create_usuario_with_cliente_natural(
+  p_email VARCHAR,
+  p_password VARCHAR,
+  p_cliente_natural_id INTEGER
+)
 RETURNS TABLE (
   id TEXT,
   email VARCHAR,
   fecha_creacion DATE,
-  empleado_id TEXT,
+  cliente_natural_id TEXT,
   primer_nombre VARCHAR,
   primer_apellido VARCHAR,
-  empleado_nombre VARCHAR
+  cedula INTEGER,
+  cliente_nombre VARCHAR
 )
 LANGUAGE plpgsql
 AS $$
-DECLARE
-  nuevo_usuario_id INTEGER;
 BEGIN
-  -- Verificar que el empleado existe
-  IF NOT EXISTS (SELECT 1 FROM empleado WHERE empleado_id = p_empleado_id) THEN
-    RAISE EXCEPTION 'El empleado seleccionado no existe';
+  -- Verificar que el cliente natural existe
+  IF NOT EXISTS (SELECT 1 FROM cliente_natural WHERE cliente_id = p_cliente_natural_id) THEN
+    RAISE EXCEPTION 'El cliente natural seleccionado no existe';
   END IF;
 
-  -- Verificar si el email ya existe
+  -- Verificar que el email no esté registrado
   IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
     RAISE EXCEPTION 'El email ya está registrado';
   END IF;
 
-  -- Crear nuevo usuario
-  INSERT INTO usuario (nombre_usuario, hash_contrasena, fecha_creacion, fk_empleado) 
-  VALUES (p_email, p_password, CURRENT_DATE, p_empleado_id)
-  RETURNING usuario_id INTO nuevo_usuario_id;
+  -- Verificar que el cliente no tenga usuario asignado
+  IF EXISTS (SELECT 1 FROM usuario WHERE fk_cliente_natural = p_cliente_natural_id) THEN
+    RAISE EXCEPTION 'El cliente natural ya tiene un usuario asignado';
+  END IF;
+
+  -- Insertar usuario
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_cliente_natural, fecha_creacion)
+  VALUES (p_email, p_password, p_cliente_natural_id, CURRENT_DATE);
 
   -- Retornar información completa
   RETURN QUERY
@@ -2186,18 +2323,121 @@ BEGIN
     u.usuario_id::TEXT as id, 
     u.nombre_usuario as email, 
     u.fecha_creacion,
-    u.fk_empleado::TEXT as empleado_id,
-    e.primer_nombre,
-    e.primer_apellido,
-    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre
+    u.fk_cliente_natural::TEXT as cliente_natural_id,
+    cn.primer_nombre,
+    cn.primer_apellido,
+    cn.cedula,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as cliente_nombre
   FROM usuario u
-  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
-  WHERE u.usuario_id = nuevo_usuario_id;
+  LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+  WHERE u.nombre_usuario = p_email;
 END;
 $$;
 
--- 5. Actualizar usuario con empleado
-CREATE OR REPLACE FUNCTION update_usuario_with_empleado(p_id INTEGER, p_email VARCHAR, p_password VARCHAR DEFAULT NULL, p_empleado_id INTEGER DEFAULT NULL)
+-- Crear usuario con cliente jurídico
+CREATE OR REPLACE FUNCTION create_usuario_with_cliente_juridico(
+  p_email VARCHAR,
+  p_password VARCHAR,
+  p_cliente_juridico_id INTEGER
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  cliente_juridico_id TEXT,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  cliente_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar que el cliente jurídico existe
+  IF NOT EXISTS (SELECT 1 FROM cliente_juridico WHERE cliente_id = p_cliente_juridico_id) THEN
+    RAISE EXCEPTION 'El cliente jurídico seleccionado no existe';
+  END IF;
+
+  -- Verificar que el email no esté registrado
+  IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
+    RAISE EXCEPTION 'El email ya está registrado';
+  END IF;
+  -- Insertar usuario
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_cliente_juridico, fecha_creacion)
+  VALUES (p_email, p_password, p_cliente_juridico_id, CURRENT_DATE);
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_cliente_juridico::TEXT as cliente_juridico_id,
+    cj.razon_social,
+    cj.rif,
+    cj.razon_social as cliente_nombre
+  FROM usuario u
+  LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+  WHERE u.nombre_usuario = p_email;
+END;
+$$;
+
+-- Crear usuario con miembro ACAUCAB
+CREATE OR REPLACE FUNCTION create_usuario_with_miembro_acaucab(
+  p_email VARCHAR,
+  p_password VARCHAR,
+  p_miembro_acaucab_id INTEGER
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  miembro_acaucab_id TEXT,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  miembro_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar que el miembro ACAUCAB existe
+  IF NOT EXISTS (SELECT 1 FROM miembro_acaucab WHERE miembro_id = p_miembro_acaucab_id) THEN
+    RAISE EXCEPTION 'El miembro ACAUCAB seleccionado no existe';
+  END IF;
+
+  -- Verificar que el email no esté registrado
+  IF EXISTS (SELECT 1 FROM usuario WHERE nombre_usuario = p_email) THEN
+    RAISE EXCEPTION 'El email ya está registrado';
+  END IF;
+
+  -- Insertar usuario (permitir múltiples usuarios por miembro ACAUCAB)
+  INSERT INTO usuario (nombre_usuario, hash_contrasena, fk_miembro_acaucab, fecha_creacion)
+  VALUES (p_email, p_password, p_miembro_acaucab_id, CURRENT_DATE);
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_miembro_acaucab::TEXT as miembro_acaucab_id,
+    ma.razon_social,
+    ma.rif,
+    ma.razon_social as miembro_nombre
+  FROM usuario u
+  LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+  WHERE u.nombre_usuario = p_email;
+END;
+$$;
+
+-- ===== STORED PROCEDURES PARA ACTUALIZAR USUARIOS =====
+
+-- Actualizar usuario con empleado
+CREATE OR REPLACE FUNCTION update_usuario_with_empleado(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL,
+  p_empleado_id INTEGER DEFAULT NULL
+)
 RETURNS TABLE (
   id TEXT,
   email VARCHAR,
@@ -2222,11 +2462,27 @@ BEGIN
 
   -- Actualizar usuario
   IF p_password IS NOT NULL AND p_empleado_id IS NOT NULL THEN
-    UPDATE usuario SET nombre_usuario = p_email, hash_contrasena = p_password, fk_empleado = p_empleado_id WHERE usuario_id = p_id;
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password, 
+      fk_empleado = p_empleado_id,
+      fk_cliente_natural = NULL,
+      fk_cliente_juridico = NULL,
+      fk_miembro_acaucab = NULL
+    WHERE usuario_id = p_id;
   ELSIF p_password IS NOT NULL THEN
-    UPDATE usuario SET nombre_usuario = p_email, hash_contrasena = p_password WHERE usuario_id = p_id;
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password 
+    WHERE usuario_id = p_id;
   ELSIF p_empleado_id IS NOT NULL THEN
-    UPDATE usuario SET nombre_usuario = p_email, fk_empleado = p_empleado_id WHERE usuario_id = p_id;
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      fk_empleado = p_empleado_id,
+      fk_cliente_natural = NULL,
+      fk_cliente_juridico = NULL,
+      fk_miembro_acaucab = NULL
+    WHERE usuario_id = p_id;
   ELSE
     UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
   END IF;
@@ -2247,11 +2503,21 @@ BEGIN
 END;
 $$;
 
--- 6. Eliminar usuario por ID
-CREATE OR REPLACE FUNCTION delete_usuario_by_id(p_id INTEGER)
+-- Actualizar usuario con cliente natural
+CREATE OR REPLACE FUNCTION update_usuario_with_cliente_natural(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
 RETURNS TABLE (
   id TEXT,
-  email VARCHAR
+  email VARCHAR,
+  fecha_creacion DATE,
+  cliente_natural_id TEXT,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  cedula INTEGER,
+  cliente_nombre VARCHAR
 )
 LANGUAGE plpgsql
 AS $$
@@ -2261,10 +2527,957 @@ BEGIN
     RAISE EXCEPTION 'Usuario no encontrado';
   END IF;
 
-  -- Eliminar usuario y retornar información
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
   RETURN QUERY
-  DELETE FROM usuario
-  WHERE usuario_id = p_id 
-  RETURNING usuario_id::TEXT as id, nombre_usuario as email;
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_cliente_natural::TEXT as cliente_natural_id,
+    cn.primer_nombre,
+    cn.primer_apellido,
+    cn.cedula,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as cliente_nombre
+  FROM usuario u
+  LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- Actualizar usuario con cliente jurídico
+CREATE OR REPLACE FUNCTION update_usuario_with_cliente_juridico(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  cliente_juridico_id TEXT,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  cliente_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_cliente_juridico::TEXT as cliente_juridico_id,
+    cj.razon_social,
+    cj.rif,
+    cj.razon_social as cliente_nombre
+  FROM usuario u
+  LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- Actualizar usuario con miembro ACAUCAB
+CREATE OR REPLACE FUNCTION update_usuario_with_miembro_acaucab(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  miembro_acaucab_id TEXT,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  miembro_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_miembro_acaucab::TEXT as miembro_acaucab_id,
+    ma.razon_social,
+    ma.rif,
+    ma.razon_social as miembro_nombre
+  FROM usuario u
+  LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- ===== STORED PROCEDURE PARA OBTENER TODOS LOS USUARIOS =====
+
+-- Obtener todos los usuarios con información completa
+CREATE OR REPLACE FUNCTION get_all_usuarios_complete()
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  empleado_id TEXT,
+  fk_cliente_natural INTEGER,
+  fk_cliente_juridico INTEGER,
+  fk_miembro_acaucab INTEGER,
+  -- Información del empleado
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  cedula INTEGER,
+  empleado_nombre VARCHAR,
+  -- Información del cliente natural
+  cliente_natural_nombre VARCHAR,
+  cliente_natural_apellido VARCHAR,
+  cliente_natural_cedula INTEGER,
+  cliente_natural_nombre_completo VARCHAR,
+  -- Información del cliente jurídico
+  cliente_juridico_nombre VARCHAR,
+  cliente_juridico_rif VARCHAR,
+  -- Información del miembro ACAUCAB
+  miembro_acaucab_nombre VARCHAR,
+  miembro_acaucab_rif VARCHAR,
+  -- Campo combinado para mostrar la entidad asociada
+  entidad_asociada VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    u.fk_cliente_natural, 
+    u.fk_cliente_juridico, 
+    u.fk_miembro_acaucab,
+    -- Información del empleado
+    e.primer_nombre,
+    e.primer_apellido,
+    e.cedula,
+    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre,
+    -- Información del cliente natural
+    cn.primer_nombre as cliente_natural_nombre,
+    cn.primer_apellido as cliente_natural_apellido,
+    cn.cedula as cliente_natural_cedula,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as cliente_natural_nombre_completo,
+    -- Información del cliente jurídico
+    cj.razon_social as cliente_juridico_nombre,
+    cj.rif as cliente_juridico_rif,
+    -- Información del miembro ACAUCAB
+    ma.razon_social as miembro_acaucab_nombre,
+    ma.rif as miembro_acaucab_rif,
+    -- Campo combinado para mostrar la entidad asociada
+    CASE 
+      WHEN u.fk_empleado IS NOT NULL THEN CONCAT('Empleado: ', e.primer_nombre, ' ', e.primer_apellido, ' (Cédula: ', e.cedula, ')')
+      WHEN u.fk_cliente_natural IS NOT NULL THEN CONCAT('Cliente Natural: ', cn.primer_nombre, ' ', cn.primer_apellido, ' (Cédula: ', cn.cedula, ')')
+      WHEN u.fk_cliente_juridico IS NOT NULL THEN CONCAT('Cliente Jurídico: ', cj.razon_social, ' (RIF: ', cj.rif, ')')
+      WHEN u.fk_miembro_acaucab IS NOT NULL THEN CONCAT('Miembro ACAUCAB: ', ma.razon_social, ' (RIF: ', ma.rif, ')')
+      ELSE 'Sin entidad asociada'
+    END::VARCHAR as entidad_asociada
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+  LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+  LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+  ORDER BY u.usuario_id;
+END;
+$$;
+
+-- Actualizar usuario con empleado
+CREATE OR REPLACE FUNCTION update_usuario_with_empleado(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  empleado_id TEXT,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  empleado_nombre VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Verificar si el usuario existe
+  IF NOT EXISTS (SELECT 1 FROM usuario WHERE usuario_id = p_id) THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Actualizar solo email y password (no cambiar la entidad)
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  -- Retornar información completa
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    e.primer_nombre,
+    e.primer_apellido,
+    CONCAT(e.primer_nombre, ' ', e.primer_apellido)::VARCHAR as empleado_nombre
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION update_usuario_with_entidad(
+  p_id INTEGER,
+  p_email VARCHAR,
+  p_password VARCHAR DEFAULT NULL
+)
+RETURNS TABLE (
+  id TEXT,
+  email VARCHAR,
+  fecha_creacion DATE,
+  empleado_id TEXT,
+  cliente_natural_id TEXT,
+  cliente_juridico_id TEXT,
+  miembro_acaucab_id TEXT,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  cedula INTEGER,
+  razon_social VARCHAR,
+  rif VARCHAR,
+  entidad_asociada VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_fk_empleado INTEGER;
+  v_fk_cliente_natural INTEGER;
+  v_fk_cliente_juridico INTEGER;
+  v_fk_miembro_acaucab INTEGER;
+BEGIN
+  SELECT u.fk_empleado, u.fk_cliente_natural, u.fk_cliente_juridico, u.fk_miembro_acaucab
+  INTO v_fk_empleado, v_fk_cliente_natural, v_fk_cliente_juridico, v_fk_miembro_acaucab
+  FROM usuario u WHERE u.usuario_id = p_id;
+
+  IF p_password IS NOT NULL THEN
+    UPDATE usuario SET 
+      nombre_usuario = p_email, 
+      hash_contrasena = p_password
+    WHERE usuario_id = p_id;
+  ELSE
+    UPDATE usuario SET nombre_usuario = p_email WHERE usuario_id = p_id;
+  END IF;
+
+  RETURN QUERY
+  SELECT 
+    u.usuario_id::TEXT as id, 
+    u.nombre_usuario as email, 
+    u.fecha_creacion,
+    u.fk_empleado::TEXT as empleado_id,
+    u.fk_cliente_natural::TEXT as cliente_natural_id,
+    u.fk_cliente_juridico::TEXT as cliente_juridico_id,
+    u.fk_miembro_acaucab::TEXT as miembro_acaucab_id,
+    e.primer_nombre,
+    e.primer_apellido,
+    e.cedula,
+    cj.razon_social,
+    cj.rif,
+    CASE 
+      WHEN u.fk_empleado IS NOT NULL THEN CONCAT('Empleado: ', e.primer_nombre, ' ', e.primer_apellido)::VARCHAR
+      WHEN u.fk_cliente_natural IS NOT NULL THEN CONCAT('Cliente Natural: ', cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR
+      WHEN u.fk_cliente_juridico IS NOT NULL THEN CONCAT('Cliente Jurídico: ', cj.razon_social, ' (RIF: ', cj.rif, ')')::VARCHAR
+      WHEN u.fk_miembro_acaucab IS NOT NULL THEN CONCAT('Miembro ACAUCAB: ', ma.razon_social, ' (RIF: ', ma.rif, ')')::VARCHAR
+      ELSE NULL::VARCHAR
+    END as entidad_asociada
+  FROM usuario u
+  LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+  LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+  LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+  LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+  WHERE u.usuario_id = p_id;
+END;
+$$;
+
+-- Obtener clientes naturales sin usuarios asignados
+CREATE OR REPLACE FUNCTION get_clientes_naturales_sin_usuario()
+RETURNS TABLE (
+  id TEXT,
+  cedula INTEGER,
+  primer_nombre VARCHAR,
+  primer_apellido VARCHAR,
+  segundo_nombre VARCHAR,
+  segundo_apellido VARCHAR,
+  direccion VARCHAR,
+  rif VARCHAR,
+  total_puntos INTEGER,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cn.cliente_id::TEXT as id,
+    cn.cedula,
+    cn.primer_nombre,
+    cn.primer_apellido,
+    cn.segundo_nombre,
+    cn.segundo_apellido,
+    cn.direccion,
+    cn.rif,
+    cn.total_puntos,
+    CONCAT(cn.primer_nombre, ' ', cn.primer_apellido)::VARCHAR as nombre_completo,
+    CONCAT(cn.primer_nombre, ' ', COALESCE(cn.segundo_nombre, ''), ' ', cn.primer_apellido, ' ', COALESCE(cn.segundo_apellido, ''))::VARCHAR as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM cliente_natural cn
+  LEFT JOIN usuario u ON cn.cliente_id = u.fk_cliente_natural
+  ORDER BY cn.primer_nombre, cn.primer_apellido;
+END;
+$$;
+
+-- Obtener miembros ACAUCAB sin usuarios asignados
+CREATE OR REPLACE FUNCTION get_miembros_acaucab_sin_usuario()
+RETURNS TABLE (
+  id TEXT,
+  rif VARCHAR,
+  razon_social VARCHAR,
+  denominacion_comercial VARCHAR,
+  direccion VARCHAR,
+  nombre_completo VARCHAR,
+  nombre_completo_full VARCHAR,
+  tiene_usuario BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    ma.miembro_id::TEXT as id,
+    ma.rif,
+    ma.razon_social,
+    ma.denominacion_comercial,
+    ma.direccion,
+    ma.razon_social as nombre_completo,
+    ma.razon_social as nombre_completo_full,
+    CASE WHEN u.usuario_id IS NOT NULL THEN TRUE ELSE FALSE END as tiene_usuario
+  FROM miembro_acaucab ma
+  LEFT JOIN usuario u ON ma.miembro_id = u.fk_miembro_acaucab
+  ORDER BY ma.razon_social;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_nomina_departamento(
+  p_fecha_inicio DATE DEFAULT NULL,
+  p_fecha_fin DATE DEFAULT NULL,
+  p_limite INTEGER DEFAULT 100
+)
+RETURNS TABLE (
+  departamento_id INTEGER,
+  nombre_departamento VARCHAR,
+  cargo_id INTEGER,
+  nombre_cargo VARCHAR,
+  empleado_id INTEGER,
+  cedula INTEGER,
+  nombre_completo VARCHAR,
+  fecha_contrato DATE,
+  salario_base INTEGER,  -- Cambiado de NUMERIC a INTEGER
+  total_beneficios INTEGER,  -- Cambiado de NUMERIC a INTEGER
+  costo_total INTEGER,  -- Cambiado de NUMERIC a INTEGER
+  fecha_inicio_cargo DATE,
+  fecha_fin_cargo DATE,
+  estado_empleado VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    d.departamento_id,
+    d.nombre::VARCHAR as nombre_departamento,
+    c.cargo_id,
+    c.nombre::VARCHAR as nombre_cargo,
+    e.empleado_id,
+    e.cedula,
+    CONCAT(
+      e.primer_nombre, ' ',
+      COALESCE(e.segundo_nombre, ''), ' ',
+      e.primer_apellido, ' ',
+      COALESCE(e.segundo_apellido, '')
+    )::VARCHAR as nombre_completo,
+    e.fecha_contrato,
+    de.salario::INTEGER as salario_base,  -- Cast explícito a INTEGER
+    COALESCE(SUM(be.monto), 0)::INTEGER as total_beneficios,  -- Cast explícito a INTEGER
+    (de.salario + COALESCE(SUM(be.monto), 0))::INTEGER as costo_total,  -- Cast explícito a INTEGER
+    de.fecha_inicio as fecha_inicio_cargo,
+    de.fecha_fin as fecha_fin_cargo,
+    CASE 
+      WHEN de.fecha_fin IS NULL OR de.fecha_fin >= CURRENT_DATE THEN 'ACTIVO'
+      ELSE 'INACTIVO'
+    END::VARCHAR as estado_empleado
+  FROM DEPARTAMENTO d
+  INNER JOIN DEPARTAMENTO_EMPLEADO de ON d.departamento_id = de.fk_departamento
+  INNER JOIN EMPLEADO e ON de.fk_empleado = e.empleado_id
+  INNER JOIN CARGO c ON de.fk_cargo = c.cargo_id
+  LEFT JOIN BENEFICIO_EMPLEADO be ON e.empleado_id = be.fk_empleado
+  WHERE (p_fecha_inicio IS NULL OR de.fecha_inicio >= p_fecha_inicio)
+    AND (p_fecha_fin IS NULL OR de.fecha_inicio <= p_fecha_fin)
+    AND (de.fecha_fin IS NULL OR de.fecha_fin >= CURRENT_DATE)
+  GROUP BY 
+    d.departamento_id, d.nombre, c.cargo_id, c.nombre,
+    e.empleado_id, e.cedula, e.primer_nombre, e.segundo_nombre, e.primer_apellido, e.segundo_apellido,
+    e.fecha_contrato, de.salario, de.fecha_inicio, de.fecha_fin
+  ORDER BY d.nombre, c.nombre, e.primer_apellido, e.primer_nombre
+  LIMIT p_limite;
+END;
+$$;
+
+create function get_historial_compras_cliente_juridico(p_cliente_juridico_id integer, p_fecha_inicio date DEFAULT NULL::date, p_fecha_fin date DEFAULT NULL::date, p_limite integer DEFAULT 100)
+    returns TABLE(razon_social character varying, rif character varying, fecha_emision date, producto character varying, cantidad integer, monto numeric, total_compra numeric)
+    language plpgsql
+as
+$$
+BEGIN
+  RETURN QUERY
+  SELECT
+    cj.razon_social,
+    cj.rif,
+    vo.fecha_emision,
+    c.nombre as producto,
+    dvo.cantidad,
+    (dvo.precio_unitario * dvo.cantidad)::numeric as monto,
+    vo.total::numeric as total_compra
+  FROM cliente_juridico cj
+  JOIN usuario u ON cj.cliente_id = u.fk_cliente_juridico
+  JOIN venta_online vo ON u.usuario_id = vo.fk_usuario
+  JOIN detalle_venta_online dvo ON vo.venta_online_id = dvo.fk_venta_online
+  JOIN almacen_cerveza ac ON dvo.fk_almacen_cerveza = ac.almacen_cerveza_id
+  JOIN cerveza_presentacion cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+  JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+  WHERE
+    (p_cliente_juridico_id IS NULL OR cj.cliente_id = p_cliente_juridico_id)
+    AND (p_fecha_inicio IS NULL OR vo.fecha_emision >= p_fecha_inicio)
+    AND (p_fecha_fin IS NULL OR vo.fecha_emision <= p_fecha_fin)
+  ORDER BY vo.fecha_emision DESC
+  LIMIT COALESCE(p_limite, 100);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION buscarCliente(
+    p_tipo_cliente VARCHAR,
+    p_identificacion VARCHAR
+)
+    RETURNS SETOF record
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_tipo_cliente = 'natural' THEN
+        RETURN QUERY
+            SELECT n.cliente_id, n.primer_nombre, n.segundo_nombre, n.cedula, n.direccion, n.total_puntos, n.rif, n.primer_apellido, n.segundo_apellido
+            FROM cliente_natural n
+            WHERE n.cedula = p_identificacion::integer;
+
+    ELSIF p_tipo_cliente = 'juridico' THEN
+        RETURN QUERY
+            SELECT j.cliente_id, j.razon_social, j.rif, j.direccion, j.total_puntos
+            FROM cliente_juridico j
+            WHERE j.rif = p_identificacion;
+    END IF;
+
+    RETURN;
+END;
+$$;
+create function create_venta_online(user_id integer, total_amount integer, delivery_address character varying) returns integer
+    language plpgsql
+as
+$$
+DECLARE
+    new_venta_id INTEGER;
+    lugar_id INTEGER;
+    fecha_estimada DATE;
+BEGIN
+    -- Obtener el lugar por defecto
+    SELECT l.lugar_id INTO lugar_id FROM LUGAR l LIMIT 1;
+    IF lugar_id IS NULL THEN
+        lugar_id := 1;
+    END IF;
+
+    -- Calcular fecha estimada de entrega (3 días después)
+    fecha_estimada := CURRENT_DATE + INTERVAL '3 days';
+
+    -- Insertar la venta online
+    INSERT INTO VENTA_ONLINE (
+        direccion,
+        fecha_emision,
+        fecha_estimada,
+        total,
+        fk_lugar,
+        fk_usuario
+    ) VALUES (
+        delivery_address,
+        CURRENT_DATE,
+        fecha_estimada,
+        total_amount,
+        lugar_id,
+        user_id
+    ) RETURNING venta_online_id INTO new_venta_id;
+
+    RETURN new_venta_id;
+END;
+$$;
+
+
+-- Crear detalle de venta online
+CREATE OR REPLACE FUNCTION create_detalle_venta_online(
+    venta_online_id INTEGER,
+    almacen_cerveza_id INTEGER,
+    precio_unitario INTEGER,
+    cantidad INTEGER
+)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO DETALLE_VENTA_ONLINE (
+        fk_almacen_cerveza,
+        fk_venta_online,
+        precio_unitario,
+        cantidad
+    ) VALUES (
+        almacen_cerveza_id,
+        venta_online_id,
+        precio_unitario,
+        cantidad
+    );
+END;
+$$ LANGUAGE plpgsql;
+create function create_estado_venta_online(venta_online_id integer) returns void
+    language plpgsql
+as
+$$
+DECLARE
+    estado_id INTEGER;
+BEGIN
+    -- Buscar estado "Pendiente"
+    SELECT e.estado_id INTO estado_id FROM ESTADO e WHERE nombre = 'Pendiente' LIMIT 1;
+    IF estado_id IS NULL THEN
+        estado_id := 1;
+    END IF;
+
+    INSERT INTO ESTADO_VENTA_ONLINE (
+        fecha_inicio,
+        fk_estado,
+        fk_venta_online
+    ) VALUES (
+        CURRENT_DATE,
+        estado_id,
+        venta_online_id
+    );
+END;
+$$;
+
+
+
+-- Encontrar almacén cerveza por nombre de producto
+CREATE OR REPLACE FUNCTION find_almacen_cerveza_by_product_name(product_name VARCHAR)
+RETURNS INTEGER AS $$
+DECLARE
+    almacen_id INTEGER;
+BEGIN
+    SELECT ac.almacen_cerveza_id INTO almacen_id
+    FROM ALMACEN_CERVEZA ac
+    JOIN CERVEZA_PRESENTACION cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+    JOIN CERVEZA c ON cp.fk_cerveza = c.cerveza_id
+    WHERE c.nombre ILIKE '%' || split_part(product_name, ' ', 1) || '%'
+    LIMIT 1;
+    
+    RETURN almacen_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_ventas_online_by_user_id(user_id INTEGER)
+RETURNS TABLE (
+    venta_online_id INTEGER,
+    fecha_emision DATE,
+    fecha_estimada DATE,
+    fecha_entrega DATE,
+    total INTEGER,
+    direccion VARCHAR,
+    estado VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        vo.venta_online_id,
+        vo.fecha_emision,
+        vo.fecha_estimada,
+        vo.fecha_entrega,
+        vo.total,
+        vo.direccion,
+        COALESCE(latest_estado.nombre, 'Pendiente') as estado
+    FROM VENTA_ONLINE vo
+    LEFT JOIN (
+        SELECT DISTINCT ON (evo.fk_venta_online) 
+            evo.fk_venta_online,
+            e.nombre
+        FROM ESTADO_VENTA_ONLINE evo
+        JOIN ESTADO e ON evo.fk_estado = e.estado_id
+        ORDER BY evo.fk_venta_online, evo.fecha_inicio DESC
+    ) latest_estado ON vo.venta_online_id = latest_estado.fk_venta_online
+    WHERE vo.fk_usuario = user_id
+    ORDER BY vo.fecha_emision DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_detalles_venta_online(p_venta_online_id INTEGER)
+RETURNS TABLE(
+    detalle_venta_online_id INTEGER, 
+    nombre_cerveza VARCHAR, 
+    presentacion VARCHAR, 
+    precio_unitario INTEGER, 
+    cantidad INTEGER, 
+    subtotal INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT
+        dvo.detalle_venta_online_id,
+        c.nombre::VARCHAR as nombre_cerveza,
+        (p.cap_volumen::VARCHAR || 'ml ' || p.material)::VARCHAR as presentacion,
+        dvo.precio_unitario,
+        dvo.cantidad,
+        (dvo.precio_unitario * dvo.cantidad) as subtotal
+    FROM DETALLE_VENTA_ONLINE dvo
+    JOIN ALMACEN_CERVEZA ac ON dvo.fk_almacen_cerveza = ac.almacen_cerveza_id
+    JOIN CERVEZA_PRESENTACION cp ON ac.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+    JOIN CERVEZA c ON cp.fk_cerveza = c.cerveza_id
+    JOIN PRESENTACION p ON cp.fk_presentacion = p.presentacion_id
+    WHERE dvo.fk_venta_online = p_venta_online_id  -- ← Usar el parámetro renombrado
+    ORDER BY dvo.detalle_venta_online_id;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION get_usuario_by_id_complete(p_usuario_id INTEGER)
+RETURNS TABLE (
+    -- Información básica del usuario
+    usuario_id INTEGER,
+    nombre_usuario VARCHAR,
+    fecha_creacion DATE,
+    
+    -- Claves foráneas para identificar el tipo de entidad
+    fk_empleado INTEGER,
+    fk_cliente_natural INTEGER,
+    fk_cliente_juridico INTEGER,
+    fk_miembro_acaucab INTEGER,
+    
+    -- Información de empleado (si aplica)
+    empleado_id INTEGER,
+    emp_primer_nombre VARCHAR,
+    emp_segundo_nombre VARCHAR,
+    emp_primer_apellido VARCHAR,
+    emp_segundo_apellido VARCHAR,
+    emp_direccion VARCHAR,
+    
+    -- Información de cliente natural (si aplica)
+    cn_cliente_id INTEGER,
+    cn_primer_nombre VARCHAR,
+    cn_segundo_nombre VARCHAR,
+    cn_primer_apellido VARCHAR,
+    cn_segundo_apellido VARCHAR,
+    cn_direccion VARCHAR,
+    cn_total_puntos INTEGER,
+    
+    -- Información de cliente jurídico (si aplica)
+    cj_cliente_id INTEGER,
+    cj_razon_social VARCHAR,
+    cj_direccion VARCHAR,
+    cj_total_puntos INTEGER,
+    
+    -- Información de miembro ACAUCAB (si aplica)
+    ma_miembro_id INTEGER,
+    ma_razon_social VARCHAR,
+    ma_direccion VARCHAR,
+    
+    -- Campo calculado para identificar el tipo de entidad
+    tipo_entidad text
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        
+        -- Claves foráneas
+        u.fk_empleado,
+        u.fk_cliente_natural,
+        u.fk_cliente_juridico,
+        u.fk_miembro_acaucab,
+        
+        -- Datos de empleado
+        e.empleado_id,
+        e.primer_nombre as emp_primer_nombre,
+        e.segundo_nombre as emp_segundo_nombre,
+        e.primer_apellido as emp_primer_apellido,
+        e.segundo_apellido as emp_segundo_apellido,
+        e.direccion as emp_direccion,
+        
+        -- Datos de cliente natural
+        cn.cliente_id as cn_cliente_id,
+        cn.primer_nombre as cn_primer_nombre,
+        cn.segundo_nombre as cn_segundo_nombre,
+        cn.primer_apellido as cn_primer_apellido,
+        cn.segundo_apellido as cn_segundo_apellido,
+        cn.direccion as cn_direccion,
+        cn.total_puntos as cn_total_puntos,
+        
+        -- Datos de cliente jurídico
+        cj.cliente_id as cj_cliente_id,
+        cj.razon_social as cj_razon_social,
+        cj.direccion as cj_direccion,
+        cj.total_puntos as cj_total_puntos,
+        
+        -- Datos de miembro ACAUCAB
+        ma.miembro_id as ma_miembro_id,
+        ma.razon_social as ma_razon_social,
+        ma.direccion as ma_direccion,
+        
+        -- Determinar el tipo de entidad
+        CASE 
+            WHEN u.fk_empleado IS NOT NULL THEN 'empleado'
+            WHEN u.fk_cliente_natural IS NOT NULL THEN 'cliente_natural'
+            WHEN u.fk_cliente_juridico IS NOT NULL THEN 'cliente_juridico'
+            WHEN u.fk_miembro_acaucab IS NOT NULL THEN 'miembro_acaucab'
+            ELSE 'sin_entidad'
+        END as tipo_entidad
+        
+    FROM usuario u
+    LEFT JOIN empleado e ON u.fk_empleado = e.empleado_id
+    LEFT JOIN cliente_natural cn ON u.fk_cliente_natural = cn.cliente_id
+    LEFT JOIN cliente_juridico cj ON u.fk_cliente_juridico = cj.cliente_id
+    LEFT JOIN miembro_acaucab ma ON u.fk_miembro_acaucab = ma.miembro_id
+    WHERE u.usuario_id = p_usuario_id;
+END;
+$$;
+
+
+
+-- Función obtenerUsuarioCompleto
+CREATE OR REPLACE FUNCTION obtenerUsuarioCompleto(nom varchar, pass varchar)
+    RETURNS TABLE(
+        usuario_id integer,
+        nombre_usuario varchar(50),
+        fecha_creacion date,
+        tipo_entidad varchar(20),
+        cedula integer,
+        primer_nombre varchar(50),
+        segundo_nombre varchar(50),
+        primer_apellido varchar(50),
+        segundo_apellido varchar(50),
+        direccion varchar(255),
+        fecha_contrato text,
+        cargo_nombre varchar(50),
+        razon_social varchar(100),
+        rif varchar(20),
+        denominacion_comercial varchar(100),
+        total_puntos integer
+    )
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Buscar empleados
+    RETURN QUERY
+    SELECT
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        'empleado'::varchar as tipo_entidad,
+        e.cedula,
+        e.primer_nombre,
+        e.segundo_nombre,
+        e.primer_apellido,
+        e.segundo_apellido,
+        e.direccion,
+        TO_CHAR(e.fecha_contrato, 'DD-MM-YYYY') as fecha_contrato,
+        c.nombre as cargo_nombre,
+        NULL::varchar as razon_social,
+        NULL::varchar as rif,
+        NULL::varchar as denominacion_comercial,
+        0 as total_puntos
+    FROM USUARIO u
+    JOIN EMPLEADO e ON u.fk_empleado = e.empleado_id
+    LEFT JOIN DEPARTAMENTO_EMPLEADO de ON e.empleado_id = de.fk_empleado
+    LEFT JOIN CARGO c ON de.fk_cargo = c.cargo_id
+    WHERE u.nombre_usuario = nom AND u.hash_contrasena = pass AND u.fk_empleado IS NOT NULL
+
+    UNION ALL
+
+    -- Buscar clientes naturales
+    SELECT
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        'cliente_natural'::varchar as tipo_entidad,
+        cn.cedula,
+        cn.primer_nombre,
+        cn.segundo_nombre,
+        cn.primer_apellido,
+        cn.segundo_apellido,
+        cn.direccion,
+        NULL::text as fecha_contrato,
+        NULL::varchar as cargo_nombre,
+        NULL::varchar as razon_social,
+        NULL::varchar as rif,
+        NULL::varchar as denominacion_comercial,
+        cn.total_puntos
+    FROM USUARIO u
+    JOIN CLIENTE_NATURAL cn ON u.fk_cliente_natural = cn.cliente_id
+    WHERE u.nombre_usuario = nom AND u.hash_contrasena = pass AND u.fk_cliente_natural IS NOT NULL
+
+    UNION ALL
+
+    -- Buscar clientes jurídicos
+    SELECT
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        'cliente_juridico'::varchar as tipo_entidad,
+        NULL::integer as cedula,
+        NULL::varchar as primer_nombre,
+        NULL::varchar as segundo_nombre,
+        NULL::varchar as primer_apellido,
+        NULL::varchar as segundo_apellido,
+        cj.direccion,
+        NULL::text as fecha_contrato,
+        NULL::varchar as cargo_nombre,
+        cj.razon_social,
+        cj.rif,
+        NULL::varchar as denominacion_comercial,
+        cj.total_puntos as total_puntos
+    FROM USUARIO u
+    JOIN CLIENTE_JURIDICO cj ON u.fk_cliente_juridico = cj.cliente_id
+    WHERE u.nombre_usuario = nom AND u.hash_contrasena = pass AND u.fk_cliente_juridico IS NOT NULL
+
+    UNION ALL
+
+    -- Buscar miembros ACAUCAB
+    SELECT
+        u.usuario_id,
+        u.nombre_usuario,
+        u.fecha_creacion,
+        'miembro_acaucab'::varchar as tipo_entidad,
+        NULL::integer as cedula,
+        NULL::varchar as primer_nombre,
+        NULL::varchar as segundo_nombre,
+        NULL::varchar as primer_apellido,
+        NULL::varchar as segundo_apellido,
+        ma.direccion,
+        NULL::text as fecha_contrato,
+        NULL::varchar as cargo_nombre,
+        ma.razon_social,
+        ma.rif,
+        ma.denominacion_comercial,
+        0 as total_puntos
+    FROM USUARIO u
+    JOIN MIEMBRO_ACAUCAB ma ON u.fk_miembro_acaucab = ma.miembro_id
+    WHERE u.nombre_usuario = nom AND u.hash_contrasena = pass AND u.fk_miembro_acaucab IS NOT NULL;
+END;
+$$;
+
+-- Función obtenerPermisosUsuarioCompleto
+CREATE OR REPLACE FUNCTION obtenerPermisosUsuarioCompleto(id integer)
+    RETURNS TABLE(
+        descripcion varchar(50),
+        permiso_id integer
+    )
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Primero intentar obtener permisos de roles (para empleados)
+    RETURN QUERY
+    SELECT p.descripcion, p.permiso_id
+    FROM ROL_USUARIO ru, ROL r, ROL_PERMISO rp, PERMISO p
+    WHERE ru.fk_usuario = id AND r.rol_id = ru.fk_rol AND rp.fk_rol = r.rol_id AND rp.fk_permiso = p.permiso_id;
+
+    -- Si no hay permisos de roles, verificar si es un cliente y asignar permisos básicos
+    IF NOT FOUND THEN
+        -- Verificar si el usuario es un cliente (natural, jurídico o miembro ACAUCAB)
+        IF EXISTS (
+            SELECT 1 FROM USUARIO u
+            WHERE u.usuario_id = id AND (
+                u.fk_cliente_natural IS NOT NULL OR
+                u.fk_cliente_juridico IS NOT NULL OR
+                u.fk_miembro_acaucab IS NOT NULL
+            )
+        ) THEN
+            -- Asignar permisos básicos para clientes (tienda online)
+            RETURN QUERY
+            SELECT p.descripcion, p.permiso_id
+            FROM PERMISO p
+            WHERE p.descripcion IN (
+                'consultar VENTA_ONLINE',
+                'crear VENTA_ONLINE',
+                'consultar DETALLE_VENTA_ONLINE',
+                'crear DETALLE_VENTA_ONLINE',
+                'consultar ESTADO_VENTA_ONLINE',
+                'crear ESTADO_VENTA_ONLINE'
+            );
+        END IF;
+    END IF;
 END;
 $$;

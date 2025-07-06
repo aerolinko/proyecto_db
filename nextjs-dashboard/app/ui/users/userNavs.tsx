@@ -9,29 +9,28 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link'
 import clsx from 'clsx'
+import { usePathname } from 'next/navigation';
 
 // @ts-ignore
 export default function UserNavs({ permissions }) {
+  const pathname = usePathname();
+  const userId = pathname.split('/')[1];
+
   const Links = [
-    { path: `VentaTienda`, nombre: 'Manejo de caja', icon: ShoppingBagIcon, id: 'consultar VENTA_TIENDA' },
-    { path: `Roles`, nombre: 'Manejo de roles', icon: Cog6ToothIcon, id: 'consultar ROL' },
-    { path: `GestionUsuarios`, nombre: 'Manejo de usuarios', icon: UserGroupIcon, id: 'consultar USUARIO' },
-    { path: `ReposicionAlmacenes`, nombre: 'Manejo de estados de las órdenes a proveedores', icon: TruckIcon, id: 'consultar ESTADO_COMPRA_REPOSICION' },
-    { path: `ReposicionAnaqueles`, nombre: 'Manejo de estados de las ordenes de anaqueles', icon: CubeIcon, id: 'consultar ESTADO_REPOSICION_ANAQUEL' },
-    { path: `Reportes`, nombre: 'Sistema de Reportes', icon: ChartBarIcon, id: 'consultar REPORTES' },
-    { path: `Reportes/InventarioResumen`, nombre: 'Inventario', icon: BuildingStorefrontIcon, id: 'consultar REPORTES' },
+    { path: `/${userId}/VentaTienda`, nombre: 'Manejo de caja', icon: ShoppingBagIcon, id: 'consultar VENTA_TIENDA' },
+    { path: `/${userId}/Roles`, nombre: 'Manejo de roles', icon: Cog6ToothIcon, id: 'consultar ROL' },
+    { path: `/${userId}/GestionUsuarios`, nombre: 'Manejo de usuarios', icon: UserGroupIcon, id: 'consultar USUARIO' },
+    { path: `/${userId}/ReposicionAlmacenes`, nombre: 'Manejo de estados de las órdenes a proveedores', icon: TruckIcon, id: 'consultar ESTADO_COMPRA_REPOSICION' },
+    { path: `/${userId}/ReposicionAnaqueles`, nombre: 'Manejo de estados de las ordenes de anaqueles', icon: CubeIcon, id: 'consultar ESTADO_REPOSICION_ANAQUEL' },
+    { path: `/${userId}/Reportes`, nombre: 'Sistema de Reportes', icon: ChartBarIcon, id: 'consultar REPORTES' },
+    { path: `/${userId}/Reportes/InventarioResumen`, nombre: 'Inventario', icon: BuildingStorefrontIcon, id: 'consultar REPORTES' },
   ];
 
-  // Versión temporal: siempre mostrar todos los enlaces para debugging
+  // Filtrar enlaces solo por permiso exacto
   let filteredLinks = Links.filter(link =>
-      permissions.some((permission:any) => permission.descripcion === link.id)
+    permissions.some((permission:any) => permission.descripcion === link.id)
   );
   
-  // Comentar la línea de arriba y descomentar la de abajo cuando quieras volver a usar permisos
-  // let filteredLinks = Links.filter(link =>
-  //     permissions.some((permission:any) => permission.descripcion === link.id)
-  // );
-
   console.log('Permisos del usuario:', permissions);
   console.log('Enlaces filtrados:', filteredLinks);
 

@@ -38,6 +38,9 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
     // State for client selection
     const [selectedClientId, setSelectedClientId] = useState('');
     const [foundClientId, setFoundClientId] = useState<any>('');
+    const [ventaClientId, setVentaClientId] = useState<any>(''); // Nuevo estado para guardar el cliente de la venta
+    const [ventaCart, setVentaCart] = useState<any[]>([]); // Nuevo estado para guardar el carrito de la venta
+    const [ventaPaymentMethods, setVentaPaymentMethods] = useState<any[]>([]); // Nuevo estado para guardar los métodos de pago de la venta
 
     // State for payment methods
     const [paymentMethods, setPaymentMethods] = useState([]);
@@ -52,6 +55,7 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
     // State for custom modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
+    const [showFacturaButton, setShowFacturaButton] = useState(false);
     const [registrando, setRegistrando] = useState(false);
     console.log(newPaymentMethodType)
     // Calculate cart total
@@ -140,19 +144,99 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
         })
 
         if (response.ok) {
+            const data = await response.json();
+            setVentaClientId(foundClientId); // Guardar el cliente antes de limpiarlo
+            setVentaCart([...cart]); // Guardar el carrito antes de limpiarlo
+            setVentaPaymentMethods([...paymentMethods]); // Guardar los métodos de pago antes de limpiarlos
             setFoundClientId('');
+            setCart([]); // Limpiar el carrito
+            setPaymentMethods([]); // Limpiar los métodos de pago
+            setShowFacturaButton(true); // Activar el botón de factura
             setIsModalOpen(true)
             setModalMessage('Compra realizada con éxito!')
-            setTimeout(() => {setIsModalOpen(false);
-                setTimeout(async () => {
-                    setPagando(false);
-                    setCart([]);
-                    await fetchProducts();
-                    redirect( `/${usernameid}/VentaTienda`)}, 300);
-                },1000);
-
+            
+            // Guardar el ID de la venta para generar la factura
+            const ventaId = data.res.ventaId;
+            
+            // El modal permanecerá abierto hasta que el usuario haga clic en "OK"
         }
 
+    };
+
+    // Función para generar y abrir la factura en nueva pestaña
+    const handleGenerarFactura = async () => {
+        try {
+            console.log('🔄 Iniciando generación de factura...');
+            console.log('📦 Datos del carrito guardado:', ventaCart);
+            console.log('📦 Tamaño del carrito guardado:', ventaCart.length);
+            console.log('💳 Métodos de pago guardados:', ventaPaymentMethods);
+            console.log('💳 Tamaño de métodos de pago guardados:', ventaPaymentMethods.length);
+            console.log('👤 Cliente de la venta:', ventaClientId);
+            console.log('👤 Tipo de ventaClientId:', typeof ventaClientId);
+            
+            // Validar que el cliente existe
+            if (!ventaClientId || typeof ventaClientId === 'string' || Object.keys(ventaClientId).length === 0) {
+                console.error('❌ No hay cliente de la venta o el cliente está vacío');
+                alert('Error: No hay cliente de la venta. Por favor, completa una venta antes de generar la factura.');
+                return;
+            }
+            
+            // Validar que hay productos en el carrito
+            if (!ventaCart || ventaCart.length === 0) {
+                console.error('❌ No hay productos en el carrito guardado');
+                alert('Error: No hay productos en el carrito guardado.');
+                return;
+            }
+            
+            // Validar que hay métodos de pago
+            if (!ventaPaymentMethods || ventaPaymentMethods.length === 0) {
+                console.error('❌ No hay métodos de pago guardados');
+                alert('Error: No hay métodos de pago guardados.');
+                return;
+            }
+            
+            const requestData = {
+                cart: ventaCart, // Usar el carrito guardado
+                paymentMethods: ventaPaymentMethods, // Usar los métodos de pago guardados
+                foundClientId: ventaClientId, // Usar el cliente guardado de la venta
+                ventaId: null // Se generará automáticamente
+            };
+            
+            console.log('📤 Enviando datos a la API:', requestData);
+            
+            const response = await fetch("/api/factura", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestData),
+            });
+
+            console.log('📥 Respuesta de la API:', response.status, response.statusText);
+
+            if (response.ok) {
+                console.log('✅ API respondió correctamente');
+                const blob = await response.blob();
+                console.log('📄 Blob generado:', blob.size, 'bytes');
+                
+                // Crear URL del blob y abrir en nueva pestaña
+                const url = window.URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                
+                // Limpiar la URL después de un tiempo
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                }, 1000);
+                
+                console.log('✅ PDF abierto en nueva pestaña exitosamente');
+            } else {
+                console.error('❌ Error en la API:', response.status);
+                const errorText = await response.text();
+                console.error('❌ Detalles del error:', errorText);
+                alert(`Error generando factura: ${response.status} - ${errorText}`);
+            }
+        } catch (error) {
+            console.error('❌ Error general:', error);
+            alert(`Error general: ${error}`);
+        }
     };
 
     async function fetchProducts() {
@@ -247,16 +331,39 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
     // Custom Modal Component
     const Modal = ({ message, isOpen, onClose }:{message:string, isOpen:boolean, onClose:any}) => {
         if (!isOpen) return null;
+        
+        const handleClose = async () => {
+            onClose();
+            if (showFacturaButton) {
+                // Si es una venta exitosa, redirigir después de cerrar el modal
+                setTimeout(async () => {
+                    setPagando(false);
+                    await fetchProducts();
+                    redirect(`/${usernameid}/VentaTienda`);
+                }, 300);
+            }
+        };
+        
         return (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center mx-4">
                     <p className="text-lg mb-4">{message}</p>
-                    <button
-                        onClick={onClose}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200"
-                    >
-                        OK
-                    </button>
+                    <div className="flex flex-col gap-2">
+                        {showFacturaButton && (
+                            <button
+                                onClick={handleGenerarFactura}
+                                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-200 font-medium"
+                            >
+                                Ver Factura
+                            </button>
+                        )}
+                        <button
+                            onClick={handleClose}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 font-medium"
+                        >
+                            OK
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -616,17 +723,11 @@ export default function MetodoPago({ cart, setPagando, setProducts, usernameid, 
 
             {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg max-w-sm w-full mx-4">
-                        <p className="text-lg mb-4">{modalMessage}</p>
-                        <button
-                            onClick={() => setIsModalOpen(false)}
-                            className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-                        >
-                            OK
-                        </button>
-                    </div>
-                </div>
+                <Modal
+                    message={modalMessage}
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                />
             )}
         </div>
     );

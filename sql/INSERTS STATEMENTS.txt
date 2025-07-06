@@ -2594,29 +2594,29 @@ INSERT INTO BENEFICIO (nombre, descripcion) VALUES
                                                 ('Vacaciones Extendidas', 'Semanas adicionales de vacaciones.'),
                                                 ('Guardería', 'Subsidio o servicio de guardería para hijos de empleados.');
 
-INSERT INTO PREMIACION (nombre, fecha, hora_inicio, hora_fin) VALUES
-                                                                  ('Mejor Lager del Año', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Mejor IPA Artesanal', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Innovación en Receta', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Cerveza Más Popular', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Maestro Cervecero Destacado', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Mejor Stand del Festival', '2025-07-16', '12:00:00', '13:00:00'),
-                                                                  ('Reconocimiento a la Trayectoria', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Cerveza de Trigo Favorita', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Mejor Diseño de Etiqueta', '2025-11-15', '19:00:00', '21:00:00'),
-                                                                  ('Premio Especial del Jurado', '2025-11-15', '19:00:00', '21:00:00');
+INSERT INTO PREMIACION (nombre, fecha, hora_inicio, hora_fin, tipo) VALUES
+('Mejor Lager del Año', '2025-11-15', '19:00:00', '21:00:00', 'Cata'),
+('Mejor IPA Artesanal', '2025-11-15', '19:00:00', '21:00:00', 'Cata'),
+('Innovación en Receta', '2025-11-15', '19:00:00', '21:00:00', 'Innovación'),
+('Cerveza Más Popular', '2025-11-15', '19:00:00', '21:00:00', 'Popularidad'),
+('Maestro Cervecero Destacado', '2025-11-15', '19:00:00', '21:00:00', 'Reconocimiento'),
+('Mejor Stand del Festival', '2025-07-16', '12:00:00', '13:00:00', 'Exposición'),
+('Reconocimiento a la Trayectoria', '2025-11-15', '19:00:00', '21:00:00', 'Trayectoria'),
+('Cerveza de Trigo Favorita', '2025-11-15', '19:00:00', '21:00:00', 'Cata'),
+('Mejor Diseño de Etiqueta', '2025-11-15', '19:00:00', '21:00:00', 'Diseño'),
+('Premio Especial del Jurado', '2025-11-15', '19:00:00', '21:00:00', 'Especial');
 
 INSERT INTO ESTADO_REPOSICION_ANAQUEL (fecha_inicio, fecha_fin, fk_estado, fk_reposicion_anaquel) VALUES
-                                                                                                      ('2025-05-28', null, 1, 1),
-                                                                                                      ('2025-06-02', null, 1, 2),
-                                                                                                      ('2025-06-07', null, 1, 3),
-                                                                                                      ('2025-06-12', null, 1, 4),
-                                                                                                      ('2025-06-17', null, 1, 5),
-                                                                                                      ('2025-06-28', null, 1, 6),
-                                                                                                      ('2025-07-02', null, 1, 7),
-                                                                                                      ('2025-07-07', null, 1, 8),
-                                                                                                      ('2025-07-12', null, 1, 9),
-                                                                                                      ('2025-07-17', null, 1, 10);
+                                                                                                      ('2025-05-28', null, 8, 1),
+                                                                                                      ('2025-06-02', null, 8, 2),
+                                                                                                      ('2025-06-07', null, 8, 3),
+                                                                                                      ('2025-06-12', null, 8, 4),
+                                                                                                      ('2025-06-17', null, 8, 5),
+                                                                                                      ('2025-06-28', null, 8, 6),
+                                                                                                      ('2025-07-02', null, 8, 7),
+                                                                                                      ('2025-07-07', null, 8, 8),
+                                                                                                      ('2025-07-12', null, 8, 9),
+                                                                                                      ('2025-07-17', null, 8, 10);
 
 INSERT INTO PASILLO (nombre, fk_acaucab) VALUES
                                              ('Pasillo A', 1),
@@ -2815,6 +2815,7 @@ INSERT INTO ALMACEN_CERVEZA (fk_almacen, fk_cerveza_presentacion, cantidad, fech
                                                                                                         (4, 8, 350, '2025-05-28', 5),
                                                                                                         (5, 9, 550, '2025-05-30', 4),
                                                                                                         (5, 10, 150, '2025-05-30', 6),
+                                                                                                        (5, 10, 250, '2025-05-30', 6),
                                                                                                         (6, 11, 250, '2025-06-01', 5),
                                                                                                         (6, 12, 400, '2025-06-02', 6),
 (7, 13, 600, '2025-06-03', 4),
@@ -2826,6 +2827,7 @@ INSERT INTO ALMACEN_CERVEZA (fk_almacen, fk_cerveza_presentacion, cantidad, fech
 INSERT INTO ANAQUEL_CERVEZA (fk_anaquel, fk_cerveza_presentacion, cantidad, fecha, precio_unitario) VALUES
                                                                                                         (1, 1, 230, '2025-06-01', 4),
                                                                                                         (1, 2, 150, '2025-06-01', 5),
+                                                                                                        (1, 2, 250, '2025-06-01', 5),
                                                                                                         (2, 3, 202, '2025-06-02', 4),
                                                                                                         (2, 4, 205, '2025-06-02', 5),
                                                                                                         (3, 5, 201, '2025-06-03', 6),
@@ -2905,26 +2907,26 @@ INSERT INTO USUARIO (fecha_creacion, nombre_usuario, hash_contrasena, fk_cliente
 ('2025-02-03', 'polarnorte', 't0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1', NULL, NULL, 20, NULL);
 
 INSERT INTO MEMBRESIA (fecha_adquisicion, fecha_vencimiento, monto, fk_usuario) VALUES
-                                                                                    ('2025-01-01', '2026-01-01', 100, 11),
-                                                                                    ('2025-02-01', '2026-02-01', 120, 12),
-                                                                                    ('2025-03-01', '2026-03-01', 80, 13),
-                                                                                    ('2025-04-01', '2026-04-01', 150, 14),
-                                                                                    ('2025-05-01', '2026-05-01', 90, 15),
-                                                                                    ('2025-06-01', '2026-06-01', 110, 16),
-                                                                                    ('2025-07-01', '2026-07-01', 130, 17),
-                                                                                    ('2025-08-01', '2026-08-01', 75, 18),
+                                                                                    ('2024-01-01', '2025-01-01', 100, 11),
+                                                                                    ('2024-02-01', '2025-02-01', 120, 12),
+                                                                                    ('2024-03-01', '2025-03-01', 80, 13),
+                                                                                    ('2024-04-01', '2025-04-01', 150, 14),
+                                                                                    ('2024-05-01', '2025-05-01', 90, 15),
+                                                                                    ('2024-06-01', '2025-06-01', 110, 16),
+                                                                                    ('2024-07-01', '2025-07-01', 130, 17),
+                                                                                    ('2024-08-01', '2025-08-01', 75, 18),
                                                                                     ('2025-09-01', '2026-09-01', 140, 19),
                                                                                     ('2025-10-01', '2026-10-01', 105, 20),
-    ('2025-01-25', '2026-01-25', 95, 21),  
-    ('2025-01-26', '2026-01-26', 125, 22),  
-    ('2025-01-27', '2026-01-27', 85, 23),   
-    ('2025-01-28', '2026-01-28', 160, 24),  
-    ('2025-01-29', '2026-01-29', 100, 25),  
-    ('2025-01-30', '2026-01-30', 115, 26),  
-    ('2025-01-31', '2026-01-31', 135, 27),  
-    ('2025-02-01', '2026-02-01', 70, 28),   
-    ('2025-02-02', '2026-02-02', 145, 29),  
-('2025-02-03', '2026-02-03', 110, 30);  
+                                                                                    ('2025-01-25', '2026-01-25', 95, 21),  
+                                                                                    ('2025-01-26', '2026-01-26', 125, 22),  
+                                                                                    ('2025-01-27', '2026-01-27', 85, 23),   
+                                                                                    ('2025-01-28', '2026-01-28', 160, 24),  
+                                                                                    ('2025-01-29', '2026-01-29', 100, 25),  
+                                                                                    ('2025-01-30', '2026-01-30', 115, 26),  
+                                                                                    ('2025-01-31', '2026-01-31', 135, 27),  
+                                                                                    ('2025-02-01', '2026-02-01', 70, 28),   
+                                                                                    ('2025-02-02', '2026-02-02', 145, 29),  
+                                                                                    ('2025-02-03', '2026-02-03', 110, 30);  
 
 INSERT INTO COMPRA_REPOSICION (fecha_emision, fecha_entrega, fecha_pago_estimada, fecha_pago_real, total, fk_miembro_acaucab) VALUES
                                                                                                                                               ('2025-05-20', '2025-05-28', '2025-06-15', '2025-06-10', 5000, 1),
@@ -2939,16 +2941,16 @@ INSERT INTO COMPRA_REPOSICION (fecha_emision, fecha_entrega, fecha_pago_estimada
                                                                                                                                               ('2025-06-30', '2025-07-15', '2025-07-30', NULL, 9000, 10);
 
 INSERT INTO ESTADO_COMPRA_REPOSICION (fecha_inicio, fecha_fin, fk_estado, fk_compra_reposicion) VALUES
-                                                                                                    ('2025-05-20', NULL, 3, 1),
-                                                                                                    ('2025-05-25', NULL, 2, 2),
-                                                                                                    ('2025-05-30', NULL, 3, 3),
-                                                                                                    ('2025-06-01', NULL, 2, 4),
-                                                                                                    ('2025-06-05', NULL, 3, 5),
-                                                                                                    ('2025-06-10', NULL, 2, 6),
-                                                                                                    ('2025-06-15', NULL, 3, 7),
-                                                                                                    ('2025-06-20', NULL, 2, 8),
-                                                                                                    ('2025-06-25', NULL, 3, 9),
-                                                                                                    ('2025-06-30', NULL, 2, 10);
+                                                                                                    ('2025-05-20', NULL, 8, 1),
+                                                                                                    ('2025-05-25', NULL, 8, 2),
+                                                                                                    ('2025-05-30', NULL, 8, 3),
+                                                                                                    ('2025-06-01', NULL, 8, 4),
+                                                                                                    ('2025-06-05', NULL, 8, 5),
+                                                                                                    ('2025-06-10', NULL, 8, 6),
+                                                                                                    ('2025-06-15', NULL, 8, 7),
+                                                                                                    ('2025-06-20', NULL, 8, 8),
+                                                                                                    ('2025-06-25', NULL, 8, 9),
+                                                                                                    ('2025-06-30', NULL, 8, 10);
 
 INSERT INTO DETALLE_COMPRA (fk_cerveza_presentacion, fk_compra_reposicion, precio_unitario, cantidad) VALUES
                                                                                                           (1, 1, 35, 100),
@@ -3321,3 +3323,249 @@ INSERT INTO HORARIO_EMPLEADO (fk_empleado, fk_horario) VALUES
                                                            (9, 9),
                                                            (10, 10);
 
+-- Usuarios para clientes jurídicos
+INSERT INTO USUARIO (fecha_creacion, nombre_usuario, hash_contrasena, fk_cliente_natural, fk_cliente_juridico, fk_miembro_acaucab, fk_empleado) VALUES
+('2025-01-10', 'cerveceriaavila', 'hash_cerveceria_avila_2025', NULL, 1, NULL, NULL),
+('2025-01-12', 'regionalzulia', 'hash_regional_zulia_2025', NULL, 2, NULL, NULL),
+('2025-01-15', 'cervezacarabobo', 'hash_cerveza_carabobo_2025', NULL, 3, NULL, NULL),
+('2025-01-18', 'maltaandina', 'hash_malta_andina_2025', NULL, 4, NULL, NULL),
+('2025-01-20', 'cervezacentral', 'hash_cerveza_central_2025', NULL, 5, NULL, NULL),
+('2025-01-22', 'maltaoccidente', 'hash_malta_occidente_2025', NULL, 6, NULL, NULL),
+('2025-01-25', 'cervezasur', 'hash_cerveza_sur_2025', NULL, 7, NULL, NULL),
+('2025-01-28', 'maltanorte', 'hash_malta_norte_2025', NULL, 8, NULL, NULL),
+('2025-02-01', 'cervezacentro', 'hash_cerveza_centro_2025', NULL, 9, NULL, NULL),
+('2025-02-05', 'maltaeste', 'hash_malta_este_2025', NULL, 10, NULL, NULL);
+
+-- Ventas online para clientes jurídicos
+INSERT INTO VENTA_ONLINE (direccion, fecha_emision, fecha_estimada, fecha_entrega, total, fk_lugar, fk_usuario) VALUES
+-- Cliente Jurídico 1 (Cervecería Ávila)
+('Av. Principal, Edificio Ávila, Local 15, Caracas', '2025-06-15', '2025-06-22', '2025-06-22', 1250, 1, 31),
+('Calle Comercial, Centro Ávila, Local 8, Caracas', '2025-06-20', '2025-06-27', '2025-06-27', 890, 2, 31),
+('Av. Libertador, Torre Ávila, Local 12, Caracas', '2025-07-05', '2025-07-12', '2025-07-12', 2100, 3, 31),
+('Calle Principal, Plaza Ávila, Local 5, Caracas', '2025-07-12', '2025-07-19', NULL, 750, 4, 31),
+
+-- Cliente Jurídico 2 (Regional Zulia)
+('Av. 15, Centro Comercial Zulia, Local 20, Maracaibo', '2025-06-18', '2025-06-25', '2025-06-25', 1680, 5, 32),
+('Calle 72, Plaza Zulia, Local 15, Maracaibo', '2025-06-25', '2025-07-02', '2025-07-02', 1450, 6, 32),
+('Av. Bella Vista, C.C. Zulia, Local 30, Maracaibo', '2025-07-08', '2025-07-15', '2025-07-15', 3200, 7, 32),
+('Calle 95, Centro Zulia, Local 10, Maracaibo', '2025-07-15', '2025-07-22', NULL, 980, 8, 32),
+
+-- Cliente Jurídico 3 (Cerveza Carabobo)
+('Av. Bolívar, Centro Carabobo, Local 25, Valencia', '2025-06-22', '2025-06-29', '2025-06-29', 920, 9, 33),
+('Calle Comercial, Plaza Carabobo, Local 18, Valencia', '2025-06-28', '2025-07-05', '2025-07-05', 1350, 10, 33),
+('Av. Universidad, C.C. Carabobo, Local 35, Valencia', '2025-07-10', '2025-07-17', '2025-07-17', 2800, 11, 33),
+('Calle Principal, Centro Carabobo, Local 12, Valencia', '2025-07-18', '2025-07-25', NULL, 650, 12, 33),
+
+-- Cliente Jurídico 4 (Malta Andina)
+('Av. Los Andes, Centro Andino, Local 40, Mérida', '2025-06-30', '2025-07-07', '2025-07-07', 1850, 13, 34),
+('Calle Universidad, Plaza Andina, Local 22, Mérida', '2025-07-02', '2025-07-09', '2025-07-09', 1100, 14, 34),
+('Av. Principal, C.C. Andino, Local 45, Mérida', '2025-07-12', '2025-07-19', '2025-07-19', 4200, 15, 34),
+('Calle Comercial, Centro Andino, Local 15, Mérida', '2025-07-20', '2025-07-27', NULL, 1350, 16, 34),
+
+-- Cliente Jurídico 5 (Cerveza Central)
+('Av. Central, Centro Comercial Central, Local 28, Barquisimeto', '2025-07-01', '2025-07-08', '2025-07-08', 720, 17, 35),
+('Calle Principal, Plaza Central, Local 20, Barquisimeto', '2025-07-05', '2025-07-12', '2025-07-12', 1680, 18, 35),
+('Av. Libertador, C.C. Central, Local 38, Barquisimeto', '2025-07-15', '2025-07-22', '2025-07-22', 3100, 19, 35),
+('Calle Comercial, Centro Central, Local 14, Barquisimeto', '2025-07-22', '2025-07-29', NULL, 890, 20, 35),
+
+-- Cliente Jurídico 6 (Malta Occidente)
+('Av. Occidental, Centro Occidente, Local 32, Maracay', '2025-07-03', '2025-07-10', '2025-07-10', 1450, 21, 36),
+('Calle Principal, Plaza Occidente, Local 24, Maracay', '2025-07-08', '2025-07-15', '2025-07-15', 980, 22, 36),
+('Av. Bolívar, C.C. Occidente, Local 42, Maracay', '2025-07-18', '2025-07-25', '2025-07-25', 2600, 23, 36),
+('Calle Comercial, Centro Occidente, Local 16, Maracay', '2025-07-25', '2025-08-01', NULL, 1200, 24, 36),
+
+-- Cliente Jurídico 7 (Cerveza Sur)
+('Av. Sur, Centro Comercial Sur, Local 35, San Cristóbal', '2025-07-05', '2025-07-12', '2025-07-12', 1100, 25, 37),
+('Calle Principal, Plaza Sur, Local 26, San Cristóbal', '2025-07-10', '2025-07-17', '2025-07-17', 1850, 26, 37),
+('Av. Libertador, C.C. Sur, Local 48, San Cristóbal', '2025-07-20', '2025-07-27', '2025-07-27', 3800, 27, 37),
+('Calle Comercial, Centro Sur, Local 18, San Cristóbal', '2025-07-28', '2025-08-04', NULL, 750, 28, 37),
+
+-- Cliente Jurídico 8 (Malta Norte)
+('Av. Norte, Centro Norte, Local 38, Barcelona', '2025-07-08', '2025-07-15', '2025-07-15', 1680, 29, 38),
+('Calle Principal, Plaza Norte, Local 28, Barcelona', '2025-07-12', '2025-07-19', '2025-07-19', 1350, 30, 38),
+('Av. Bolívar, C.C. Norte, Local 50, Barcelona', '2025-07-22', '2025-07-29', '2025-07-29', 2900, 31, 38),
+('Calle Comercial, Centro Norte, Local 20, Barcelona', '2025-07-30', '2025-08-06', NULL, 1100, 32, 38),
+
+-- Cliente Jurídico 9 (Cerveza Centro)
+('Av. Centro, Centro Comercial Centro, Local 42, Maturín', '2025-07-10', '2025-07-17', '2025-07-17', 920, 33, 39),
+('Calle Principal, Plaza Centro, Local 30, Maturín', '2025-07-15', '2025-07-22', '2025-07-22', 2100, 34, 39),
+('Av. Libertador, C.C. Centro, Local 55, Maturín', '2025-07-25', '2025-08-01', '2025-08-01', 4500, 35, 39),
+('Calle Comercial, Centro Centro, Local 24, Maturín', '2025-08-01', '2025-08-08', NULL, 1680, 36, 39),
+
+-- Cliente Jurídico 10 (Malta Este)
+('Av. Este, Centro Este, Local 45, Puerto La Cruz', '2025-07-12', '2025-07-19', '2025-07-19', 1350, 37, 40),
+('Calle Principal, Plaza Este, Local 32, Puerto La Cruz', '2025-07-18', '2025-07-25', '2025-07-25', 980, 38, 40),
+('Av. Bolívar, C.C. Este, Local 58, Puerto La Cruz', '2025-07-28', '2025-08-04', '2025-08-04', 3200, 39, 40),
+('Calle Comercial, Centro Este, Local 26, Puerto La Cruz', '2025-08-05', '2025-08-12', NULL, 1450, 40, 40);
+
+-- Detalles de ventas online para clientes jurídicos
+INSERT INTO DETALLE_VENTA_ONLINE (fk_almacen_cerveza, fk_venta_online, precio_unitario, cantidad) VALUES
+-- Venta 1 - Cliente Jurídico 1 (Cervecería Ávila)
+(1, 1, 25, 20), (2, 1, 30, 15), (3, 1, 20, 25), (4, 1, 35, 10),
+-- Venta 2 - Cliente Jurídico 1
+(5, 2, 40, 8), (6, 2, 22, 20), (7, 2, 28, 15), (8, 2, 45, 5),
+-- Venta 3 - Cliente Jurídico 1
+(9, 3, 50, 15), (10, 3, 35, 25), (1, 3, 25, 30), (2, 3, 30, 20),
+-- Venta 4 - Cliente Jurídico 1
+(3, 4, 20, 15), (4, 4, 35, 10), (5, 4, 40, 5),
+
+-- Venta 5 - Cliente Jurídico 2 (Regional Zulia)
+(6, 5, 22, 25), (7, 5, 28, 20), (8, 5, 45, 15), (9, 5, 50, 10),
+-- Venta 6 - Cliente Jurídico 2
+(10, 6, 35, 20), (1, 6, 25, 25), (2, 6, 30, 15), (3, 6, 20, 20),
+-- Venta 7 - Cliente Jurídico 2
+(4, 7, 35, 30), (5, 7, 40, 25), (6, 7, 22, 35), (7, 7, 28, 25),
+-- Venta 8 - Cliente Jurídico 2
+(8, 8, 45, 8), (9, 8, 50, 6), (10, 8, 35, 10),
+
+-- Venta 9 - Cliente Jurídico 3 (Cerveza Carabobo)
+(1, 9, 25, 15), (2, 9, 30, 12), (3, 9, 20, 18), (4, 9, 35, 8),
+-- Venta 10 - Cliente Jurídico 3
+(5, 10, 40, 12), (6, 10, 22, 25), (7, 10, 28, 15), (8, 10, 45, 8),
+-- Venta 11 - Cliente Jurídico 3
+(9, 11, 50, 20), (10, 11, 35, 30), (1, 11, 25, 25), (2, 11, 30, 20),
+-- Venta 12 - Cliente Jurídico 3
+(3, 12, 20, 15), (4, 12, 35, 8), (5, 12, 40, 5),
+
+-- Venta 13 - Cliente Jurídico 4 (Malta Andina)
+(6, 13, 22, 30), (7, 13, 28, 25), (8, 13, 45, 20), (9, 13, 50, 15),
+-- Venta 14 - Cliente Jurídico 4
+(10, 14, 35, 20), (1, 14, 25, 25), (2, 14, 30, 15), (3, 14, 20, 20),
+-- Venta 15 - Cliente Jurídico 4
+(4, 15, 35, 40), (5, 15, 40, 35), (6, 15, 22, 45), (7, 15, 28, 35),
+-- Venta 16 - Cliente Jurídico 4
+(8, 16, 45, 12), (9, 16, 50, 10), (10, 16, 35, 15),
+
+-- Venta 17 - Cliente Jurídico 5 (Cerveza Central)
+(1, 17, 25, 12), (2, 17, 30, 10), (3, 17, 20, 15), (4, 17, 35, 6),
+-- Venta 18 - Cliente Jurídico 5
+(5, 18, 40, 15), (6, 18, 22, 30), (7, 18, 28, 20), (8, 18, 45, 12),
+-- Venta 19 - Cliente Jurídico 5
+(9, 19, 50, 25), (10, 19, 35, 35), (1, 19, 25, 30), (2, 19, 30, 25),
+-- Venta 20 - Cliente Jurídico 5
+(3, 20, 20, 20), (4, 20, 35, 10), (5, 20, 40, 8),
+
+-- Venta 21 - Cliente Jurídico 6 (Malta Occidente)
+(6, 21, 22, 25), (7, 21, 28, 20), (8, 21, 45, 15), (9, 21, 50, 10),
+-- Venta 22 - Cliente Jurídico 6
+(10, 22, 35, 15), (1, 22, 25, 20), (2, 22, 30, 12), (3, 22, 20, 18),
+-- Venta 23 - Cliente Jurídico 6
+(4, 23, 35, 30), (5, 23, 40, 25), (6, 23, 22, 35), (7, 23, 28, 25),
+-- Venta 24 - Cliente Jurídico 6
+(8, 24, 45, 10), (9, 24, 50, 8), (10, 24, 35, 12),
+
+-- Venta 25 - Cliente Jurídico 7 (Cerveza Sur)
+(1, 25, 25, 18), (2, 25, 30, 15), (3, 25, 20, 20), (4, 25, 35, 8),
+-- Venta 26 - Cliente Jurídico 7
+(5, 26, 40, 18), (6, 26, 22, 35), (7, 26, 28, 25), (8, 26, 45, 15),
+-- Venta 27 - Cliente Jurídico 7
+(9, 27, 50, 30), (10, 27, 35, 40), (1, 27, 25, 35), (2, 27, 30, 30),
+-- Venta 28 - Cliente Jurídico 7
+(3, 28, 20, 15), (4, 28, 35, 8), (5, 28, 40, 6),
+
+-- Venta 29 - Cliente Jurídico 8 (Malta Norte)
+(6, 29, 22, 30), (7, 29, 28, 25), (8, 29, 45, 20), (9, 29, 50, 15),
+-- Venta 30 - Cliente Jurídico 8
+(10, 30, 35, 20), (1, 30, 25, 25), (2, 30, 30, 15), (3, 30, 20, 20),
+-- Venta 31 - Cliente Jurídico 8
+(4, 31, 35, 35), (5, 31, 40, 30), (6, 31, 22, 40), (7, 31, 28, 30),
+-- Venta 32 - Cliente Jurídico 8
+(8, 32, 45, 10), (9, 32, 50, 8), (10, 32, 35, 12),
+
+-- Venta 33 - Cliente Jurídico 9 (Cerveza Centro)
+(1, 33, 25, 15), (2, 33, 30, 12), (3, 33, 20, 18), (4, 33, 35, 8),
+-- Venta 34 - Cliente Jurídico 9
+(5, 34, 40, 20), (6, 34, 22, 40), (7, 34, 28, 30), (8, 34, 45, 20),
+-- Venta 35 - Cliente Jurídico 9
+(9, 35, 50, 35), (10, 35, 35, 45), (1, 35, 25, 40), (2, 35, 30, 35),
+-- Venta 36 - Cliente Jurídico 9
+(3, 36, 20, 25), (4, 36, 35, 15), (5, 36, 40, 12),
+
+-- Venta 37 - Cliente Jurídico 10 (Malta Este)
+(6, 37, 22, 25), (7, 37, 28, 20), (8, 37, 45, 15), (9, 37, 50, 10),
+-- Venta 38 - Cliente Jurídico 10
+(10, 38, 35, 15), (1, 38, 25, 20), (2, 38, 30, 12), (3, 38, 20, 18),
+-- Venta 39 - Cliente Jurídico 10
+(4, 39, 35, 40), (5, 39, 40, 35), (6, 39, 22, 45), (7, 39, 28, 35),
+-- Venta 40 - Cliente Jurídico 10
+(8, 40, 45, 12), (9, 40, 50, 10), (10, 40, 35, 15);
+
+-- Estados de ventas online
+INSERT INTO ESTADO_VENTA_ONLINE (fecha_inicio, fecha_fin, fk_estado, fk_venta_online) VALUES
+-- Ventas entregadas (estado 3 = Entregado)
+('2025-06-15', '2025-06-18', 1, 1), ('2025-06-18', '2025-06-20', 2, 1), ('2025-06-20', '2025-06-22', 3, 1),
+('2025-06-20', '2025-06-23', 1, 2), ('2025-06-23', '2025-06-25', 2, 2), ('2025-06-25', '2025-06-27', 3, 2),
+('2025-07-05', '2025-07-08', 1, 3), ('2025-07-08', '2025-07-10', 2, 3), ('2025-07-10', '2025-07-12', 3, 3),
+('2025-06-18', '2025-06-21', 1, 5), ('2025-06-21', '2025-06-23', 2, 5), ('2025-06-23', '2025-06-25', 3, 5),
+('2025-06-25', '2025-06-28', 1, 6), ('2025-06-28', '2025-06-30', 2, 6), ('2025-06-30', '2025-07-02', 3, 6),
+('2025-07-08', '2025-07-11', 1, 7), ('2025-07-11', '2025-07-13', 2, 7), ('2025-07-13', '2025-07-15', 3, 7),
+('2025-06-22', '2025-06-25', 1, 9), ('2025-06-25', '2025-06-27', 2, 9), ('2025-06-27', '2025-06-29', 3, 9),
+('2025-06-28', '2025-07-01', 1, 10), ('2025-07-01', '2025-07-03', 2, 10), ('2025-07-03', '2025-07-05', 3, 10),
+('2025-07-10', '2025-07-13', 1, 11), ('2025-07-13', '2025-07-15', 2, 11), ('2025-07-15', '2025-07-17', 3, 11),
+('2025-06-30', '2025-07-03', 1, 13), ('2025-07-03', '2025-07-05', 2, 13), ('2025-07-05', '2025-07-07', 3, 13),
+('2025-07-02', '2025-07-05', 1, 14), ('2025-07-05', '2025-07-07', 2, 14), ('2025-07-07', '2025-07-09', 3, 14),
+('2025-07-12', '2025-07-15', 1, 15), ('2025-07-15', '2025-07-17', 2, 15), ('2025-07-17', '2025-07-19', 3, 15),
+('2025-07-01', '2025-07-04', 1, 17), ('2025-07-04', '2025-07-06', 2, 17), ('2025-07-06', '2025-07-08', 3, 17),
+('2025-07-05', '2025-07-08', 1, 18), ('2025-07-08', '2025-07-10', 2, 18), ('2025-07-10', '2025-07-12', 3, 18),
+('2025-07-15', '2025-07-18', 1, 19), ('2025-07-18', '2025-07-20', 2, 19), ('2025-07-20', '2025-07-22', 3, 19),
+('2025-07-03', '2025-07-06', 1, 21), ('2025-07-06', '2025-07-08', 2, 21), ('2025-07-08', '2025-07-10', 3, 21),
+('2025-07-08', '2025-07-11', 1, 22), ('2025-07-11', '2025-07-13', 2, 22), ('2025-07-13', '2025-07-15', 3, 22),
+('2025-07-18', '2025-07-21', 1, 23), ('2025-07-21', '2025-07-23', 2, 23), ('2025-07-23', '2025-07-25', 3, 23),
+('2025-07-05', '2025-07-08', 1, 25), ('2025-07-08', '2025-07-10', 2, 25), ('2025-07-10', '2025-07-12', 3, 25),
+('2025-07-10', '2025-07-13', 1, 26), ('2025-07-13', '2025-07-15', 2, 26), ('2025-07-15', '2025-07-17', 3, 26),
+('2025-07-20', '2025-07-23', 1, 27), ('2025-07-23', '2025-07-25', 2, 27), ('2025-07-25', '2025-07-27', 3, 27),
+('2025-07-08', '2025-07-11', 1, 29), ('2025-07-11', '2025-07-13', 2, 29), ('2025-07-13', '2025-07-15', 3, 29),
+('2025-07-12', '2025-07-15', 1, 30), ('2025-07-15', '2025-07-17', 2, 30), ('2025-07-17', '2025-07-19', 3, 30),
+('2025-07-22', '2025-07-25', 1, 31), ('2025-07-25', '2025-07-27', 2, 31), ('2025-07-27', '2025-07-29', 3, 31),
+('2025-07-10', '2025-07-13', 1, 33), ('2025-07-13', '2025-07-15', 2, 33), ('2025-07-15', '2025-07-17', 3, 33),
+('2025-07-15', '2025-07-18', 1, 34), ('2025-07-18', '2025-07-20', 2, 34), ('2025-07-20', '2025-07-22', 3, 34),
+('2025-07-25', '2025-07-28', 1, 35), ('2025-07-28', '2025-07-30', 2, 35), ('2025-07-30', '2025-08-01', 3, 35),
+('2025-07-12', '2025-07-15', 1, 37), ('2025-07-15', '2025-07-17', 2, 37), ('2025-07-17', '2025-07-19', 3, 37),
+('2025-07-18', '2025-07-21', 1, 38), ('2025-07-21', '2025-07-23', 2, 38), ('2025-07-23', '2025-07-25', 3, 38),
+('2025-07-28', '2025-07-31', 1, 39), ('2025-07-31', '2025-08-02', 2, 39), ('2025-08-02', '2025-08-04', 3, 39),
+
+-- Ventas en proceso (estado 1 = Pendiente)
+('2025-07-12', NULL, 1, 4),
+('2025-07-15', NULL, 1, 8),
+('2025-07-18', NULL, 1, 12),
+('2025-07-20', NULL, 1, 16),
+('2025-07-22', NULL, 1, 20),
+('2025-07-25', NULL, 1, 24),
+('2025-07-28', NULL, 1, 28),
+('2025-07-30', NULL, 1, 32),
+('2025-08-01', NULL, 1, 36),
+('2025-08-05', NULL, 1, 40);
+
+-- Pagos de ventas online (usando la tabla PAGO existente)
+INSERT INTO PAGO (monto, fecha, fk_venta_online, fk_venta_tienda, fk_compra_reposicion, fk_venta_evento, fk_membresia, fk_metodo_pago_efectivo, fk_metodo_pago_cheque, fk_metodo_pago_debito, fk_metodo_pago_credito, fk_metodo_pago_punto) VALUES
+-- Pagos para ventas entregadas
+(1250, '2025-06-15', 1, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(890, '2025-06-20', 2, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL),
+(2100, '2025-07-05', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL),
+(1680, '2025-06-18', 5, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL),
+(1450, '2025-06-25', 6, NULL, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL),
+(3200, '2025-07-08', 7, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 2, NULL),
+(920, '2025-06-22', 9, NULL, NULL, NULL, NULL, 3, NULL, NULL, NULL, NULL),
+(1350, '2025-06-28', 10, NULL, NULL, NULL, NULL, NULL, NULL, 3, NULL, NULL),
+(2800, '2025-07-10', 11, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 3, NULL),
+(1850, '2025-06-30', 13, NULL, NULL, NULL, NULL, 4, NULL, NULL, NULL, NULL),
+(1100, '2025-07-02', 14, NULL, NULL, NULL, NULL, NULL, NULL, 4, NULL, NULL),
+(4200, '2025-07-12', 15, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4, NULL),
+(720, '2025-07-01', 17, NULL, NULL, NULL, NULL, 5, NULL, NULL, NULL, NULL),
+(1680, '2025-07-05', 18, NULL, NULL, NULL, NULL, NULL, NULL, 5, NULL, NULL),
+(3100, '2025-07-15', 19, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, NULL),
+(1450, '2025-07-03', 21, NULL, NULL, NULL, NULL, 6, NULL, NULL, NULL, NULL),
+(980, '2025-07-08', 22, NULL, NULL, NULL, NULL, NULL, NULL, 6, NULL, NULL),
+(2600, '2025-07-18', 23, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 6, NULL),
+(1100, '2025-07-05', 25, NULL, NULL, NULL, NULL, 7, NULL, NULL, NULL, NULL),
+(1850, '2025-07-10', 26, NULL, NULL, NULL, NULL, NULL, NULL, 7, NULL, NULL),
+(3800, '2025-07-20', 27, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 7, NULL),
+(1680, '2025-07-08', 29, NULL, NULL, NULL, NULL, 8, NULL, NULL, NULL, NULL),
+(1350, '2025-07-12', 30, NULL, NULL, NULL, NULL, NULL, NULL, 8, NULL, NULL),
+(2900, '2025-07-22', 31, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 8, NULL),
+(920, '2025-07-10', 33, NULL, NULL, NULL, NULL, 9, NULL, NULL, NULL, NULL),
+(2100, '2025-07-15', 34, NULL, NULL, NULL, NULL, NULL, NULL, 9, NULL, NULL),
+(4500, '2025-07-25', 35, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 9, NULL),
+(1350, '2025-07-12', 37, NULL, NULL, NULL, NULL, 10, NULL, NULL, NULL, NULL),
+(980, '2025-07-18', 38, NULL, NULL, NULL, NULL, NULL, NULL, 10, NULL, NULL),
+(3200, '2025-07-28', 39, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 10, NULL);

@@ -1,0 +1,20 @@
+{
+    "name": "Factura ACAUCAB",
+    "engine": "handlebars",
+    "recipe": "chrome-pdf",
+    "data": {
+        "shortid": "gopP-bCXA"
+    },
+    "shortid": "0IEsXOBmP",
+    "chrome": {
+        "printBackground": true
+    },
+    "creationDate": {
+        "$$date": 1751147223959
+    },
+    "modificationDate": {
+        "$$date": 1751151859398
+    },
+    "_id": "5h0OD9VqqrBb90oW",
+    "$entitySet": "templates"
+}

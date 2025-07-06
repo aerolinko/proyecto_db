@@ -1,0 +1,11 @@
+2025-06-29T15:10:01.356Z - error: Error when starting http server on port 5488 Error: listen EADDRINUSE: address already in use :::5488
+    at Server.setupListenHandle [as _listen2] (node:net:1907:16)
+    at listenInCluster (node:net:1964:12)
+    at Server.listen (node:net:2066:7)
+    at C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-express\lib\main.js:22:12
+    at new Promise (<anonymous>)
+    at startAsync (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-express\lib\main.js:16:10)
+    at C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-express\lib\main.js:50:14
+    at Object.start (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-express\lib\main.js:125:13)
+    at Object.<anonymous> (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-express\lib\main.js:333:30)
+    at async ListenerCollection.fire (C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\node_modules\@jsreport\jsreport-core\lib\shared\listenerCollection.js:157:21)

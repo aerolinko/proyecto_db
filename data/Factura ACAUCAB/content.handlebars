@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background: #fff;
+            color: #000;
+            font-size: 14px;
+        }
+        .center {
+            text-align: center;
+        }
+        .line {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+        .product {
+            display: flex;
+            justify-content: space-between;
+            white-space: pre-wrap;
+            margin-bottom: 5px;
+        }
+        .total, .payment {
+            text-align: right;
+            margin-top: 10px;
+        }
+        h1, h2, h3, p {
+            margin: 4px 0;
+            padding: 0;
+        }
+        .productos {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="center">
+        <h2>CERVECERÍA ACAUCAB</h2>
+        <p>FACTURA Nº {{factura.numero}}</p>
+        <p>FECHA: {{factura.fecha}} | HORA: {{factura.hora}}</p>
+    </div>
+
+    <div class="line"></div>
+
+    <p>Cliente: {{cliente.nombre}}</p>
+    <p>{{cliente.tipo_documento}}: {{cliente.documento}}</p>
+
+    <div class="line"></div>
+
+    <div class="productos">
+        {{#each productos}}
+            <div class="product">
+                <div>{{cantidad}} x {{precio}}</div>
+                <div>{{subtotal}} Bs.</div>
+            </div>
+            <p>{{nombre}} {{presentacion}}ml</p>
+        {{/each}}
+    </div>
+
+    <div class="line"></div>
+
+    <div class="total">
+        <p><strong>TOTAL: {{total}} Bs.</strong></p>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="payment">
+        <p><strong>Métodos de Pago:</strong></p>
+        {{#each metodos_pago}}
+            <p>{{tipo}}: {{cantidad}} Bs.</p>
+        {{/each}}
+    </div>
+
+    <div class="line"></div>
+
+    <p class="center">Max 7 días aplica política de devolución</p>
+
+</body>
+</html>
