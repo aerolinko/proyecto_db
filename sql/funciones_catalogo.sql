@@ -241,6 +241,79 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- =====================================================
+-- FUNCIÓN SQL PARA CATÁLOGO DE EVENTO CON PROVEEDOR Y RIF SIEMPRE
+-- =====================================================
+
+CREATE OR REPLACE FUNCTION obtener_catalogo_evento_v2(p_evento_id INTEGER)
+RETURNS TABLE (
+  evento_miembro_acaucab_id INTEGER,
+  evento_id INTEGER,
+  evento_nombre VARCHAR(50),
+  evento_fecha_inicio DATE,
+  evento_fecha_fin DATE,
+  evento_lugar VARCHAR(50),
+  evento_tipo VARCHAR(50),
+  cerveza_id INTEGER,
+  cerveza_nombre VARCHAR(50),
+  cerveza_densidad_inicial NUMERIC(4,3),
+  cerveza_densidad_final NUMERIC(4,3),
+  cerveza_ibus NUMERIC(3),
+  cerveza_alcohol NUMERIC(5,2),
+  presentacion_id INTEGER,
+  presentacion_material VARCHAR(50),
+  presentacion_capacidad INTEGER,
+  proveedor_id INTEGER,
+  proveedor_nombre VARCHAR(100),
+  proveedor_rif VARCHAR(12),
+  proveedor_direccion VARCHAR(255),
+  proveedor_pagina_web VARCHAR(255),
+  cantidad_disponible INTEGER,
+  tipo_cerveza_nombre VARCHAR(50),
+  estilo_cerveza_nombre VARCHAR(50)
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    ema.evento_miembro_acaucab_id,
+    e.evento_id,
+    e.nombre as evento_nombre,
+    e.fecha_inicio as evento_fecha_inicio,
+    e.fecha_fin as evento_fecha_fin,
+    l.nombre as evento_lugar,
+    te.nombre as evento_tipo,
+    c.cerveza_id,
+    c.nombre as cerveza_nombre,
+    c.densidad_inicial as cerveza_densidad_inicial,
+    c.densidad_final as cerveza_densidad_final,
+    c.ibus as cerveza_ibus,
+    c.nivel_alcohol as cerveza_alcohol,
+    p.presentacion_id,
+    p.material as presentacion_material,
+    p.cap_volumen as presentacion_capacidad,
+    ma.miembro_id as proveedor_id,
+    ma.razon_social as proveedor_nombre,
+    ma.rif as proveedor_rif,
+    ma.direccion as proveedor_direccion,
+    ma.pagina_web as proveedor_pagina_web,
+    ema.cantidad as cantidad_disponible,
+    tc.nombre as tipo_cerveza_nombre,
+    ec.nombre as estilo_cerveza_nombre
+  FROM evento_miembro_acaucab ema
+  INNER JOIN evento e ON ema.fk_evento = e.evento_id
+  INNER JOIN lugar l ON e.fk_lugar = l.lugar_id
+  INNER JOIN tipo_evento te ON e.fk_tipo_evento = te.tipo_evento_id
+  INNER JOIN cerveza_presentacion cp ON ema.fk_cerveza_presentacion = cp.cerveza_presentacion_id
+  INNER JOIN cerveza c ON cp.fk_cerveza = c.cerveza_id
+  INNER JOIN presentacion p ON cp.fk_presentacion = p.presentacion_id
+  INNER JOIN miembro_acaucab ma ON ema.fk_miembro_acaucab = ma.miembro_id
+  LEFT JOIN tipo_cerveza tc ON c.fk_tipo_cerveza = tc.tipo_cerveza_id
+  LEFT JOIN estilo_cerveza ec ON c.fk_estilo_cerveza = ec.estilo_cerveza_id
+  WHERE ema.fk_evento = p_evento_id
+  ORDER BY c.nombre, p.cap_volumen;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
 -- EJEMPLOS DE USO DE LAS FUNCIONES
 -- =====================================================
 

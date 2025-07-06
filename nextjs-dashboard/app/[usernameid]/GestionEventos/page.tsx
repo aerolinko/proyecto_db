@@ -79,6 +79,7 @@ interface CatalogoCompleto {
   presentacion_capacidad: number;
   proveedor_id: number;
   proveedor_nombre: string;
+  proveedor_rif: string;
   proveedor_razon_social: string;
   proveedor_direccion: string;
   proveedor_pagina_web: string;
@@ -377,7 +378,7 @@ export default function GestionEventos() {
     try {
       const response = await fetch(`/api/eventos/${evento.evento_id}/catalogo`);
       const data = await response.json();
-      
+      console.log('CATALOGO COMPLETO JSON:', data.data);
       if (data.success) {
         setCatalogoCompleto(data.data);
       } else {
@@ -941,14 +942,12 @@ Eventos creados: ${result.data.eventos_creados}
                                   <div className="space-y-2">
                                     <p><span className="font-semibold">Presentación:</span> {item.presentacion_material} {item.presentacion_capacidad}ml</p>
                                     <p><span className="font-semibold">Cantidad:</span> {item.cantidad_disponible} unidades</p>
-                                    <p><span className="font-semibold">Precio estimado:</span> ${item.precio_estimado}</p>
-                                    <p><span className="font-semibold">Stock actual:</span> {item.stock_actual}</p>
                                   </div>
                                 </div>
                                 <div>
                                   <h5 className="font-semibold text-blue-800 mb-2">🏭 Proveedor</h5>
-                                  <p className="text-sm text-gray-700 mb-1">{item.miembro_acaucab_nombre}</p>
-                                  <p className="text-sm text-gray-600">RIF: {item.miembro_acaucab_rif}</p>
+                                  <p className="text-sm text-gray-700 mb-1">{item.proveedor_nombre}</p>
+                                  <p className="text-sm text-gray-600">RIF: {item.proveedor_rif}</p>
                                 </div>
                               </div>
                             </div>
@@ -976,13 +975,11 @@ Eventos creados: ${result.data.eventos_creados}
                               <div className="text-center">
                                 <div className="text-4xl mb-3">👨‍💼</div>
                                 <h4 className="text-lg font-bold text-gray-800 mb-2">
-                                  {empleado.nombre_completo}
+                                  {empleado.primer_nombre} {empleado.segundo_nombre} {empleado.primer_apellido} {empleado.segundo_apellido}
                                 </h4>
                                 <p className="text-sm text-gray-600 mb-3">Cédula: {empleado.cedula}</p>
                                 <div className="space-y-1 text-sm">
-                                  <p><span className="font-semibold">Cargo:</span> {empleado.cargo_actual || 'No asignado'}</p>
-                                  <p><span className="font-semibold">Departamento:</span> {empleado.departamento_actual || 'No asignado'}</p>
-                                  <p><span className="font-semibold">Salario:</span> ${empleado.salario_actual || 'No disponible'}</p>
+                                  {/* Eliminado: cargo_actual, departamento_actual, salario_actual */}
                                 </div>
                               </div>
                             </div>
@@ -1000,45 +997,27 @@ Eventos creados: ${result.data.eventos_creados}
                             No hay miembros ACAUCAB asignados
                           </h4>
                           <p className="text-gray-600">
-                            Este evento aún no tiene miembros ACAUCAB participando
+                            Este evento aún no tiene miembros ACAUCAB asignados
                           </p>
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {proveedores.map((proveedor) => (
-                            <div key={proveedor.miembro_id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                              <div className="text-center mb-4">
-                                <div className="text-3xl mb-2">🏭</div>
-                                <h4 className="text-lg font-semibold text-gray-800 mb-1">
-                                  {proveedor.razon_social}
-                                </h4>
-                                <p className="text-sm text-gray-500">{proveedor.denominacion_comercial}</p>
-                              </div>
-                              
-                              <div className="space-y-3">
-                                <div className="flex items-start">
-                                  <span className="text-gray-400 mr-2">📍</span>
-                                  <span className="text-sm text-gray-700">{proveedor.direccion}</span>
-                                </div>
-                                
-                                {proveedor.pagina_web && (
-                                  <div className="flex items-start">
-                                    <span className="text-gray-400 mr-2">🌐</span>
-                                    <a 
-                                      href={proveedor.pagina_web} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-sm text-blue-600 hover:text-blue-800 underline"
-                                    >
-                                      {proveedor.pagina_web}
-                                    </a>
-                                  </div>
-                                )}
-                                
-                                <div className="flex items-center justify-center pt-3 border-t border-gray-100">
-                                  <span className="text-xs text-gray-500">
-                                    {proveedor.total_cervezas} cervezas en catálogo
-                                  </span>
+                            <div key={proveedor.miembro_id} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-blue-200">
+                              <div className="flex flex-col h-full justify-between">
+                                <div>
+                                  <h4 className="text-xl font-bold text-gray-800 mb-2">
+                                    🏭 {proveedor.razon_social}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 mb-1">
+                                    <span className="font-semibold">Denominación comercial:</span> {proveedor.denominacion_comercial}
+                                  </p>
+                                  <p className="text-sm text-gray-600 mb-1">
+                                    <span className="font-semibold">Dirección:</span> {proveedor.direccion}
+                                  </p>
+                                  <p className="text-sm text-blue-700 mb-1">
+                                    <span className="font-semibold">Web:</span> <a href={proveedor.pagina_web} target="_blank" rel="noopener noreferrer" className="underline">{proveedor.pagina_web}</a>
+                                  </p>
                                 </div>
                               </div>
                             </div>
