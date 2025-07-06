@@ -252,3 +252,11 @@ DROP FUNCTION IF EXISTS update_usuario_with_empleado(integer, varchar, varchar);
 DROP FUNCTION IF EXISTS update_usuario_with_miembro_acaucab(integer, varchar, varchar);
 DROP FUNCTION IF EXISTS get_nomina_departamento(date, date, integer);
 DROP FUNCTION IF EXISTS get_historial_compras_cliente_juridico(integer, date, date, integer);
+
+DROP FUNCTION IF EXISTS obtener_ventas_totales_por_tienda(DATE, DATE);
+DROP FUNCTION IF EXISTS obtener_crecimiento_ventas(DATE, DATE);
+DROP FUNCTION IF EXISTS obtener_ticket_promedio(DATE, DATE);
+DROP FUNCTION IF EXISTS obtener_volumen_unidades_vendidas(DATE, DATE);
+DROP FUNCTION IF EXISTS obtener_ventas_por_estilo_cerveza(DATE, DATE);
+DROP FUNCTION IF EXISTS obtener_indicadores_ventas(DATE, DATE);
+DROP FUNCTION IF EXISTS obtener_tendencia_ventas(DATE, DATE);
