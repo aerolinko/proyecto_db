@@ -549,6 +549,79 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION obtener_tendencia_ventas(
+    p_fecha_inicio DATE DEFAULT CURRENT_DATE - INTERVAL '30 days',
+    p_fecha_fin DATE DEFAULT CURRENT_DATE
+)
+RETURNS json AS $$
+DECLARE
+    resultado json;
+BEGIN
+    SELECT json_build_object(
+        'tendencia_ventas', (
+            SELECT json_agg(
+                json_build_object(
+                    'fecha', fecha_venta,
+                    'ventas_tienda_fisica', COALESCE(ventas_tienda_fisica, 0),
+                    'ventas_tienda_online', COALESCE(ventas_tienda_online, 0),
+                    'total_ventas', COALESCE(ventas_tienda_fisica, 0) + COALESCE(ventas_tienda_online, 0)
+                )
+            )
+            FROM (
+                SELECT 
+                    fecha_venta,
+                    SUM(CASE WHEN tipo_tienda = 'Tienda Física' THEN total_venta ELSE 0 END) as ventas_tienda_fisica,
+                    SUM(CASE WHEN tipo_tienda = 'Tienda Online' THEN total_venta ELSE 0 END) as ventas_tienda_online
+                FROM (
+                    SELECT 
+                        DATE(v.fecha_venta) as fecha_venta,
+                        CASE 
+                            WHEN v.tipo_venta = 'fisica' THEN 'Tienda Física'
+                            WHEN v.tipo_venta = 'online' THEN 'Tienda Online'
+                        END as tipo_tienda,
+                        SUM(v.total_venta) as total_venta
+                    FROM ventas v
+                    WHERE DATE(v.fecha_venta) BETWEEN p_fecha_inicio AND p_fecha_fin
+                    GROUP BY DATE(v.fecha_venta), v.tipo_venta
+                ) ventas_por_dia
+                GROUP BY fecha_venta
+                ORDER BY fecha_venta
+            ) tendencia
+        ),
+        'resumen_canales', (
+            SELECT json_build_object(
+                'tienda_fisica', json_build_object(
+                    'total_ventas', COALESCE(SUM(CASE WHEN tipo_venta = 'fisica' THEN total_venta ELSE 0 END), 0),
+                    'cantidad_ventas', COALESCE(COUNT(CASE WHEN tipo_venta = 'fisica' THEN 1 END), 0),
+                    'porcentaje', CASE 
+                        WHEN SUM(total_venta) > 0 THEN 
+                            ROUND((SUM(CASE WHEN tipo_venta = 'fisica' THEN total_venta ELSE 0 END) / SUM(total_venta)) * 100, 2)
+                        ELSE 0 
+                    END
+                ),
+                'tienda_online', json_build_object(
+                    'total_ventas', COALESCE(SUM(CASE WHEN tipo_venta = 'online' THEN total_venta ELSE 0 END), 0),
+                    'cantidad_ventas', COALESCE(COUNT(CASE WHEN tipo_venta = 'online' THEN 1 END), 0),
+                    'porcentaje', CASE 
+                        WHEN SUM(total_venta) > 0 THEN 
+                            ROUND((SUM(CASE WHEN tipo_venta = 'online' THEN total_venta ELSE 0 END) / SUM(total_venta)) * 100, 2)
+                        ELSE 0 
+                    END
+                )
+            )
+            FROM ventas v
+            WHERE DATE(v.fecha_venta) BETWEEN p_fecha_inicio AND p_fecha_fin
+        ),
+        'periodo', json_build_object(
+            'fecha_inicio', p_fecha_inicio,
+            'fecha_fin', p_fecha_fin
+        )
+    ) INTO resultado;
+    
+    RETURN resultado;
+END;
+$$ LANGUAGE plpgsql;
+
 -- =====================================================
 -- EJEMPLOS DE USO
 -- =====================================================
