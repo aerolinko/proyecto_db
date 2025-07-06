@@ -19,8 +19,8 @@ const sql = postgres({
     port: 5432,
     database: 'postgres',
     username: 'postgres',
-    password: '1602',
-    connection: { options: '-c search_path=schema_name' }
+    password: '0511',
+    //connection: { options: '-c search_path=schema_name' }
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
 });
@@ -659,3 +659,73 @@ export async function getIndicadoresClientes(fechaInicio?: string, fechaFin?: st
     throw error;
   }
 }
+
+// ===== FUNCIONES PARA INDICADORES DE VENTAS =====
+export async function getIndicadoresVentas(fechaInicio?: string, fechaFin?: string) {
+  try {
+    const result = fechaInicio || fechaFin
+      ? await sql`SELECT obtener_indicadores_ventas(${fechaInicio || null}, ${fechaFin || null}) as resultado`
+      : await sql`SELECT obtener_indicadores_ventas() as resultado`;
+    return result[0]?.resultado;
+  } catch (error) {
+    console.error("Error en getIndicadoresVentas:", error);
+    throw error;
+  }
+}
+
+export async function getVentasTotalesPorTienda(fechaInicio?: string, fechaFin?: string) {
+  return await sql`SELECT * FROM obtener_ventas_totales_por_tienda(${fechaInicio || null}, ${fechaFin || null})`;
+}
+
+export async function getCrecimientoVentas(fechaInicio?: string, fechaFin?: string) {
+  return await sql`SELECT * FROM obtener_crecimiento_ventas(${fechaInicio || null}, ${fechaFin || null})`;
+}
+
+export async function getTicketPromedio(fechaInicio?: string, fechaFin?: string) {
+  return await sql`SELECT * FROM obtener_ticket_promedio(${fechaInicio || null}, ${fechaFin || null})`;
+}
+
+export async function getVolumenUnidadesVendidas(fechaInicio?: string, fechaFin?: string) {
+  return await sql`SELECT * FROM obtener_volumen_unidades_vendidas(${fechaInicio || null}, ${fechaFin || null})`;
+}
+
+export async function getVentasPorEstiloCerveza(fechaInicio?: string, fechaFin?: string) {
+  try {
+    console.log("=== getVentasPorEstiloCerveza ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    let result
+    if (fechaInicio && fechaFin) {
+      result = await sql`SELECT obtener_ventas_por_estilo_cerveza(${fechaInicio}, ${fechaFin}) as resultado`
+    } else {
+      result = await sql`SELECT obtener_ventas_por_estilo_cerveza() as resultado`
+    }
+
+    console.log(`Ventas por estilo de cerveza obtenidas: ${result.length} registros`)
+    return result[0]?.resultado || []
+  } catch (error) {
+    console.error("Error en getVentasPorEstiloCerveza:", error)
+    throw error
+  }
+}
+
+export async function getTendenciaVentas(fechaInicio?: string, fechaFin?: string) {
+  try {
+    console.log("=== getTendenciaVentas ===")
+    console.log("Parámetros:", { fechaInicio, fechaFin })
+
+    let result
+    if (fechaInicio && fechaFin) {
+      result = await sql`SELECT obtener_tendencia_ventas(${fechaInicio}, ${fechaFin}) as resultado`
+    } else {
+      result = await sql`SELECT obtener_tendencia_ventas() as resultado`
+    }
+
+    console.log(`Tendencia de ventas obtenida: ${result.length} registros`)
+    return result[0]?.resultado || {}
+  } catch (error) {
+    console.error("Error en getTendenciaVentas:", error)
+    throw error
+  }
+}
+

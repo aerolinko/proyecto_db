@@ -374,6 +374,31 @@ export default function Reportes() {
                   </div>
                 </a>
               </div>
+
+              {/* Enlace a Indicadores de Ventas */}
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-green-500">
+                <a href="./Reportes/IndicadoresVentas" className="block">
+                  <div className="flex items-center mb-4">
+                    <span className="text-3xl mr-3">💰</span>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Indicadores de Ventas</h3>
+                      <p className="text-sm text-gray-600">Ventas totales por tienda, crecimiento, ticket promedio, volumen y ventas por estilo de cerveza</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <ChartBarIcon className="h-4 w-4 mr-1" />
+                      <span>Ver Dashboard</span>
+                    </div>
+                    <div className="flex space-x-1">
+                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                        Dashboard
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              </div>
             </div>
 
             {reportesFiltrados.length === 0 && (
