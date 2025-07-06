@@ -90,6 +90,41 @@ export async function getUserPermissions(id:number) {
     return await sql`SELECT * FROM obtenerPermisosUsuarioCompleto(${id})`;
 }
 
+export async function getUserPermissionsSimple(id:number) {
+    return await sql`SELECT * FROM obtenerPermisosUsuario(${id})`;
+}
+
+export async function debugUserPermissions(id:number) {
+    console.log(`=== DEBUG: Verificando permisos para usuario ${id} ===`);
+    
+    // Verificar si el usuario existe
+    const userExists = await sql`SELECT usuario_id FROM usuario WHERE usuario_id = ${id}`;
+    console.log('¿Usuario existe?', userExists.length > 0);
+    
+    // Verificar roles del usuario
+    const userRoles = await sql`SELECT r.nombre as rol_nombre, r.rol_id 
+                               FROM ROL_USUARIO ru 
+                               JOIN ROL r ON ru.fk_rol = r.rol_id 
+                               WHERE ru.fk_usuario = ${id}`;
+    console.log('Roles del usuario:', userRoles);
+    
+    // Verificar permisos de cada rol
+    for (const role of userRoles) {
+        const rolePermissions = await sql`SELECT p.descripcion, p.permiso_id 
+                                        FROM ROL_PERMISO rp 
+                                        JOIN PERMISO p ON rp.fk_permiso = p.permiso_id 
+                                        WHERE rp.fk_rol = ${role.rol_id}`;
+        console.log(`Permisos del rol "${role.rol_nombre}":`, rolePermissions);
+    }
+    
+    // Obtener permisos finales
+    const finalPermissions = await sql`SELECT * FROM obtenerPermisosUsuario(${id})`;
+    console.log('Permisos finales devueltos:', finalPermissions);
+    console.log('=== FIN DEBUG ===');
+    
+    return finalPermissions;
+}
+
 export async function getAllProducts() {
     return await sql`SELECT * from obtenerCervezas()`;
 }
@@ -667,3 +702,434 @@ export async function getIndicadoresClientes(fechaInicio?: string, fechaFin?: st
     throw error;
   }
 }
+
+// ===== FUNCIONES PARA GESTIÓN DE EVENTOS =====
+
+// Obtener todos los eventos con información completa
+export async function getAllEventos() {
+  try {
+    console.log("=== getAllEventos ===")
+    const result = await sql`SELECT * FROM obtenerEventosCompletos()`;
+    console.log(`Eventos obtenidos: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getAllEventos:", error);
+    throw error;
+  }
+}
+
+// Obtener un evento específico por ID
+export async function getEventoById(eventoId: number) {
+  try {
+    console.log("=== getEventoById ===")
+    const result = await sql`
+      SELECT 
+        e.*,
+        te.nombre as tipo_evento_nombre,
+        l.nombre as lugar_nombre
+      FROM EVENTO e
+      LEFT JOIN TIPO_EVENTO te ON e.fk_tipo_evento = te.tipo_evento_id
+      LEFT JOIN LUGAR l ON e.fk_lugar = l.lugar_id
+      WHERE e.evento_id = ${eventoId}
+    `;
+    console.log(`Evento obtenido: ${result.length} registros`);
+    return result[0];
+  } catch (error) {
+    console.error("Error en getEventoById:", error);
+    throw error;
+  }
+}
+
+// Crear un nuevo evento
+export async function createEvento(eventoData: {
+  nombre: string;
+  capacidad: number;
+  direccion: string;
+  entrada_paga: boolean;
+  fecha_inicio: string;
+  fecha_fin: string;
+  estacionamiento: boolean;
+  numero_entradas: number;
+  precio_entradas?: number;
+  fk_tipo_evento: number;
+  fk_lugar: number;
+}) {
+  try {
+    console.log("=== createEvento ===")
+    const result = await sql`SELECT crearEvento(
+      ${eventoData.nombre},
+      ${eventoData.capacidad},
+      ${eventoData.direccion},
+      ${eventoData.entrada_paga},
+      ${eventoData.fecha_inicio},
+      ${eventoData.fecha_fin},
+      ${eventoData.estacionamiento},
+      ${eventoData.numero_entradas},
+      ${eventoData.precio_entradas || null},
+      ${eventoData.fk_tipo_evento},
+      ${eventoData.fk_lugar}
+    )`;
+    const eventoId = result[0]?.crearevento;
+    console.log("Evento creado con ID:", eventoId);
+    return eventoId;
+  } catch (error) {
+    console.error("Error en createEvento:", error);
+    throw error;
+  }
+}
+
+// Actualizar un evento existente
+export async function updateEvento(eventoId: number, eventoData: {
+  nombre: string;
+  capacidad: number;
+  direccion: string;
+  entrada_paga: boolean;
+  fecha_inicio: string;
+  fecha_fin: string;
+  estacionamiento: boolean;
+  numero_entradas: number;
+  precio_entradas?: number;
+  fk_tipo_evento: number;
+  fk_lugar: number;
+}) {
+  try {
+    console.log("=== updateEvento ===")
+    const result = await sql`SELECT actualizarEvento(
+      ${eventoId},
+      ${eventoData.nombre},
+      ${eventoData.capacidad},
+      ${eventoData.direccion},
+      ${eventoData.entrada_paga},
+      ${eventoData.fecha_inicio},
+      ${eventoData.fecha_fin},
+      ${eventoData.estacionamiento},
+      ${eventoData.numero_entradas},
+      ${eventoData.precio_entradas || null},
+      ${eventoData.fk_tipo_evento},
+      ${eventoData.fk_lugar}
+    )`;
+    console.log("Evento actualizado:", result[0]?.actualizarevento);
+    return result[0]?.actualizarevento;
+  } catch (error) {
+    console.error("Error en updateEvento:", error);
+    throw error;
+  }
+}
+
+// Eliminar un evento
+export async function deleteEvento(eventoId: number) {
+  try {
+    console.log("=== deleteEvento ===")
+    const result = await sql`SELECT eliminarEvento(${eventoId})`;
+    console.log("Evento eliminado:", result[0]?.eliminarevento);
+    return result[0]?.eliminarevento;
+  } catch (error) {
+    console.error("Error en deleteEvento:", error);
+    throw error;
+  }
+}
+
+// Obtener proveedores de un evento
+export async function getProveedoresEvento(eventoId: number) {
+  try {
+    console.log("=== getProveedoresEvento ===")
+    const result = await sql`SELECT * FROM obtenerProveedoresEvento(${eventoId})`;
+    console.log(`Proveedores obtenidos: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getProveedoresEvento:", error);
+    throw error;
+  }
+}
+
+// Obtener productos de un evento
+export async function getProductosEvento(eventoId: number) {
+  try {
+    console.log("=== getProductosEvento ===")
+    const result = await sql`SELECT * FROM obtenerProductosEvento(${eventoId})`;
+    console.log(`Productos obtenidos: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getProductosEvento:", error);
+    throw error;
+  }
+}
+
+// Obtener catálogo completo de cervezas de un evento
+export async function getCatalogoCervezasEvento(eventoId: number) {
+  try {
+    console.log("=== getCatalogoCervezasEvento ===")
+    const result = await sql`SELECT * FROM obtenerCatalogoCervezasEvento(${eventoId})`;
+    console.log(`Catálogo de cervezas obtenido: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getCatalogoCervezasEvento:", error);
+    throw error;
+  }
+}
+
+// Agregar proveedor a evento
+export async function agregarProveedorEvento(eventoId: number, miembroId: number, cervezaPresentacionId: number, cantidad: number) {
+  try {
+    console.log("=== agregarProveedorEvento ===")
+    const result = await sql`SELECT agregarProveedorEvento(${eventoId}, ${miembroId}, ${cervezaPresentacionId}, ${cantidad})`;
+    const registroId = result[0]?.agregarproveedorevento;
+    console.log("Proveedor agregado con ID:", registroId);
+    return registroId;
+  } catch (error) {
+    console.error("Error en agregarProveedorEvento:", error);
+    throw error;
+  }
+}
+
+// Remover proveedor de evento
+export async function removerProveedorEvento(eventoMiembroAcaucabId: number) {
+  try {
+    console.log("=== removerProveedorEvento ===")
+    const result = await sql`SELECT removerProveedorEvento(${eventoMiembroAcaucabId})`;
+    console.log("Proveedor removido:", result[0]?.removerproveedorevento);
+    return result[0]?.removerproveedorevento;
+  } catch (error) {
+    console.error("Error en removerProveedorEvento:", error);
+    throw error;
+  }
+}
+
+// Obtener empleados de un evento
+export async function getEmpleadosEvento(eventoId: number) {
+  try {
+    console.log("=== getEmpleadosEvento ===")
+    const result = await sql`SELECT * FROM obtenerEmpleadosEvento(${eventoId})`;
+    console.log(`Empleados obtenidos: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getEmpleadosEvento:", error);
+    throw error;
+  }
+}
+
+// Asignar empleado a evento
+export async function asignarEmpleadoEvento(eventoId: number, empleadoId: number) {
+  try {
+    console.log("=== asignarEmpleadoEvento ===")
+    const result = await sql`SELECT asignarEmpleadoEvento(${eventoId}, ${empleadoId})`;
+    const registroId = result[0]?.asignarempleadoevento;
+    console.log("Empleado asignado con ID:", registroId);
+    return registroId;
+  } catch (error) {
+    console.error("Error en asignarEmpleadoEvento:", error);
+    throw error;
+  }
+}
+
+// Remover empleado de evento
+export async function removerEmpleadoEvento(eventoEmpleadoId: number) {
+  try {
+    console.log("=== removerEmpleadoEvento ===")
+    const result = await sql`SELECT removerEmpleadoEvento(${eventoEmpleadoId})`;
+    console.log("Empleado removido:", result[0]?.removerempleadoevento);
+    return result[0]?.removerempleadoevento;
+  } catch (error) {
+    console.error("Error en removerEmpleadoEvento:", error);
+    throw error;
+  }
+}
+
+// Obtener ventas de un evento
+export async function getVentasEvento(eventoId: number) {
+  try {
+    console.log("=== getVentasEvento ===")
+    const result = await sql`SELECT * FROM obtenerVentasEvento(${eventoId})`;
+    console.log(`Ventas obtenidas: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getVentasEvento:", error);
+    throw error;
+  }
+}
+
+// Obtener estadísticas de un evento
+export async function getEstadisticasEvento(eventoId: number) {
+  try {
+    console.log("=== getEstadisticasEvento ===")
+    const result = await sql`SELECT * FROM obtenerEstadisticasEvento(${eventoId})`;
+    console.log(`Estadísticas obtenidas: ${result.length} registros`);
+    return result[0];
+  } catch (error) {
+    console.error("Error en getEstadisticasEvento:", error);
+    throw error;
+  }
+}
+
+// Buscar eventos
+export async function buscarEventos(busqueda: string) {
+  try {
+    console.log("=== buscarEventos ===")
+    const result = await sql`SELECT * FROM buscarEventos(${busqueda})`;
+    console.log(`Eventos encontrados: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en buscarEventos:", error);
+    throw error;
+  }
+}
+
+// Obtener eventos por fechas
+export async function getEventosPorFechas(fechaInicio: string, fechaFin: string) {
+  try {
+    console.log("=== getEventosPorFechas ===")
+    const result = await sql`SELECT * FROM obtenerEventosPorFechas(${fechaInicio}, ${fechaFin})`;
+    console.log(`Eventos encontrados: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getEventosPorFechas:", error);
+    throw error;
+  }
+}
+
+// Obtener todos los tipos de evento
+export async function getTiposEvento() {
+  try {
+    console.log("=== getTiposEvento ===")
+    const result = await sql`SELECT * FROM TIPO_EVENTO ORDER BY nombre`;
+    console.log(`Tipos de evento obtenidos: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getTiposEvento:", error);
+    throw error;
+  }
+}
+
+// Obtener todos los lugares
+export async function getLugares() {
+  try {
+    console.log("=== getLugares ===")
+    const result = await sql`SELECT * FROM LUGAR ORDER BY nombre`;
+    console.log(`Lugares obtenidos: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getLugares:", error);
+    throw error;
+  }
+}
+
+// Obtener todos los miembros ACAUCAB (proveedores)
+export async function getMiembrosAcaucab() {
+  try {
+    console.log("=== getMiembrosAcaucab ===")
+    const result = await sql`SELECT * FROM MIEMBRO_ACAUCAB ORDER BY denominacion_comercial`;
+    console.log(`Miembros ACAUCAB obtenidos: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getMiembrosAcaucab:", error);
+    throw error;
+  }
+}
+
+// Obtener cervezas por proveedor
+export async function getCervezasPorProveedor(miembroId: number) {
+  try {
+    console.log("=== getCervezasPorProveedor ===")
+    const result = await sql`
+      SELECT 
+        cp.cerveza_presentacion_id,
+        c.nombre as cerveza_nombre,
+        p.material as presentacion_material,
+        p.cap_volumen as presentacion_capacidad
+      FROM CERVEZA_PRESENTACION cp
+      JOIN CERVEZA c ON cp.fk_cerveza = c.cerveza_id
+      JOIN PRESENTACION p ON cp.fk_presentacion = p.presentacion_id
+      WHERE cp.fk_miembro_acaucab = ${miembroId}
+      ORDER BY c.nombre
+    `;
+    console.log(`Cervezas obtenidas: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error("Error en getCervezasPorProveedor:", error);
+    throw error;
+  }
+}
+
+export async function cleanClientRoles(userId: number) {
+    console.log(`=== LIMPIANDO ROLES DE CLIENTE ===`);
+    console.log(`Usuario ID: ${userId}`);
+    
+    // Verificar si es cliente
+    const userInfo = await sql`
+        SELECT 
+            CASE 
+                WHEN fk_cliente_natural IS NOT NULL THEN 'cliente_natural'
+                WHEN fk_cliente_juridico IS NOT NULL THEN 'cliente_juridico'
+                WHEN fk_miembro_acaucab IS NOT NULL THEN 'miembro_acaucab'
+                ELSE 'no_cliente'
+            END as tipo
+        FROM usuario 
+        WHERE usuario_id = ${userId}
+    `;
+    
+    if (userInfo[0]?.tipo === 'no_cliente') {
+        throw new Error('El usuario no es un cliente');
+    }
+    
+    console.log(`Tipo de usuario: ${userInfo[0]?.tipo}`);
+    
+    // Eliminar todos los roles del cliente
+    const deletedRoles = await sql`
+        DELETE FROM ROL_USUARIO 
+        WHERE fk_usuario = ${userId}
+        RETURNING rol_usuario_id
+    `;
+    
+    console.log(`Roles eliminados: ${deletedRoles.length}`);
+    console.log('=== FIN LIMPIEZA ===');
+    
+    return deletedRoles;
+}
+
+export async function analyzeUserRoles(userId: number) {
+    console.log(`=== ANALIZANDO ROLES DEL USUARIO ${userId} ===`);
+    
+    // Obtener roles del usuario con sus permisos
+    const userRolesWithPermissions = await sql`
+        SELECT 
+            r.rol_id,
+            r.nombre as rol_nombre,
+            r.descripcion as rol_descripcion,
+            p.permiso_id,
+            p.descripcion as permiso_descripcion
+        FROM ROL_USUARIO ru
+        JOIN ROL r ON ru.fk_rol = r.rol_id
+        JOIN ROL_PERMISO rp ON r.rol_id = rp.fk_rol
+        JOIN PERMISO p ON rp.fk_permiso = p.permiso_id
+        WHERE ru.fk_usuario = ${userId}
+        ORDER BY r.nombre, p.descripcion
+    `;
+    
+    // Agrupar por rol
+    const rolesAnalysis = {};
+    userRolesWithPermissions.forEach((row: any) => {
+        if (!rolesAnalysis[row.rol_nombre]) {
+            rolesAnalysis[row.rol_nombre] = {
+                rol_id: row.rol_id,
+                rol_descripcion: row.rol_descripcion,
+                permisos: []
+            };
+        }
+        rolesAnalysis[row.rol_nombre].permisos.push({
+            permiso_id: row.permiso_id,
+            descripcion: row.permiso_descripcion
+        });
+    });
+    
+    console.log('Análisis de roles:', rolesAnalysis);
+    console.log('=== FIN ANÁLISIS ===');
+    
+    return {
+        totalRoles: Object.keys(rolesAnalysis).length,
+        totalPermissions: userRolesWithPermissions.length,
+        rolesAnalysis: rolesAnalysis
+    };
+}
+
+// Exportar sql para uso directo en otros archivos
+export { sql };

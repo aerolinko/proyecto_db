@@ -1,10 +1,28 @@
 import SideNav from '@/app/ui/dashboard/sidenav';
 import { cookies } from "next/headers";
+import { getUserPermissionsSimple } from "@/db";
 
-export default async function Layout({ children }) {
+export default async function Layout({ children, params }) {
     const cookieStore = await cookies();
     const userCookie = cookieStore.get('user');
-    const currentUser = userCookie ? JSON.parse(userCookie.value) : null;
+    const userData = userCookie ? JSON.parse(userCookie.value) : null;
+    
+    // Obtener permisos actualizados de la base de datos
+    let currentUser = userData;
+    if (userData && userData.usuario_id) {
+        try {
+            const permisos = await getUserPermissionsSimple(userData.usuario_id);
+            currentUser = {
+                ...userData,
+                permisos: permisos.map((p: any) => ({
+                    permiso_id: p.permiso_id,
+                    descripcion: p.descripcion
+                }))
+            };
+        } catch (error) {
+            console.error('Error obteniendo permisos:', error);
+        }
+    }
 
     return (
         <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">

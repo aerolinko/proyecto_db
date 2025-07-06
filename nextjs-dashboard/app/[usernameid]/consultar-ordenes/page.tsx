@@ -98,13 +98,18 @@ export default function ConsultarOrdenes({ params }) {
   useEffect(() => {
     const fetchCurrentUserAndOrders = async () => {
       try {
-        const response = await fetch(`/api/usuarios/${userId}`);
+        const response = await fetch(`/api/usuarios/current?userId=${userId}`);
         if (response.ok) {
           const userData = await response.json();
-          setCurrentUser(userData.user);
-          const permisos = userData.user?.permisos || [];
-          // Permiso puede venir en mayúsculas o minúsculas, normalizamos:
-          const hasPerm = permisos.some((p: any) => (p.descripcion || '').toLowerCase().includes('consultar venta_online'));
+          setCurrentUser(userData.data);
+          const permisos = userData.data?.permisos || [];
+          // Verificar si tiene el permiso de consultar VENTA_ONLINE (robusto)
+          const hasPerm = permisos.some((p: any) =>
+            (p.descripcion || '')
+              .toLowerCase()
+              .replace(/[_\s]/g, '')
+              .includes('consultarventaonline')
+          );
           setHasConsultPermission(hasPerm);
           if (hasPerm) {
             // Si tiene el permiso, consulta TODAS las órdenes

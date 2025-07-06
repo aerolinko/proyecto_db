@@ -3,10 +3,10 @@ import { sql } from '@vercel/postgres';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const { orderId } = params;
+    const { orderId } = await params;
     const { status } = await request.json();
 
     // Validar el estado

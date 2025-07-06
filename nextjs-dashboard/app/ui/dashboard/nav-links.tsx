@@ -7,6 +7,7 @@ import {
   ClipboardDocumentListIcon,
   CogIcon,
   EyeIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link'
 import { usePathname } from 'next/navigation';
@@ -17,12 +18,25 @@ export default function NavLinks({currentUser}) {
   // Verificar permisos del usuario
   const hasAdminPermission = currentUser?.rol?.nombre === 'Administrador' || 
                             currentUser?.permisos?.some((p: any) => 
-                              p.descripcion === 'modificar VENTA_ONLINE'
+                              (p.descripcion || '')
+                                .toLowerCase()
+                                .replace(/[_\s]/g, '')
+                                .includes('modificarventaonline')
                             );
   
   const hasConsultPermission = currentUser?.permisos?.some((p: any) => 
-    p.descripcion === 'consultar VENTA_ONLINE'
+    (p.descripcion || '')
+      .toLowerCase()
+      .replace(/[_\s]/g, '')
+      .includes('consultarventaonline')
   );
+
+  const hasEventPermission = currentUser?.permisos?.some((p: any) => {
+    const descripcion = (p.descripcion || '').toLowerCase().replace(/[_\s]/g, '');
+    return descripcion.includes('consultarevento') || 
+           descripcion.includes('crearevento') || 
+           descripcion.includes('modificarevento');
+  });
 
   const links = [
     { name: 'Menú Principal', href: `/${currentUser.usuario_id}/dashboard`, icon: HomeIcon },
@@ -32,6 +46,8 @@ export default function NavLinks({currentUser}) {
     ...(hasConsultPermission ? [{ name: 'Consultar Órdenes', href: `/${currentUser.usuario_id}/consultar-ordenes`, icon: EyeIcon }] : []),
     // Solo mostrar administración de órdenes para administradores
     ...(hasAdminPermission ? [{ name: 'Admin Órdenes', href: `/${currentUser.usuario_id}/admin-ordenes`, icon: CogIcon }] : []),
+    // Mostrar gestión de eventos para usuarios con permisos de eventos
+    ...(hasEventPermission ? [{ name: 'Gestión Eventos', href: `/${currentUser.usuario_id}/GestionEventos`, icon: CalendarIcon }] : []),
     { name: 'Perfil', href: `/${currentUser.usuario_id}/profile`, icon: UserIcon },
   ];
   const pathname = usePathname();

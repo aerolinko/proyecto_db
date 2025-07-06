@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import sql from '@/db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       ORDER BY vo.fecha_emision DESC
     `;
     
-        const orders = result.rows.map((order, index) => {
+        const orders = result.map((order, index) => {
       return {
         venta_online_id: order.venta_online_id,
         fecha_emision: order.fecha_emision,

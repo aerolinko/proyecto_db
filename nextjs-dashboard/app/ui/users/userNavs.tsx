@@ -26,13 +26,26 @@ export default function UserNavs({ permissions }) {
     { path: `/${userId}/Reportes/InventarioResumen`, nombre: 'Inventario', icon: BuildingStorefrontIcon, id: 'consultar REPORTES' },
   ];
 
-  // Filtrar enlaces solo por permiso exacto
+  // Filtrar enlaces por permiso robusto (insensible a mayúsculas, minúsculas, guiones bajos y espacios)
   let filteredLinks = Links.filter(link =>
-    permissions.some((permission:any) => permission.descripcion === link.id)
+    permissions.some((permission: any) => {
+      const permissionDesc = (permission.descripcion || '').toLowerCase().replace(/[_\s]/g, '');
+      const linkId = (link.id || '').toLowerCase().replace(/[_\s]/g, '');
+      const hasPermission = permissionDesc.includes(linkId);
+      
+      // Debug: Mostrar qué permisos se están verificando
+      console.log(`Verificando permiso: "${permission.descripcion}" vs "${link.id}"`);
+      console.log(`Normalizado: "${permissionDesc}" vs "${linkId}"`);
+      console.log(`¿Tiene permiso? ${hasPermission}`);
+      
+      return hasPermission;
+    })
   );
   
-  console.log('Permisos del usuario:', permissions);
+  console.log('=== DEBUG PERMISOS ===');
+  console.log('Permisos recibidos:', permissions);
   console.log('Enlaces filtrados:', filteredLinks);
+  console.log('=== FIN DEBUG ===');
 
   return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

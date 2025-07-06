@@ -1,0 +1,24 @@
+{
+    "name": "Orden Online",
+    "engine": "handlebars",
+    "recipe": "chrome-pdf",
+    "data": {
+        "shortid": "orden-online-template"
+    },
+    "shortid": "orden-online",
+    "chrome": {
+        "printBackground": true,
+        "marginTop": "0.5in",
+        "marginBottom": "0.5in",
+        "marginLeft": "0.5in",
+        "marginRight": "0.5in"
+    },
+    "creationDate": {
+        "$$date": 1750881479986
+    },
+    "modificationDate": {
+        "$$date": 1750882266255
+    },
+    "_id": "orden-online-template-id",
+    "$entitySet": "templates"
+} 

@@ -1,6 +1,7 @@
 import {cookies} from "next/headers";
 import {redirect} from "next/navigation";
 import UserNavs from "@/app/ui/users/userNavs";
+import { getUserPermissionsSimple } from "@/db";
 
 export default async function Page({
                                        params,
@@ -10,14 +11,15 @@ export default async function Page({
     const { usernameid } = await params;
     const cookieStore = await cookies();
     const userCookie = cookieStore.get('user');
-    const permissionCookies = cookieStore.get('permissions');
 
-    if (!userCookie || !permissionCookies) {
+    if (!userCookie) {
         redirect('/');
     }
 
     const currentUser = JSON.parse(userCookie.value);
-    const currentPermissions = JSON.parse(permissionCookies.value);
+    
+    // Obtener permisos actualizados de la base de datos
+    const currentPermissions = await getUserPermissionsSimple(currentUser.usuario_id);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-full bg-gradient-to-b from-gray-50 to-gray-100 p-4">

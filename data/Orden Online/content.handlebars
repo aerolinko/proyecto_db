@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Orden Online - ACAUCAB</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #fff;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2563eb;
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .header h2 {
+            color: #1e40af;
+            margin: 10px 0 0 0;
+            font-size: 18px;
+        }
+        .order-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        .order-details {
+            flex: 1;
+        }
+        .order-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .info-row {
+            margin-bottom: 5px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #64748b;
+        }
+        .customer-info {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .customer-info h3 {
+            color: #1e293b;
+            margin: 0 0 15px 0;
+            font-size: 16px;
+        }
+        .delivery-address {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+        }
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .products-table th {
+            background: #2563eb;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .products-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .products-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        .total-section {
+            text-align: right;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-en-proceso { background: #fef3c7; color: #92400e; }
+        .status-listo-entrega { background: #dbeafe; color: #1e40af; }
+        .status-entregado { background: #d1fae5; color: #065f46; }
+        .status-cancelado { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CERVECERÍA ACAUCAB</h1>
+        <h2>ORDEN ONLINE</h2>
+    </div>
+
+    <div class="order-info">
+        <div class="order-details">
+            <div class="order-number">Orden #{{factura.numero}}</div>
+            <div class="info-row">
+                <span class="info-label">Fecha de Emisión:</span> {{factura.fecha}}
+            </div>
+            <div class="info-row">
+                <span class="info-label">Hora:</span> {{factura.hora}}
+            </div>
+            <div class="info-row">
+                <span class="info-label">Estado:</span> 
+                <span class="status-badge status-{{#if (eq estado 'EN_PROCESO')}}en-proceso{{else if (eq estado 'LISTO_ENTREGA')}}listo-entrega{{else if (eq estado 'ENTREGADO')}}entregado{{else}}cancelado{{/if}}">
+                    {{estado}}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="customer-info">
+        <h3>Información del Cliente</h3>
+        <div class="info-row">
+            <span class="info-label">Nombre:</span> {{cliente.nombre}}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Email:</span> {{cliente.documento}}
+        </div>
+        {{#if cliente.telefono}}
+        <div class="info-row">
+            <span class="info-label">Teléfono:</span> {{cliente.telefono}}
+        </div>
+        {{/if}}
+        <div class="delivery-address">
+            <span class="info-label">Dirección de Entrega:</span><br>
+            {{direccion_entrega}}
+        </div>
+    </div>
+
+    <table class="products-table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Presentación</th>
+                <th style="text-align: center;">Cantidad</th>
+                <th style="text-align: right;">Precio Unit.</th>
+                <th style="text-align: right;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each productos}}
+            <tr>
+                <td>{{nombre}}</td>
+                <td>{{presentacion}}ml</td>
+                <td style="text-align: center;">{{cantidad}}</td>
+                <td style="text-align: right;">Bs. {{precio}}</td>
+                <td style="text-align: right;">Bs. {{subtotal}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="total-amount">Total: Bs. {{total}}</div>
+        <div style="margin-top: 10px; color: #64748b;">
+            Método de Pago: {{#each metodos_pago}}{{tipo}}{{/each}}
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>CERVECERÍA ACAUCAB</strong></p>
+        <p>Gracias por tu compra online</p>
+        <p>Esta orden fue generada automáticamente el {{factura.fecha}} a las {{factura.hora}}</p>
+    </div>
+</body>
+</html> 

@@ -10,7 +10,8 @@ import {
   CheckCircleIcon,
   ClockIcon,
   ExclamationTriangleIcon,
-  ShoppingBagIcon
+  ShoppingBagIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -22,6 +23,12 @@ interface Order {
   total: number;
   direccion: string;
   estado: string;
+  usuario_id: number;
+  cliente_info: {
+    nombre: string;
+    telefono?: string;
+    email: string;
+  };
   productos: OrderItem[];
 }
 
@@ -40,6 +47,8 @@ export default function Ordenes({ params }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [hasConsultPermission, setHasConsultPermission] = useState(false);
 
   // Extraer el userId de la ruta actual
   let userId = '';
@@ -48,26 +57,43 @@ export default function Ordenes({ params }) {
     userId = pathname.split('/')[1];
   }
 
-  // Cargar órdenes del usuario
+  // Obtener información del usuario actual y cargar órdenes según permisos
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchCurrentUserAndOrders = async () => {
       try {
-        const response = await fetch(`/api/ventas-online?userId=${userId}`);
+        const response = await fetch(`/api/usuarios/current?userId=${userId}`);
         if (response.ok) {
-          const data = await response.json();
-          setOrders(data.orders || []);
-        } else {
-          console.error('Error fetching orders:', response.status);
+          const userData = await response.json();
+          setCurrentUser(userData.data);
+          const permisos = userData.data?.permisos || [];
+          // Verificar si tiene el permiso de consultar VENTA_ONLINE (robusto)
+          const hasPerm = permisos.some((p: any) =>
+            (p.descripcion || '')
+              .toLowerCase()
+              .replace(/[_\s]/g, '')
+              .includes('consultarventaonline')
+          );
+          setHasConsultPermission(hasPerm);
+          
+          // Siempre consulta solo las órdenes del usuario actual
+          const ordersResponse = await fetch(`/api/ventas-online?userId=${userId}`);
+          if (ordersResponse.ok) {
+            const data = await ordersResponse.json();
+            setOrders(data.orders || []);
+          } else {
+            setOrders([]);
+          }
         }
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error('Error fetching user or orders:', error);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
     };
 
     if (userId) {
-      fetchOrders();
+      fetchCurrentUserAndOrders();
     }
   }, [userId]);
 
@@ -80,6 +106,7 @@ export default function Ordenes({ params }) {
   // Debug: Verificar órdenes
   console.log('Orders:', orders);
   console.log('Filtered Orders:', filteredOrders);
+  console.log('Has consult permission:', hasConsultPermission);
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -133,7 +160,9 @@ export default function Ordenes({ params }) {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-blue-200">
           {/* Header Section */}
           <div className="bg-blue-700 p-6 text-white">
-            <h1 className="text-3xl font-bold text-center">Mis Órdenes Online</h1>
+            <h1 className="text-3xl font-bold text-center">
+              Mis Órdenes Online
+            </h1>
             <p className="text-center mt-2 text-blue-100">
               Historial de todas tus compras realizadas en la tienda online
             </p>
@@ -216,6 +245,16 @@ export default function Ordenes({ params }) {
                           <p className="text-sm text-gray-600">
                             <strong>Dirección:</strong> {order.direccion}
                           </p>
+                          {hasConsultPermission && order.cliente_info && (
+                            <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                              <UserIcon className="w-4 h-4" />
+                              <span><strong>Cliente:</strong> {order.cliente_info.nombre}</span>
+                              {order.cliente_info.telefono && (
+                                <span>• <strong>Tel:</strong> {order.cliente_info.telefono}</span>
+                              )}
+                              <span>• <strong>Email:</strong> {order.cliente_info.email}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -285,6 +324,15 @@ export default function Ordenes({ params }) {
                       </div>
                       <p><strong>Dirección de Entrega:</strong></p>
                       <p className="text-gray-700">{selectedOrder.direccion}</p>
+                      {hasConsultPermission && selectedOrder.cliente_info && (
+                        <div className="mt-2">
+                          <p><strong>Cliente:</strong> {selectedOrder.cliente_info.nombre}</p>
+                          {selectedOrder.cliente_info.telefono && (
+                            <p><strong>Teléfono:</strong> {selectedOrder.cliente_info.telefono}</p>
+                          )}
+                          <p><strong>Email:</strong> {selectedOrder.cliente_info.email}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -298,7 +346,7 @@ export default function Ordenes({ params }) {
                     <div key={`${item.detalle_venta_online_id}-${item.nombre_cerveza}-${index}`} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                       <div className="flex-1">
                         <h4 className="font-medium text-gray-800">{item.nombre_cerveza}</h4>
-                        <p className="text-sm text-gray-600">{item.presentacion}ml</p>
+                        <p className="text-sm text-gray-600">{item.presentacion}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-600">Cantidad: {item.cantidad}</p>
