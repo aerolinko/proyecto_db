@@ -20,7 +20,7 @@ const sql = postgres({
     database: 'postgres',
     username: 'postgres',
     password: '1602',
-    connection: { options: '-c search_path=schema_name_2' }
+    connection: { options: '-c search_path=schema_name' }
     // Or set it after connecting:
     // await sql`SET search_path TO schema_name`;
 });
@@ -1200,3 +1200,99 @@ export async function getTendenciaVentas(fechaInicio?: string, fechaFin?: string
     throw error
   }
 }
+
+// =====================================================
+// FUNCIONES PARA GESTIÓN DE ACTIVIDADES
+// =====================================================
+
+// Obtener todas las actividades de un evento
+export async function getActividadesEvento(eventoId: number) {
+  try {
+    console.log(`=== OBTENIENDO ACTIVIDADES DEL EVENTO ${eventoId} ===`);
+    const result = await sql`SELECT * FROM obtener_actividades_evento(${eventoId})`;
+    console.log(`Actividades obtenidas: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error('Error obteniendo actividades del evento:', error);
+    throw error;
+  }
+}
+
+// Obtener todas las actividades (vista general)
+export async function getAllActividades() {
+  try {
+    console.log('=== OBTENIENDO TODAS LAS ACTIVIDADES ===');
+    const result = await sql`SELECT * FROM obtener_todas_actividades()`;
+    console.log(`Actividades obtenidas: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error('Error obteniendo todas las actividades:', error);
+    throw error;
+  }
+}
+
+// Crear una nueva actividad
+export async function createActividad(
+  eventoId: number,
+  nombre: string,
+  fecha: string,
+  horaInicio: string,
+  horaFin: string
+) {
+  try {
+    console.log(`=== CREANDO ACTIVIDAD PARA EVENTO ${eventoId} ===`);
+    const result = await sql`SELECT crear_actividad(${eventoId}, ${nombre}, ${fecha}, ${horaInicio}, ${horaFin})`;
+    console.log('Actividad creada exitosamente');
+    return result[0];
+  } catch (error) {
+    console.error('Error creando actividad:', error);
+    throw error;
+  }
+}
+
+// Actualizar una actividad
+export async function updateActividad(
+  premiacionId: number,
+  nombre: string,
+  fecha: string,
+  horaInicio: string,
+  horaFin: string
+) {
+  try {
+    console.log(`=== ACTUALIZANDO ACTIVIDAD ${premiacionId} ===`);
+    const result = await sql`SELECT actualizar_actividad(${premiacionId}, ${nombre}, ${fecha}, ${horaInicio}, ${horaFin})`;
+    console.log('Actividad actualizada exitosamente');
+    return result[0];
+  } catch (error) {
+    console.error('Error actualizando actividad:', error);
+    throw error;
+  }
+}
+
+// Eliminar una actividad
+export async function deleteActividad(premiacionId: number) {
+  try {
+    console.log(`=== ELIMINANDO ACTIVIDAD ${premiacionId} ===`);
+    const result = await sql`SELECT eliminar_actividad(${premiacionId})`;
+    console.log('Actividad eliminada exitosamente');
+    return result[0];
+  } catch (error) {
+    console.error('Error eliminando actividad:', error);
+    throw error;
+  }
+}
+
+// Obtener actividades de hoy
+export async function getActividadesHoy() {
+  try {
+    console.log('=== OBTENIENDO ACTIVIDADES DE HOY ===');
+    const result = await sql`SELECT * FROM vista_actividades_hoy`;
+    console.log(`Actividades de hoy: ${result.length} registros`);
+    return result;
+  } catch (error) {
+    console.error('Error obteniendo actividades de hoy:', error);
+    throw error;
+  }
+}
+
+

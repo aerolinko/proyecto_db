@@ -130,6 +130,14 @@ export default function GestionEventos() {
   const [modalType, setModalType] = useState<'cervezas' | 'empleados' | 'proveedores' | 'catalogo'>('cervezas');
   const [loadingModal, setLoadingModal] = useState(false);
   const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null);
+  const [showActividadForm, setShowActividadForm] = useState(false);
+  const [actividadFormData, setActividadFormData] = useState({
+    nombre: '',
+    fecha: '',
+    hora_inicio: '',
+    hora_fin: '',
+    evento_id: ''
+  });
   const [formData, setFormData] = useState({
     nombre: '',
     capacidad: '',
@@ -540,6 +548,36 @@ Eventos creados: ${result.data.eventos_creados}
     return '/cervezas/PILSNER.png';
   };
 
+  const handleCreateActividad = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch(`/api/eventos/${actividadFormData.evento_id}/actividades`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: actividadFormData.nombre,
+          fecha: actividadFormData.fecha,
+          hora_inicio: actividadFormData.hora_inicio,
+          hora_fin: actividadFormData.hora_fin
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('Actividad creada exitosamente');
+        setShowActividadForm(false);
+        setActividadFormData({ nombre: '', fecha: '', hora_inicio: '', hora_fin: '', evento_id: '' });
+      } else {
+        alert('Error al crear actividad: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error creating actividad:', error);
+      alert('Error al crear actividad');
+    }
+  };
+
   // Asegurar que eventos sea siempre un array
   const eventosArray = Array.isArray(eventos) ? eventos : [];
   
@@ -579,14 +617,22 @@ Eventos creados: ${result.data.eventos_creados}
                 }
               </p>
             </div>
-            {canCreate && (
+            <div className="flex flex-col sm:flex-row gap-4">
+              {canCreate && (
+                <button 
+                  onClick={() => setShowForm(true)}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
+                >
+                  ✨ Nuevo Evento
+                </button>
+              )}
               <button 
-                onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
+                onClick={() => setShowActividadForm(true)}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold text-lg"
               >
-                ✨ Nuevo Evento
+                🎯 Nueva Actividad
               </button>
-            )}
+            </div>
           </div>
         </div>
 
@@ -1027,6 +1073,130 @@ Eventos creados: ${result.data.eventos_creados}
                     )}
                   </>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para crear actividades */}
+        {showActividadForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    🎯 Crear Nueva Actividad
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowActividadForm(false);
+                      setActividadFormData({ nombre: '', fecha: '', hora_inicio: '', hora_fin: '', evento_id: '' });
+                    }}
+                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <form onSubmit={handleCreateActividad} className="space-y-6">
+                  <div>
+                    <label htmlFor="evento_id" className="block text-sm font-semibold text-gray-700 mb-2">
+                      🍺 Seleccionar Evento
+                    </label>
+                    <select
+                      id="evento_id"
+                      value={actividadFormData.evento_id}
+                      onChange={(e) => setActividadFormData({...actividadFormData, evento_id: e.target.value})}
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-all duration-300"
+                      required
+                    >
+                      <option value="">Seleccionar evento</option>
+                      {eventos.map((evento) => (
+                        <option key={evento.evento_id} value={evento.evento_id}>
+                          {evento.nombre} - {evento.tipo_evento_nombre} ({formatDate(evento.fecha_inicio)})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="actividad_nombre" className="block text-sm font-semibold text-gray-700 mb-2">
+                      🎯 Nombre de la Actividad
+                    </label>
+                    <input
+                      id="actividad_nombre"
+                      type="text"
+                      value={actividadFormData.nombre}
+                      onChange={(e) => setActividadFormData({...actividadFormData, nombre: e.target.value})}
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-all duration-300"
+                      placeholder="Ej: Degustación de cervezas, Concurso de homebrewers..."
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label htmlFor="actividad_fecha" className="block text-sm font-semibold text-gray-700 mb-2">
+                        📅 Fecha
+                      </label>
+                      <input
+                        id="actividad_fecha"
+                        type="date"
+                        value={actividadFormData.fecha}
+                        onChange={(e) => setActividadFormData({...actividadFormData, fecha: e.target.value})}
+                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-all duration-300"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="actividad_hora_inicio" className="block text-sm font-semibold text-gray-700 mb-2">
+                        ⏰ Hora de Inicio
+                      </label>
+                      <input
+                        id="actividad_hora_inicio"
+                        type="time"
+                        value={actividadFormData.hora_inicio}
+                        onChange={(e) => setActividadFormData({...actividadFormData, hora_inicio: e.target.value})}
+                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-all duration-300"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="actividad_hora_fin" className="block text-sm font-semibold text-gray-700 mb-2">
+                        ⏰ Hora de Fin
+                      </label>
+                      <input
+                        id="actividad_hora_fin"
+                        type="time"
+                        value={actividadFormData.hora_fin}
+                        onChange={(e) => setActividadFormData({...actividadFormData, hora_fin: e.target.value})}
+                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-all duration-300"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-4 pt-6">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowActividadForm(false);
+                        setActividadFormData({ nombre: '', fecha: '', hora_inicio: '', hora_fin: '', evento_id: '' });
+                      }}
+                      className="px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300 font-semibold"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      type="submit"
+                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 font-semibold"
+                    >
+                      🎯 Crear Actividad
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/db';
 
 export async function PUT(
   request: NextRequest,
@@ -40,7 +40,7 @@ export async function PUT(
 
     const result = await updateQuery;
 
-    if (result.rowCount === 0) {
+    if (result.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Orden no encontrada' },
         { status: 404 }
@@ -72,14 +72,14 @@ export async function PUT(
       WHERE vo.venta_online_id = ${orderId}
     `;
 
-    if (orderResult.rows.length === 0) {
+    if (orderResult.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Error al obtener la orden actualizada' },
         { status: 500 }
       );
     }
 
-    const updatedOrder = orderResult.rows[0];
+    const updatedOrder = orderResult[0];
 
     return NextResponse.json({
       success: true,

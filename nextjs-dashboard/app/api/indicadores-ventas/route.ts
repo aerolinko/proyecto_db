@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { sql } from '@/db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    return NextResponse.json({ data: result.rows });
+    return NextResponse.json({ data: result });
 
   } catch (error) {
     console.error('Error al obtener indicadores de ventas:', error);

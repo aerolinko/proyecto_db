@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: result.rows[0] || null
+      data: result[0] || null
     });
 
   } catch (error) {
