@@ -65,12 +65,25 @@ export async function POST(
       );
     }
 
+    // Validar límite de productos por proveedor usando función almacenada
+    const puedeAgregar = await sql`SELECT puede_agregar_producto_evento(${eventoIdNum}, ${miembro_id}) as permitido`;
+    if (!puedeAgregar[0]?.permitido) {
+      return NextResponse.json(
+        { success: false, error: 'Límite de productos por proveedor alcanzado (máx. 5)' },
+        { status: 400 }
+      );
+    }
+
+    // Agregar proveedor-producto al evento
     const registroId = await agregarProveedorEvento(
       eventoIdNum,
       miembro_id,
       cerveza_presentacion_id,
       cantidad
     );
+
+    // Facturación automática por participación (ejemplo: monto fijo 10000)
+    await sql`CALL facturar_participacion_evento(${eventoIdNum}, ${miembro_id}, 10000)`;
 
     return NextResponse.json({ 
       success: true, 

@@ -8,9 +8,14 @@ import {
   ClockIcon,
   UsersIcon,
   CreditCardIcon,
-  TrashIcon
+  TrashIcon,
+  CheckCircleIcon,
+  ArrowLeftIcon,
+  UserIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface Evento {
   evento_id: number;
@@ -74,14 +79,14 @@ export default function CheckoutPage() {
     ciudad: '',
     codigoPostal: '',
   });
-  // Múltiples tarjetas
-  const [tarjetas, setTarjetas] = useState<Array<{
-    tipo: 'debito' | 'credito',
-    numero: string,
-    banco: string,
-    fecha_exp?: string,
-    monto: number
-  }>>([{ tipo: 'debito', numero: '', banco: '', monto: 0 }]);
+  // ESTADO PARA MÉTODOS DE PAGO IGUAL A TIENDA ONLINE
+  const [selectedPaymentType, setSelectedPaymentType] = useState<'tarjeta_credito' | 'tarjeta_debito'>('tarjeta_credito');
+  const [cardData, setCardData] = useState({ numero: '', banco: '', fecha_exp: '' });
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+
+  const [orderComplete, setOrderComplete] = useState(false);
+  const [ventaId, setVentaId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Extraer el userId de la ruta actual
   let userId = '';
@@ -92,6 +97,27 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     loadCart();
+    // Obtener datos del usuario autenticado
+    async function fetchUserProfile() {
+      if (!userId) return;
+      try {
+        const res = await fetch(`/api/usuarios/current?userId=${userId}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setFormData(prev => ({
+            ...prev,
+            nombre: data.data.nombre || '',
+            apellido: data.data.apellido || '',
+            telefono: data.data.telefono || '',
+            email: data.data.email || '',
+            direccion: data.data.direccion || '',
+          }));
+        }
+      } catch (err) {
+        // No hacer nada, dejar campos vacíos
+      }
+    }
+    fetchUserProfile();
   }, []);
 
   const loadCart = () => {
@@ -146,39 +172,61 @@ export default function CheckoutPage() {
     }));
   };
 
-  const handleAddTarjeta = () => {
-    setTarjetas([...tarjetas, { tipo: 'debito', numero: '', banco: '', monto: 0 }]);
+  // FUNCIONES DE FORMATO Y CAMBIO DE TARJETA IGUAL A TIENDA ONLINE
+  const formatCardNumber = (input: string) => {
+    const digitsOnly = input.replace(/\D/g, '');
+    return digitsOnly.replace(/(\d{4})(?=\d)/g, '$1 ');
   };
-  const handleRemoveTarjeta = (idx: number) => {
-    setTarjetas(tarjetas.filter((_, i) => i !== idx));
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatCardNumber(e.target.value);
+    setCardData(prev => ({ ...prev, numero: formattedValue }));
   };
-  const handleTarjetaChange = (idx: number, field: string, value: any) => {
-    setTarjetas(tarjetas.map((t, i) => i === idx ? { ...t, [field]: value } : t));
+  const removePaymentMethod = (idx: number) => {
+    setPaymentMethods(paymentMethods.filter((_, i) => i !== idx));
   };
+  const addPaymentMethod = () => {
+    if (selectedPaymentType === 'tarjeta_credito' || selectedPaymentType === 'tarjeta_debito') {
+      if (!cardData.numero || !cardData.banco || (selectedPaymentType === 'tarjeta_credito' && !cardData.fecha_exp)) {
+        showMessage('error', 'Por favor complete todos los campos de la tarjeta');
+        return;
+      }
+      const newMethod = {
+        tipo: selectedPaymentType === 'tarjeta_credito' ? 'credito' : 'debito',
+        numero: cardData.numero.replace(/\s/g, ''),
+        banco: cardData.banco,
+        monto: total,
+        fecha_exp: selectedPaymentType === 'tarjeta_credito' ? cardData.fecha_exp : undefined
+      };
+      setPaymentMethods([...paymentMethods, newMethod]);
+      setCardData({ numero: '', banco: '', fecha_exp: '' });
+    }
+  };
+
+  // Al enviar el formulario, mapear los datos del cliente a los campos correctos
+  const buildClientePayload = () => ({
+    primer_nombre: formData.nombre || 'NOMBRE',
+    primer_apellido: formData.apellido || 'APELLIDO',
+    cedula: formData.cedula || '0',
+    direccion: formData.direccion || 'NO ESPECIFICADA',
+    RIF: formData.RIF || 'GENERICA',
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (cart.eventos.length === 0) {
+    setIsProcessing(true);
+    if (!cart.eventos || cart.eventos.length === 0) {
       showMessage('error', 'No hay eventos en el carrito');
+      setIsProcessing(false);
       return;
     }
-    // Validar campos requeridos
-    const requiredFields = ['nombre', 'apellido', 'cedula', 'telefono', 'email', 'direccion', 'ciudad'];
-    for (const field of requiredFields) {
-      if (!formData[field as keyof typeof formData]) {
-        showMessage('error', `El campo ${field} es requerido`);
-        return;
-      }
-    }
-    // Validar tarjetas
-    if (tarjetas.length === 0 || tarjetas.some(t => !t.numero || !t.banco || t.monto <= 0)) {
-      showMessage('error', 'Debes ingresar los datos de todas las tarjetas y montos.');
+    if (!formData.direccion || formData.direccion.trim() === '') {
+      showMessage('error', 'Por favor, ingresa tu dirección de entrega.');
+      setIsProcessing(false);
       return;
     }
-    // Sumar montos
-    const totalPagos = tarjetas.reduce((sum, t) => sum + Number(t.monto), 0);
-    if (totalPagos !== total) {
-      showMessage('error', 'La suma de los montos de las tarjetas debe ser igual al total a pagar.');
+    if (paymentMethods.length === 0) {
+      showMessage('error', 'Debes agregar al menos un método de pago.');
+      setIsProcessing(false);
       return;
     }
     try {
@@ -186,33 +234,33 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cliente: formData,
+          cliente: buildClientePayload(),
           evento: {
-            evento_id: cart.eventos[0].evento_id,
-            precio_unitario: cart.eventos[0].precio_entradas,
+            evento_id: cart.eventos[0]?.evento_id,
+            precio_unitario: cart.eventos[0]?.precio_entradas,
             cantidad: 1
           },
           total: total,
-          pagos: tarjetas
+          pagos: Array.isArray(paymentMethods) ? paymentMethods : [paymentMethods]
         })
       });
-      if (response.ok) {
-        showMessage('success', '¡Compra realizada con éxito! Recibirás un email de confirmación.');
-        setTimeout(() => {
-          clearCart();
-          router.push(`/${userId}/tienda-eventos`);
-        }, 3000);
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setVentaId(data.venta_evento_id);
+        setOrderComplete(true);
+        localStorage.removeItem(`tienda-eventos-cart-${userId}`);
+        showMessage('success', '¡Pago registrado exitosamente!');
       } else {
-        showMessage('error', 'Error al registrar la venta. Inténtalo de nuevo.');
+        showMessage('error', data.error || 'Error al registrar la venta. Inténtalo de nuevo.');
       }
     } catch (error) {
-      console.error('Error processing payment:', error);
       showMessage('error', 'Error al procesar el pago. Inténtalo de nuevo.');
     }
+    setIsProcessing(false);
   };
 
-  const totalEventos = cart.eventos.reduce((sum, evento) => sum + evento.precio_entradas, 0);
-  const totalActividades = cart.actividades.reduce((sum, actividad) => sum + (actividad.precio || 0), 0);
+  const totalEventos = (cart.eventos ?? []).reduce((sum, evento) => sum + evento.precio_entradas, 0);
+  const totalActividades = (cart.actividades ?? []).reduce((sum, actividad) => sum + (actividad.precio || 0), 0);
   const total = totalEventos + totalActividades;
 
   if (loading) {
@@ -226,255 +274,235 @@ export default function CheckoutPage() {
     );
   }
 
+  if (orderComplete) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+          <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Pago Completado!</h2>
+          <p className="text-gray-600 mb-6">
+            Tu compra ha sido procesada exitosamente. Pronto recibirás un correo de confirmación.
+          </p>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500">
+              <strong>Número de Orden:</strong> #{ventaId}
+            </p>
+            <p className="text-sm text-gray-500">
+              <strong>Total:</strong> Bs. {total.toFixed(2)}
+            </p>
+          </div>
+          <Link
+            href={`/${userId}/tienda-eventos`}
+            className="mt-6 inline-block bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Volver a la Tienda de Eventos
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-8 px-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
+          <Link
+            href={`/${userId}/tienda-eventos`}
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+          >
+            <ArrowLeftIcon className="w-5 h-5 mr-2" />
+            Volver a Eventos
+          </Link>
           <h1 className="text-3xl font-bold text-gray-900">Finalizar Compra</h1>
-          <p className="text-gray-600 mt-2">Completa tu información para finalizar la compra</p>
         </div>
-
-        {/* Message Display */}
-        {message && (
-          <div className={`p-4 mb-6 rounded-lg text-center font-semibold
-            ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-            {message.text}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Formulario de Pago */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Información de Pago</h2>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Información Personal */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Información Personal</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo *</label>
-                      <input
-                        type="text"
-                        name="nombre"
-                        value={formData.nombre}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
-                      <input
-                        type="tel"
-                        name="telefono"
-                        value={formData.telefono}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dirección */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Dirección de Envío</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Dirección *</label>
-                      <input
-                        type="text"
-                        name="direccion"
-                        value={formData.direccion}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Ciudad *</label>
-                        <input
-                          type="text"
-                          name="ciudad"
-                          value={formData.ciudad}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Código Postal</label>
-                        <input
-                          type="text"
-                          name="codigoPostal"
-                          value={formData.codigoPostal}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Método de Pago */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Método de Pago</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Seleccionar método</label>
-                      <select
-                        name="metodoPago"
-                        value={formData.metodoPago}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      >
-                        <option value="tarjeta">Tarjeta de Crédito/Débito</option>
-                        <option value="transferencia">Transferencia Bancaria</option>
-                        <option value="efectivo">Pago en Efectivo</option>
-                      </select>
-                    </div>
-
-                    {formData.metodoPago === 'tarjeta' && (
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Número de Tarjeta *</label>
-                          <input
-                            type="text"
-                            name="numeroTarjeta"
-                            value={formData.numeroTarjeta}
-                            onChange={handleInputChange}
-                            placeholder="1234 5678 9012 3456"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            required
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Fecha de Vencimiento *</label>
-                            <input
-                              type="text"
-                              name="fechaVencimiento"
-                              value={formData.fechaVencimiento}
-                              onChange={handleInputChange}
-                              placeholder="MM/AA"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">CVV *</label>
-                            <input
-                              type="text"
-                              name="cvv"
-                              value={formData.cvv}
-                              onChange={handleInputChange}
-                              placeholder="123"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre en Tarjeta *</label>
-                            <input
-                              type="text"
-                              name="nombreTarjeta"
-                              value={formData.nombreTarjeta}
-                              onChange={handleInputChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Botón de Pago */}
-                <div className="pt-6">
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    Confirmar Compra - Bs. {total.toFixed(2)}
-                  </button>
-                </div>
-              </form>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Información del Cliente */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-6">
+              <UserIcon className="w-6 h-6 text-blue-600 mr-2" />
+              <h2 className="text-xl font-semibold">Información del Cliente</h2>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                <input
+                  type="text"
+                  value={formData.nombre}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                <input
+                  type="tel"
+                  value={formData.telefono}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Dirección de Entrega *</label>
+                <textarea
+                  value={formData.direccion}
+                  onChange={e => setFormData(prev => ({ ...prev, direccion: e.target.value }))}
+                  placeholder="Ingresa tu dirección completa de entrega"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  {formData.direccion ? 'Dirección cargada desde tu perfil. Puedes modificarla si es necesario.' : 'Por favor, ingresa tu dirección de entrega.'}
+                </p>
+              </div>
             </div>
           </div>
-
-          {/* Resumen del Carrito */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Resumen del Pedido</h2>
-              
-              {cart.eventos.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No hay productos en el carrito</p>
-              ) : (
-                <>
-                  {/* Eventos */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Eventos</h3>
-                    <div className="space-y-3">
-                      {cart.eventos.map((evento) => (
-                        <div key={evento.evento_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <img src={evento.image} alt={evento.nombre} className="w-12 h-12 rounded object-cover" />
-                            <div>
-                              <p className="font-medium text-sm text-gray-800">{evento.nombre}</p>
-                              <p className="text-gray-500 text-xs">{evento.tipo_evento_nombre}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <button
-                              onClick={() => removeFromCart('eventos', evento.evento_id)}
-                              className="text-red-500 hover:text-red-700 text-sm mb-1"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
-                            <p className="font-medium text-blue-800 text-sm">Bs. {evento.precio_entradas.toFixed(2)}</p>
-                          </div>
-                        </div>
-                      ))}
+          {/* Método de Pago */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-6">
+              <CreditCardIcon className="w-6 h-6 text-blue-600 mr-2" />
+              <h2 className="text-xl font-semibold">Método de Pago</h2>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Seleccionar Método de Pago
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${selectedPaymentType === 'tarjeta_credito' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'}`}>
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="tarjeta_credito"
+                      checked={selectedPaymentType === 'tarjeta_credito'}
+                      onChange={e => setSelectedPaymentType(e.target.value as any)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="font-medium">Tarjeta Crédito</span>
+                  </label>
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${selectedPaymentType === 'tarjeta_debito' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'}`}>
+                    <input
+                      type="radio"
+                      name="paymentType"
+                      value="tarjeta_debito"
+                      checked={selectedPaymentType === 'tarjeta_debito'}
+                      onChange={e => setSelectedPaymentType(e.target.value as any)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="font-medium">Tarjeta Débito</span>
+                  </label>
+                </div>
+              </div>
+              {(selectedPaymentType === 'tarjeta_credito' || selectedPaymentType === 'tarjeta_debito') && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Número de Tarjeta
+                    </label>
+                    <input
+                      type="text"
+                      value={cardData.numero}
+                      onChange={handleCardNumberChange}
+                      placeholder="0000 0000 0000 0000"
+                      maxLength={19}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  {selectedPaymentType === 'tarjeta_credito' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Fecha de Expiración
+                      </label>
+                      <input
+                        type="date"
+                        value={cardData.fecha_exp}
+                        onChange={e => setCardData(prev => ({ ...prev, fecha_exp: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
                     </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Banco Emisor
+                    </label>
+                    <input
+                      type="text"
+                      value={cardData.banco}
+                      onChange={e => setCardData(prev => ({ ...prev, banco: e.target.value }))}
+                      placeholder="Ej: Banesco"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
                   </div>
-
-                  {/* Total */}
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between items-center text-lg font-semibold text-gray-900">
-                      <span>Total:</span>
-                      <span>Bs. {total.toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  {/* Botón Limpiar Carrito */}
-                  <div className="mt-4">
-                    <button
-                      onClick={clearCart}
-                      className="w-full bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors"
-                    >
-                      Limpiar Carrito
-                    </button>
-                  </div>
-                </>
+                </div>
               )}
+              <button
+                type="button"
+                onClick={addPaymentMethod}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Confirmar Método de Pago
+              </button>
+            </div>
+            {paymentMethods.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-md font-semibold mb-2">Métodos de Pago Agregados</h3>
+                <ul className="space-y-2">
+                  {paymentMethods.map((pm, idx) => (
+                    <li key={idx} className="flex items-center justify-between bg-blue-50 p-2 rounded">
+                      <span>{pm.tipo === 'credito' ? 'Tarjeta Crédito' : 'Tarjeta Débito'} •••• {pm.numero.slice(-4)} - {pm.banco}</span>
+                      <button onClick={() => removePaymentMethod(idx)} className="text-red-500 ml-2">Eliminar</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Resumen de la Orden */}
+        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-6">Resumen de la Orden</h2>
+          <div className="space-y-4">
+            {cart.eventos.map((evento) => (
+              <div key={evento.evento_id} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-b-0">
+                <div className="flex items-center space-x-3">
+                  <div>
+                    <p className="font-medium text-gray-800">{evento.nombre}</p>
+                    <p className="text-gray-500 text-sm">{evento.tipo_evento_nombre}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-blue-800">Bs. {(evento.precio_entradas != null ? Number(evento.precio_entradas).toFixed(2) : '0.00')}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <div className="flex justify-between text-lg font-bold text-blue-800 pt-2 border-t border-gray-200">
+              <span>Total:</span>
+              <span>Bs. {total.toFixed(2)}</span>
             </div>
           </div>
+          <button
+            onClick={handleSubmit}
+            disabled={isProcessing || paymentMethods.length === 0}
+            className={`w-full mt-6 py-3 px-4 rounded-lg font-semibold text-white transition-colors ${
+              isProcessing || paymentMethods.length === 0
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {isProcessing ? 'Procesando...' : 'Completar Compra'}
+          </button>
         </div>
       </div>
     </div>

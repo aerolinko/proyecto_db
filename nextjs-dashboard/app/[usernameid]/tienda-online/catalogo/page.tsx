@@ -674,16 +674,21 @@ export default function CatalogoCervezas({ params }) {
                           {product.description}
                         </p>
                         
-                                                 {/* Price */}
+                         {/* Price Mejorado */}
                          <div className="flex items-center gap-2">
-                           {product.isOnSale ? (
-                             <>
-                               <span className="text-gray-400 text-xs line-through">Bs. {product.originalPrice?.toFixed(2)}</span>
-                               <span className="font-semibold text-sm text-red-600">Bs. {product.price.toFixed(2)}</span>
-                             </>
-                           ) : (
-                             <span className="font-semibold text-sm text-gray-700">Bs. {product.price.toFixed(2)}</span>
-                           )}
+                           {(() => {
+                             // Si el precio no es válido, mostrar 50
+                             let price = (typeof product.price === 'number' && !isNaN(product.price)) ? product.price : 50;
+                             let originalPrice = (typeof product.originalPrice === 'number' && !isNaN(product.originalPrice)) ? product.originalPrice : null;
+                             if (product.isOnSale && originalPrice) {
+                               return <>
+                                 <span className="text-gray-400 text-xs line-through">Bs. {originalPrice.toFixed(2)}</span>
+                                 <span className="font-semibold text-sm text-red-600">Bs. {price.toFixed(2)}</span>
+                               </>;
+                             } else {
+                               return <span className="font-semibold text-sm text-gray-700">Bs. {price.toFixed(2)}</span>;
+                             }
+                           })()}
                          </div>
                       </div>
 
@@ -698,9 +703,26 @@ export default function CatalogoCervezas({ params }) {
                             <MinusIcon className="w-4 h-4" />
                           </button>
 
-                          <span className="w-12 text-center font-medium text-base">
-                            {currentQuantity}
-                          </span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={product.stock}
+                            value={currentQuantity}
+                            onChange={e => {
+                              let val = Number(e.target.value);
+                              if (isNaN(val)) val = 0;
+                              if (val < 0) val = 0;
+                              if (val > product.stock) val = product.stock;
+                              handleAddToCart(product.id, val);
+                            }}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                (e.target as HTMLInputElement).blur();
+                              }
+                            }}
+                            className="w-16 text-center font-medium text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            disabled={product.stock === 0}
+                          />
 
                           <button
                             onClick={() => handleAddToCart(product.id, Math.min(currentQuantity + 1, product.stock))}

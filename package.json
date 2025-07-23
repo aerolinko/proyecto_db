@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "dotenv": "^17.1.0",
     "jsreport": "^4.9.0",
-    "next": "^15.3.3"
+    "next": "^15.3.3",
+    "nodemailer": "^7.0.5"
   }
 }

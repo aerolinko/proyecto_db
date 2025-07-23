@@ -50,6 +50,7 @@ export default function NavLinks({currentUser}) {
   const links = [
     { name: 'Menú Principal', href: `/${currentUser.usuario_id}/dashboard`, icon: HomeIcon },
     { name: 'Tienda Online', href: `/${currentUser.usuario_id}/tienda-online/catalogo`, icon: ShoppingBagIcon },
+    { name: 'Caja Evento', href: `/${currentUser.usuario_id}/caja-evento`, icon: TicketIcon },
     { name: 'Tienda Eventos', href: `/${currentUser.usuario_id}/tienda-eventos`, icon: TicketIcon },
     { name: 'Órdenes', href: `/${currentUser.usuario_id}/ordenes`, icon: ClipboardDocumentListIcon },
     // Solo mostrar administración de órdenes para administradores o usuarios con permiso de consulta

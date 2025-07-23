@@ -461,10 +461,26 @@ export default function ActividadesPage() {
                   required
                 />
               </div>
-              
               <div>
                 <Label htmlFor="evento_id">Evento</Label>
-                <Select value={formData.evento_id} onValueChange={(value) => setFormData({...formData, evento_id: value})}>
+                <Select
+                  value={formData.evento_id}
+                  onValueChange={(value) => {
+                    setFormData((prev) => {
+                      const eventoSel = eventos.find(ev => ev.evento_id.toString() === value);
+                      if (eventoSel && eventoSel.fecha_inicio) {
+                        return {
+                          ...prev,
+                          evento_id: value,
+                          fecha: eventoSel.fecha_inicio,
+                          hora_inicio: eventoSel.hora_inicio || '',
+                          hora_fin: eventoSel.hora_fin || ''
+                        };
+                      }
+                      return { ...prev, evento_id: value };
+                    });
+                  }}
+                >
                   <SelectValue placeholder="Seleccionar evento" />
                   {eventos.map(evento => (
                     <SelectItem key={evento.evento_id} value={evento.evento_id.toString()}>
@@ -473,7 +489,6 @@ export default function ActividadesPage() {
                   ))}
                 </Select>
               </div>
-              
               <div>
                 <Label htmlFor="fecha">Fecha</Label>
                 <Input
@@ -484,7 +499,6 @@ export default function ActividadesPage() {
                   required
                 />
               </div>
-              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="hora_inicio">Hora Inicio</Label>
@@ -496,7 +510,6 @@ export default function ActividadesPage() {
                     required
                   />
                 </div>
-                
                 <div>
                   <Label htmlFor="hora_fin">Hora Fin</Label>
                   <Input
@@ -508,7 +521,6 @@ export default function ActividadesPage() {
                   />
                 </div>
               </div>
-              
               <div className="flex gap-2 pt-4">
                 <Button type="submit" className="flex-1">
                   Crear Actividad

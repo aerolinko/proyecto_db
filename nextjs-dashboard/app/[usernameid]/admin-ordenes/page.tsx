@@ -46,34 +46,46 @@ interface OrderItem {
   subtotal: number;
 }
 
-// Estados de las órdenes
+// Estados de las órdenes (nombres exactos de la BD)
 const ORDER_STATES = {
-  'EN_PROCESO': 'En proceso',
-  'LISTO_ENTREGA': 'Listo para entrega',
-  'ENTREGADO': 'Entregado',
-  'CANCELADO': 'Cancelado',
+  'Pendiente': 'Pendiente',
+  'En Proceso': 'En proceso',
   'Completado': 'Completado',
-  'Pendiente': 'Pendiente'
+  'Cancelado': 'Cancelado',
+  'Rechazado': 'Rechazado',
+  'En Revisión': 'En revisión',
+  'Enviado': 'Enviado',
+  'Recibido': 'Recibido',
+  'Aprobado': 'Aprobado',
+  'Devuelto': 'Devuelto'
 };
 
 // Colores para cada estado
 const STATE_COLORS = {
-  'EN_PROCESO': 'bg-yellow-100 text-yellow-800',
-  'LISTO_ENTREGA': 'bg-blue-100 text-blue-800',
-  'ENTREGADO': 'bg-green-100 text-green-800',
-  'CANCELADO': 'bg-red-100 text-red-800',
+  'Pendiente': 'bg-gray-100 text-gray-800',
+  'En Proceso': 'bg-yellow-100 text-yellow-800',
   'Completado': 'bg-green-100 text-green-800',
-  'Pendiente': 'bg-gray-100 text-gray-800'
+  'Cancelado': 'bg-red-100 text-red-800',
+  'Rechazado': 'bg-red-200 text-red-800',
+  'En Revisión': 'bg-blue-100 text-blue-800',
+  'Enviado': 'bg-blue-200 text-blue-800',
+  'Recibido': 'bg-green-200 text-green-800',
+  'Aprobado': 'bg-green-100 text-green-800',
+  'Devuelto': 'bg-orange-100 text-orange-800'
 };
 
 // Iconos para cada estado
 const STATE_ICONS = {
-  'EN_PROCESO': <ClockIcon className="w-5 h-5 text-yellow-500" />,
-  'LISTO_ENTREGA': <TruckIcon className="w-5 h-5 text-blue-500" />,
-  'ENTREGADO': <CheckCircleSolid className="w-5 h-5 text-green-500" />,
-  'CANCELADO': <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />,
+  'Pendiente': <ClockIcon className="w-5 h-5 text-gray-500" />,
+  'En Proceso': <ClockIcon className="w-5 h-5 text-yellow-500" />,
   'Completado': <CheckCircleSolid className="w-5 h-5 text-green-500" />,
-  'Pendiente': <ClockIcon className="w-5 h-5 text-gray-500" />
+  'Cancelado': <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />,
+  'Rechazado': <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />,
+  'En Revisión': <TruckIcon className="w-5 h-5 text-blue-500" />,
+  'Enviado': <TruckIcon className="w-5 h-5 text-blue-400" />,
+  'Recibido': <CheckCircleSolid className="w-5 h-5 text-green-400" />,
+  'Aprobado': <CheckCircleSolid className="w-5 h-5 text-green-600" />,
+  'Devuelto': <ExclamationTriangleIcon className="w-5 h-5 text-orange-500" />
 };
 
 export default function AdminOrdenes({ params }: { params: any }) {
@@ -152,7 +164,7 @@ export default function AdminOrdenes({ params }: { params: any }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, userId: currentUser?.usuario_id || null }),
       });
 
       if (response.ok) {
@@ -178,14 +190,11 @@ export default function AdminOrdenes({ params }: { params: any }) {
     }
   };
 
+  // Cambia la función para solo permitir 'Pendiente' y 'Completado'
   const getAvailableStatuses = (currentStatus: string) => {
-    const statusFlow = {
-      'EN_PROCESO': ['LISTO_ENTREGA', 'CANCELADO'],
-      'LISTO_ENTREGA': ['ENTREGADO', 'EN_PROCESO'],
-      'ENTREGADO': [], // No se puede cambiar desde entregado
-      'CANCELADO': [] // No se puede cambiar desde cancelado
-    };
-    return statusFlow[currentStatus as keyof typeof statusFlow] || [];
+    // Solo permitir cambiar a 'Pendiente' o 'Completado', y nunca mostrar el estado actual como opción
+    const allowed = ['Pendiente', 'Completado'];
+    return allowed.filter(status => status !== currentStatus);
   };
 
   // Filtrar órdenes
@@ -368,35 +377,31 @@ export default function AdminOrdenes({ params }: { params: any }) {
                             Ver Detalles
                           </button>
                           
-                          {/* Status Update Buttons */}
-                          <div className="flex gap-2">
-                            {getAvailableStatuses(order.estado).map((status) => (
-                              <button
-                                key={status}
-                                onClick={() => updateOrderStatus(order.venta_online_id, status)}
-                                disabled={updatingOrder === order.venta_online_id}
-                                className={`px-3 py-2 text-xs font-medium rounded-md transition-colors ${
-                                  updatingOrder === order.venta_online_id
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    : status === 'ENTREGADO'
-                                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                                    : status === 'CANCELADO'
-                                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                                    : status === 'LISTO_ENTREGA'
-                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                    : 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                                }`}
-                              >
-                                {updatingOrder === order.venta_online_id ? (
-                                  <div className="flex items-center gap-1">
-                                    <CogIcon className="w-3 h-3 animate-spin" />
-                                    Actualizando...
-                                  </div>
-                                ) : (
-                                  ORDER_STATES[status as keyof typeof ORDER_STATES]
-                                )}
-                              </button>
-                            ))}
+                          {/* Status Update ComboBox */}
+                          <div className="flex items-center gap-2">
+                            <label htmlFor={`status-select-${order.venta_online_id}`} className="text-sm text-gray-700">Cambiar estado:</label>
+                            <select
+                              id={`status-select-${order.venta_online_id}`}
+                              value={updatingOrder === order.venta_online_id ? '' : order.estado}
+                              onChange={e => {
+                                const newStatus = e.target.value;
+                                if (newStatus && newStatus !== order.estado) {
+                                  updateOrderStatus(order.venta_online_id, newStatus);
+                                }
+                              }}
+                              disabled={['Completado', 'Cancelado'].includes(order.estado)}
+                              className="px-3 py-2 text-xs font-medium rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            >
+                              <option value="" disabled>{updatingOrder === order.venta_online_id ? 'Actualizando...' : 'Selecciona nuevo estado'}</option>
+                              {getAvailableStatuses(order.estado).map(status => (
+                                <option key={status} value={status}>
+                                  {ORDER_STATES[status as keyof typeof ORDER_STATES]}
+                                </option>
+                              ))}
+                            </select>
+                            {updatingOrder === order.venta_online_id && (
+                              <CogIcon className="w-4 h-4 animate-spin text-gray-500 ml-2" />
+                            )}
                           </div>
                         </div>
                       </div>
@@ -548,12 +553,10 @@ export default function AdminOrdenes({ params }: { params: any }) {
                         className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                           updatingOrder === selectedOrder.venta_online_id
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : status === 'ENTREGADO'
+                            : status === 'Completado'
                             ? 'bg-green-600 hover:bg-green-700 text-white'
-                            : status === 'CANCELADO'
+                            : status === 'Cancelado'
                             ? 'bg-red-600 hover:bg-red-700 text-white'
-                            : status === 'LISTO_ENTREGA'
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
                             : 'bg-yellow-600 hover:bg-yellow-700 text-white'
                         }`}
                       >

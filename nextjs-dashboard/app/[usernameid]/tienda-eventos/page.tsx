@@ -356,7 +356,7 @@ export default function TiendaEventos({ params }) {
                             {cart.eventos.map((evento) => (
                               <div key={evento.evento_id} className="flex items-center justify-between py-2 border-b border-gray-200">
                                 <div className="flex items-center space-x-3">
-                                  <img src={evento.image} alt={evento.nombre} className="w-12 h-12 rounded object-cover" />
+                                  {/* <img src={evento.image} alt={evento.nombre} className="w-12 h-12 rounded object-cover" /> */}
                                   <div>
                                     <p className="font-medium text-sm text-gray-800">{evento.nombre}</p>
                                     <p className="text-gray-500 text-xs">Evento</p>
@@ -566,21 +566,10 @@ export default function TiendaEventos({ params }) {
               </p>
             ) : (
               filteredAndSortedEventos.map((evento) => (
-                <div key={evento.evento_id} className="bg-white p-3 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100 relative">
-                  {/* Sale Badge */}
-                  {evento.isOnSale && (
-                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold z-10">
-                      -{evento.discount}%
-                    </div>
-                  )}
-
+                <div key={evento.evento_id} className="bg-gradient-to-br from-yellow-50 to-blue-50 p-3 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-blue-200 relative scale-100 hover:scale-[1.03]">
                   {/* Event Image */}
                   <div className="relative mb-3">
-                    <img
-                      src={evento.image}
-                      alt={evento.nombre}
-                      className="w-full h-48 object-cover rounded-md"
-                    />
+                    {/* Imagen eliminada */}
                     <div className="absolute top-1 right-1 bg-blue-600 text-white px-1 py-0.5 rounded text-xs font-medium">
                       {evento.total_actividades} actividades
                     </div>
@@ -590,16 +579,21 @@ export default function TiendaEventos({ params }) {
                       </div>
                     )}
                   </div>
-
                   {/* Event Info */}
                   <div className="mb-3">
+                    {/* Destacado si precio es 50 */}
+                    {(!evento.precio_entradas || isNaN(evento.precio_entradas) || evento.precio_entradas <= 0) && (
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs font-bold animate-pulse">¡Precio especial!</span>
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-bold">Bs. 50</span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="text-sm font-bold text-gray-800 truncate">{evento.nombre}</h3>
                       <div className="flex items-center">
                         {renderStars(evento.rating || 4)}
                       </div>
                     </div>
-                    
                     {/* Type and State */}
                     <div className="flex gap-1 mb-1">
                       <span className="bg-blue-100 text-blue-800 text-xs px-1 py-0.5 rounded">{evento.tipo_evento_nombre}</span>
@@ -611,11 +605,9 @@ export default function TiendaEventos({ params }) {
                         {evento.estado_evento}
                       </span>
                     </div>
-                    
                     <p className="text-gray-600 text-xs mb-1 line-clamp-2">
                       {evento.description}
                     </p>
-                    
                     {/* Event Details */}
                     <div className="space-y-1 mb-2">
                       <div className="flex items-center gap-1 text-xs text-gray-600">
@@ -631,28 +623,23 @@ export default function TiendaEventos({ params }) {
                         <span>Capacidad: {evento.capacidad}</span>
                       </div>
                     </div>
-                    
-                    {/* Price */}
+                    {/* Price Mejorado */}
                     <div className="flex items-center gap-2">
-                      {evento.isOnSale ? (
-                        <>
-                          <span className="text-gray-400 text-xs line-through">Bs. {evento.originalPrice != null ? Number(evento.originalPrice).toFixed(2) : 'No disponible'}</span>
-                          <span className="font-semibold text-sm text-red-600">Bs. {evento.precio_entradas != null ? Number(evento.precio_entradas).toFixed(2) : 'No disponible'}</span>
-                        </>
-                      ) : (
-                        <span className="font-semibold text-sm text-gray-700">Bs. {evento.precio_entradas != null ? Number(evento.precio_entradas).toFixed(2) : 'No disponible'}</span>
-                      )}
+                      <span className="font-semibold text-sm text-gray-700">
+                        Bs. {typeof evento.precio_entradas === 'number' && !isNaN(evento.precio_entradas) && evento.precio_entradas > 0
+                          ? Number(evento.precio_entradas).toFixed(2)
+                          : '50.00'}
+                      </span>
                     </div>
                   </div>
-
                   {/* Add to Cart Button */}
                   <button
                     onClick={() => handleAddEventoToCart(evento)}
                     disabled={evento.estado_evento === 'FINALIZADO'}
-                    className={`w-full py-2 px-4 rounded-lg font-medium transition-colors duration-200 ${
+                    className={`w-full py-2 px-4 rounded-lg font-bold shadow-md transition-all duration-200 ${
                       evento.estado_evento === 'FINALIZADO'
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-500 text-white hover:from-blue-700 hover:to-indigo-600 scale-105'
                     }`}
                   >
                     {evento.estado_evento === 'FINALIZADO' ? 'Evento Finalizado' : 'Agregar al Carrito'}
@@ -665,4 +652,4 @@ export default function TiendaEventos({ params }) {
       </div>
     </div>
   );
-} 
+}

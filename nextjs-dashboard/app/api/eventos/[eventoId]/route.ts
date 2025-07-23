@@ -126,7 +126,12 @@ export async function DELETE(
       }, { status: 400 });
     }
 
-    await sql`DELETE FROM EVENTO WHERE evento_id = ${eventoIdNum}`;
+    // Eliminar primero los hijos en evento_empleado
+    await sql`DELETE FROM evento_empleado WHERE fk_evento = ${eventoIdNum}`;
+    // Eliminar los hijos en evento_miembro_acaucab
+    await sql`DELETE FROM evento_miembro_acaucab WHERE fk_evento = ${eventoIdNum}`;
+    // Luego eliminar el evento
+    await sql`DELETE FROM evento WHERE evento_id = ${eventoIdNum}`;
 
     return NextResponse.json({
       success: true,
@@ -138,6 +143,44 @@ export async function DELETE(
     return NextResponse.json({
       success: false,
       error: 'Error interno del servidor'
+    }, { status: 500 });
+  }
+}
+
+// PATCH - Aprobar evento
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ eventoId: string }> }
+) {
+  try {
+    const { eventoId } = await params;
+    const eventoIdNum = parseInt(eventoId);
+    const body = await request.json();
+    const { userId, accion } = body; // accion: 'aprobar' o 'rechazar'
+
+    if (!eventoIdNum || isNaN(eventoIdNum) || !userId) {
+      return NextResponse.json({
+        success: false,
+        error: 'ID de evento o usuario inválido'
+      }, { status: 400 });
+    }
+
+    if (accion === 'aprobar') {
+      await sql`CALL aprobar_evento(${eventoIdNum}, ${userId})`;
+      return NextResponse.json({
+        success: true,
+        message: 'Evento aprobado exitosamente'
+      });
+    } else {
+      return NextResponse.json({
+        success: false,
+        error: 'Acción no soportada'
+      }, { status: 400 });
+    }
+  } catch (error) {
+    return NextResponse.json({
+      success: false,
+      error: 'Error al aprobar evento'
     }, { status: 500 });
   }
 } 

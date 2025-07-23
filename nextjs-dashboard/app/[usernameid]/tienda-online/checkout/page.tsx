@@ -146,8 +146,7 @@ export default function Checkout({ params }) {
 
   const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   const shipping = 5.00;
-  const tax = subtotal * 0.16; // 16% IVA
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping;
 
   // Obtener puntos del usuario
   const getUserPoints = () => {
@@ -674,16 +673,6 @@ export default function Checkout({ params }) {
                 <span className="text-gray-600">Envío:</span>
                 <span className="font-medium">${shipping.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">IVA (16%):</span>
-                <span className="font-medium">${tax.toFixed(2)}</span>
-              </div>
-              {usePoints && pointsToUse > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Descuento por puntos:</span>
-                  <span className="font-medium">-${(pointsToUse * 0.1).toFixed(2)}</span>
-                </div>
-              )}
               <div className="flex justify-between text-lg font-bold text-blue-800 pt-2 border-t border-gray-200">
                 <span>Total:</span>
                 <span>${(total - (usePoints ? pointsToUse * 0.1 : 0)).toFixed(2)}</span>

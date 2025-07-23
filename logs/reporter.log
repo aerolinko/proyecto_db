@@ -414,3 +414,235 @@
 2025-07-05T21:26:45.330Z - debug: OData query on profiles
 2025-07-05T21:26:45.336Z - debug: OData query on profiles
 2025-07-05T21:26:45.343Z - debug: OData query on templates
+2025-07-08T16:50:12.089Z - info: Initializing jsreport (version: 4.9.0, configuration file: jsreport.config.json, nodejs: 22.11.0)
+2025-07-08T16:50:12.095Z - info: Searching for available extensions in C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\
+2025-07-08T16:50:12.112Z - info: Extensions location cache C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json contains older information, crawling
+2025-07-08T16:50:28.163Z - info: Found 35 extension(s)
+2025-07-08T16:50:29.358Z - debug: Writing extension locations cache to C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json
+2025-07-08T16:50:29.362Z - debug: Discovered 35 extensions
+2025-07-08T16:50:29.420Z - debug: Extension authentication@4.2.3 is disabled, skipping
+2025-07-08T16:50:29.422Z - info: Using extension base@4.0.0
+2025-07-08T16:50:29.444Z - info: Using extension child-templates@4.1.0
+2025-07-08T16:50:29.464Z - info: Using extension cli@4.1.1
+2025-07-08T16:50:29.534Z - info: Using extension components@4.0.2
+2025-07-08T16:50:29.562Z - info: Using extension data@4.1.0
+2025-07-08T16:50:29.581Z - info: Using extension express@4.2.0
+2025-07-08T16:50:40.981Z - info: Using extension freeze@4.0.0
+2025-07-08T16:50:41.004Z - info: Using extension fs-store@4.1.1
+2025-07-08T16:50:44.292Z - info: Using extension handlebars@4.0.1
+2025-07-08T16:50:44.317Z - info: Using extension import-export@4.0.7
+2025-07-08T16:50:44.579Z - info: Using extension jsrender@4.0.0
+2025-07-08T16:50:44.591Z - info: Using extension licensing@4.0.5
+2025-07-08T16:50:45.275Z - info: Using extension localization@4.0.1
+2025-07-08T16:50:45.287Z - info: Using extension npm@4.0.0
+2025-07-08T16:50:45.315Z - info: Using extension pdf-utils@4.3.0
+2025-07-08T16:50:45.340Z - info: Using extension reports@4.1.4
+2025-07-08T16:50:45.377Z - info: Using extension tags@4.0.1
+2025-07-08T16:50:45.416Z - info: Using extension text@4.0.2
+2025-07-08T16:50:45.430Z - info: Using extension version-control@4.1.1
+2025-07-08T16:50:45.588Z - info: Using extension assets@4.2.2
+2025-07-08T16:50:45.875Z - info: Using extension authorization@4.1.0
+2025-07-08T16:50:45.976Z - debug: Extension authorization@4.1.0 was disabled
+2025-07-08T16:50:45.976Z - info: Using extension browser-client@4.1.0
+2025-07-08T16:50:46.070Z - info: Using extension chrome-pdf@4.2.0
+2025-07-08T16:50:46.097Z - debug: Chrome strategy is chrome-pool, numberOfWorkers: 1
+2025-07-08T16:50:46.097Z - debug: Chrome custom launch options are protocolTimeout=60000
+2025-07-08T16:50:46.098Z - info: Using extension docx@4.8.0
+2025-07-08T16:50:46.121Z - info: Using extension html-to-xlsx@4.2.1
+2025-07-08T16:50:51.564Z - info: html-to-xlsx detected chrome as available html engine
+2025-07-08T16:50:51.565Z - info: Using extension pptx@4.4.1
+2025-07-08T16:50:51.584Z - info: Using extension scheduling@4.1.0
+2025-07-08T16:50:52.287Z - info: Using extension scripts@4.2.0
+2025-07-08T16:50:52.307Z - info: Using extension static-pdf@4.1.0
+2025-07-08T16:50:52.326Z - info: Using extension studio@4.3.1
+2025-07-08T16:50:54.169Z - info: Using extension xlsx@4.4.1
+2025-07-08T16:50:54.194Z - info: Using extension public-templates@4.0.0
+2025-07-08T16:50:54.222Z - debug: Extension public-templates@4.0.0 was disabled
+2025-07-08T16:50:54.223Z - info: Using extension sample-template@4.0.1
+2025-07-08T16:50:54.253Z - info: Using extension studio-theme-dark@4.0.0
+2025-07-08T16:50:54.308Z - warn: options.allowLocalFilesAccess is deprecated, use options.trustUserCode instead
+2025-07-08T16:50:54.309Z - info: Using general timeout for rendering (reportTimeout: 60000)
+2025-07-08T16:50:54.309Z - info: Using fs provider for template store.
+2025-07-08T16:50:54.341Z - info: fs store is persisting using fs for C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\data
+2025-07-08T16:50:54.349Z - info: fs store is loading data
+2025-07-08T16:50:54.444Z - info: fs store is initialized successfully
+2025-07-08T16:50:54.449Z - debug: studio default theme is: light
+2025-07-08T16:50:54.458Z - info: Creating default express app.
+2025-07-08T16:50:55.270Z - info: jsreport server successfully started on http port: 5488
+2025-07-08T16:50:55.272Z - info: Verifying license key free
+2025-07-08T16:50:56.970Z - info: Starting one month enterprise trial
+2025-07-08T16:50:56.974Z - info: Initializing worker threads
+2025-07-08T16:50:56.975Z - debug: Extensions in workers: base, child-templates, components, data, express, handlebars, jsrender, localization, npm, pdf-utils, reports, text, version-control, assets, browser-client, chrome-pdf, docx, html-to-xlsx, pptx, scripts, static-pdf, studio, xlsx
+2025-07-08T16:51:02.203Z - info: 2 worker threads initialized in 5229ms
+2025-07-08T16:51:02.204Z - info: Starting temp files cleanup with 180000ms threshold
+2025-07-08T16:51:02.205Z - info: reporter initialized
+2025-07-08T16:51:37.258Z - debug: OData query on templates
+2025-07-08T16:51:37.275Z - debug: OData query on settings
+2025-07-08T16:51:37.280Z - debug: OData query on folders
+2025-07-08T16:51:37.289Z - debug: OData query on components
+2025-07-08T16:51:37.297Z - debug: OData query on data
+2025-07-08T16:51:37.304Z - debug: OData query on tags
+2025-07-08T16:51:37.312Z - debug: OData query on assets
+2025-07-08T16:51:37.322Z - debug: OData query on scripts
+2025-07-08T16:51:37.330Z - debug: OData query on schedules
+2025-07-08T16:51:37.453Z - debug: OData query on templates
+2025-07-08T16:51:37.493Z - debug: OData query on profiles
+2025-07-08T16:51:37.529Z - debug: OData query on profiles
+2025-07-08T16:51:37.541Z - debug: OData query on profiles
+2025-07-08T16:51:37.550Z - debug: OData query on profiles
+2025-07-08T16:51:37.557Z - debug: OData query on profiles
+2025-07-08T16:51:37.564Z - debug: OData query on profiles
+2025-07-08T16:51:37.571Z - debug: OData query on templates
+2025-07-08T17:20:17.176Z - info: Render request 1 queued for execution and waiting for available worker rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:17.308Z - info: Starting rendering request 1 rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:17.312Z - info: Rendering template { name: Factura ACAUCAB, recipe: chrome-pdf, engine: handlebars, preview: false } rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:17.313Z - debug: Inline data specified. rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:17.321Z - debug: Base url not specified, skipping its injection. rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:17.328Z - debug: Rendering engine handlebars rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:24.314Z - debug: Executing recipe chrome-pdf rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:28.398Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:28.541Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/c7dea430-2bd1-4135-97ad-0cc07ec7a35b-chrome-pdf.html rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:28.573Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/c7dea430-2bd1-4135-97ad-0cc07ec7a35b-chrome-pdf.html rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:28.609Z - debug: Running chrome with params {"printBackground":true,"timeout":52748,"margin":{}} rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:28.930Z - debug: Skipping storing report. rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:20:28.930Z - info: Rendering request 1 finished in 11766 ms rootId=gwar9vxfq7x8do7, id=gwar9vxfq7x8do7
+2025-07-08T17:22:05.906Z - info: Render request 2 queued for execution and waiting for available worker rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:06.013Z - info: Starting rendering request 2 rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:06.017Z - info: Rendering template { name: Factura ACAUCAB, recipe: chrome-pdf, engine: handlebars, preview: false } rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:06.019Z - debug: Inline data specified. rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:06.026Z - debug: Base url not specified, skipping its injection. rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:06.037Z - debug: Rendering engine handlebars rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:07.077Z - debug: Executing recipe chrome-pdf rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:07.888Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:08.014Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/f047213c-f90b-46cd-a642-5a030ac9f512-chrome-pdf.html rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:08.041Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/f047213c-f90b-46cd-a642-5a030ac9f512-chrome-pdf.html rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:08.063Z - debug: Running chrome with params {"printBackground":true,"timeout":58808,"margin":{}} rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:08.380Z - debug: Skipping storing report. rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:22:08.380Z - info: Rendering request 2 finished in 2483 ms rootId=9iwf2yi92nvgf2g, id=9iwf2yi92nvgf2g
+2025-07-08T17:27:37.309Z - debug: fs journal was not synced for a while, need full reload
+2025-07-08T17:27:37.864Z - info: fs store is loading data
+2025-07-08T19:08:04.974Z - info: Initializing jsreport (version: 4.9.0, configuration file: jsreport.config.json, nodejs: 22.11.0)
+2025-07-08T19:08:04.982Z - info: Searching for available extensions in C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\
+2025-07-08T19:08:05.002Z - info: Extensions location cache C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json contains older information, crawling
+2025-07-08T19:08:20.526Z - info: Found 35 extension(s)
+2025-07-08T19:08:21.635Z - debug: Writing extension locations cache to C:\Users\josem\AppData\Local\Temp\jsreport\core\locations.json
+2025-07-08T19:08:21.638Z - debug: Discovered 35 extensions
+2025-07-08T19:08:21.723Z - debug: Extension authentication@4.2.3 is disabled, skipping
+2025-07-08T19:08:21.725Z - info: Using extension base@4.0.0
+2025-07-08T19:08:21.750Z - info: Using extension child-templates@4.1.0
+2025-07-08T19:08:21.775Z - info: Using extension cli@4.1.1
+2025-07-08T19:08:21.872Z - info: Using extension components@4.0.2
+2025-07-08T19:08:21.904Z - info: Using extension data@4.1.0
+2025-07-08T19:08:21.933Z - info: Using extension express@4.2.0
+2025-07-08T19:08:35.215Z - info: Using extension freeze@4.0.0
+2025-07-08T19:08:35.241Z - info: Using extension fs-store@4.1.1
+2025-07-08T19:08:38.832Z - info: Using extension handlebars@4.0.1
+2025-07-08T19:08:38.855Z - info: Using extension import-export@4.0.7
+2025-07-08T19:08:39.099Z - info: Using extension jsrender@4.0.0
+2025-07-08T19:08:39.115Z - info: Using extension licensing@4.0.5
+2025-07-08T19:08:39.825Z - info: Using extension localization@4.0.1
+2025-07-08T19:08:39.842Z - info: Using extension npm@4.0.0
+2025-07-08T19:08:39.894Z - info: Using extension pdf-utils@4.3.0
+2025-07-08T19:08:39.920Z - info: Using extension reports@4.1.4
+2025-07-08T19:08:39.963Z - info: Using extension tags@4.0.1
+2025-07-08T19:08:40.012Z - info: Using extension text@4.0.2
+2025-07-08T19:08:40.031Z - info: Using extension version-control@4.1.1
+2025-07-08T19:08:40.190Z - info: Using extension assets@4.2.2
+2025-07-08T19:08:40.418Z - info: Using extension authorization@4.1.0
+2025-07-08T19:08:40.513Z - debug: Extension authorization@4.1.0 was disabled
+2025-07-08T19:08:40.513Z - info: Using extension browser-client@4.1.0
+2025-07-08T19:08:40.599Z - info: Using extension chrome-pdf@4.2.0
+2025-07-08T19:08:40.626Z - debug: Chrome strategy is chrome-pool, numberOfWorkers: 1
+2025-07-08T19:08:40.627Z - debug: Chrome custom launch options are protocolTimeout=60000
+2025-07-08T19:08:40.628Z - info: Using extension docx@4.8.0
+2025-07-08T19:08:40.649Z - info: Using extension html-to-xlsx@4.2.1
+2025-07-08T19:08:46.286Z - info: html-to-xlsx detected chrome as available html engine
+2025-07-08T19:08:46.287Z - info: Using extension pptx@4.4.1
+2025-07-08T19:08:46.308Z - info: Using extension scheduling@4.1.0
+2025-07-08T19:08:47.131Z - info: Using extension scripts@4.2.0
+2025-07-08T19:08:47.178Z - info: Using extension static-pdf@4.1.0
+2025-07-08T19:08:47.196Z - info: Using extension studio@4.3.1
+2025-07-08T19:08:49.007Z - info: Using extension xlsx@4.4.1
+2025-07-08T19:08:49.029Z - info: Using extension public-templates@4.0.0
+2025-07-08T19:08:49.058Z - debug: Extension public-templates@4.0.0 was disabled
+2025-07-08T19:08:49.059Z - info: Using extension sample-template@4.0.1
+2025-07-08T19:08:49.089Z - info: Using extension studio-theme-dark@4.0.0
+2025-07-08T19:08:49.129Z - warn: options.allowLocalFilesAccess is deprecated, use options.trustUserCode instead
+2025-07-08T19:08:49.136Z - info: Using general timeout for rendering (reportTimeout: 60000)
+2025-07-08T19:08:49.137Z - info: Using fs provider for template store.
+2025-07-08T19:08:49.146Z - info: fs store is persisting using fs for C:\Users\josem\OneDrive\Documentos\GitHub\proyecto_db\data
+2025-07-08T19:08:49.154Z - info: fs store is loading data
+2025-07-08T19:08:49.262Z - info: fs store is initialized successfully
+2025-07-08T19:08:49.268Z - debug: studio default theme is: light
+2025-07-08T19:08:49.281Z - info: Creating default express app.
+2025-07-08T19:08:50.077Z - info: jsreport server successfully started on http port: 5488
+2025-07-08T19:08:50.080Z - info: Verifying license key free
+2025-07-08T19:08:50.497Z - info: The licensing server was not reachable during instance startup. The instance now runs in the enterprise mode.
+2025-07-08T19:08:50.502Z - info: Initializing worker threads
+2025-07-08T19:08:50.502Z - debug: Extensions in workers: base, child-templates, components, data, express, handlebars, jsrender, localization, npm, pdf-utils, reports, text, version-control, assets, browser-client, chrome-pdf, docx, html-to-xlsx, pptx, scripts, static-pdf, studio, xlsx
+2025-07-08T19:08:56.366Z - info: 2 worker threads initialized in 5864ms
+2025-07-08T19:08:56.367Z - info: Starting temp files cleanup with 180000ms threshold
+2025-07-08T19:08:56.369Z - info: reporter initialized
+2025-07-08T19:08:56.992Z - debug: OData query on templates
+2025-07-08T19:08:57.008Z - debug: OData query on settings
+2025-07-08T19:08:57.010Z - debug: OData query on folders
+2025-07-08T19:08:57.018Z - debug: OData query on components
+2025-07-08T19:08:57.026Z - debug: OData query on data
+2025-07-08T19:08:57.034Z - debug: OData query on tags
+2025-07-08T19:08:57.041Z - debug: OData query on assets
+2025-07-08T19:08:57.051Z - debug: OData query on scripts
+2025-07-08T19:08:57.058Z - debug: OData query on schedules
+2025-07-08T19:08:57.215Z - debug: OData query on templates
+2025-07-08T19:08:57.253Z - debug: OData query on profiles
+2025-07-08T19:08:57.290Z - debug: OData query on profiles
+2025-07-08T19:08:57.312Z - debug: OData query on profiles
+2025-07-08T19:08:57.330Z - debug: OData query on profiles
+2025-07-08T19:08:57.344Z - debug: OData query on profiles
+2025-07-08T19:08:57.358Z - debug: OData query on profiles
+2025-07-08T19:08:57.382Z - debug: OData query on templates
+2025-07-08T19:09:30.927Z - info: Render request 1 queued for execution and waiting for available worker rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:30.987Z - info: Starting rendering request 1 rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:30.988Z - info: Rendering template { name: Factura ACAUCAB, recipe: chrome-pdf, engine: handlebars, preview: false } rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:30.988Z - debug: Inline data specified. rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:30.992Z - debug: Base url not specified, skipping its injection. rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:30.994Z - debug: Rendering engine handlebars rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:37.565Z - debug: Executing recipe chrome-pdf rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:41.954Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:42.109Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/b0d0b23b-d304-48c7-bb87-ef70a75894b6-chrome-pdf.html rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:42.143Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/b0d0b23b-d304-48c7-bb87-ef70a75894b6-chrome-pdf.html rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:42.157Z - debug: Running chrome with params {"printBackground":true,"timeout":53259,"margin":{}} rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:42.449Z - debug: Skipping storing report. rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T19:09:42.449Z - info: Rendering request 1 finished in 11526 ms rootId=ja62rwa8yopmcog, id=ja62rwa8yopmcog
+2025-07-08T21:12:38.470Z - debug: fs journal was not synced for a while, need full reload
+2025-07-08T21:12:39.143Z - info: fs store is loading data
+2025-07-09T11:44:58.988Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T11:44:59.010Z - info: fs store is loading data
+2025-07-09T11:54:15.726Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T11:54:15.987Z - info: fs store is loading data
+2025-07-09T12:05:55.688Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T12:05:55.801Z - info: fs store is loading data
+2025-07-09T12:11:48.014Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T12:11:48.398Z - info: fs store is loading data
+2025-07-09T13:45:51.236Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T13:45:51.238Z - info: fs store is loading data
+2025-07-09T13:50:04.512Z - info: Render request 2 queued for execution and waiting for available worker rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:04.645Z - info: Starting rendering request 2 rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:04.651Z - info: Rendering template { name: Factura ACAUCAB, recipe: chrome-pdf, engine: handlebars, preview: false } rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:04.653Z - debug: Inline data specified. rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:04.672Z - debug: Base url not specified, skipping its injection. rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:04.686Z - debug: Rendering engine handlebars rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:11.844Z - debug: Executing recipe chrome-pdf rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:15.725Z - debug: Converting with chrome Chrome/136.0.7103.49 using chrome-pool strategy rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:15.821Z - debug: Page request: GET (document) file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/946e3274-22c9-4504-bbeb-fa464a70a43a-chrome-pdf.html rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:15.845Z - debug: Page request finished: GET (document) 200 file:///C:/Users/josem/AppData/Local/Temp/jsreport/autocleanup/946e3274-22c9-4504-bbeb-fa464a70a43a-chrome-pdf.html rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:15.864Z - debug: Running chrome with params {"printBackground":true,"timeout":52542,"margin":{}} rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:16.205Z - debug: Skipping storing report. rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:50:16.205Z - info: Rendering request 2 finished in 11715 ms rootId=md4ccdbxtoipnny, id=md4ccdbxtoipnny
+2025-07-09T13:53:58.677Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T13:53:58.784Z - info: fs store is loading data
+2025-07-09T14:14:16.334Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T14:14:16.357Z - info: fs store is loading data
+2025-07-09T15:23:54.828Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T15:23:54.992Z - info: fs store is loading data
+2025-07-09T18:13:35.324Z - debug: fs journal was not synced for a while, need full reload
+2025-07-09T18:13:35.337Z - info: fs store is loading data
